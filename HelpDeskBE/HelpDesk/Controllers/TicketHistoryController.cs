@@ -1,0 +1,46 @@
+﻿using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.TicketHistory;
+using HelpDesk.Services.TicketHistoryService;
+using HelpDesk.Services.TicketHistoryServices;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace HelpDesk.Api.Controllers
+{
+    [Route("api/ticket-histories")]
+    [ApiController]
+    [Authorize(Roles = "Administrador,TI")] 
+    public class TicketHistoryController : ControllerBase
+    {
+        private readonly ITicketHistoryService _historyService;
+
+        public TicketHistoryController(ITicketHistoryService historyService)
+        {
+            _historyService = historyService;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<ResponseDto<IEnumerable<TicketHistoryDto>>>> GetAll()
+        {
+            var response = await _historyService.GetAllAsync();
+            return StatusCode(response.StatusCode, response);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ResponseDto<TicketHistoryDto>>> GetById(long id)
+        {
+            var response = await _historyService.GetByIdAsync(id);
+            return StatusCode(response.StatusCode, response);
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Administrador")] 
+        public async Task<ActionResult<ResponseDto<bool>>> Delete(long id)
+        {
+            var response = await _historyService.DeleteAsync(id);
+            return StatusCode(response.StatusCode, response);
+        }
+    }
+}

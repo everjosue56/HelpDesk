@@ -1,0 +1,62 @@
+# ==========================================
+# 1. ENTORNOS DE DESARROLLO Y EDITORES (VS, VS Code, Rider)
+# ==========================================
+.vs/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+.idea/
+*.swp
+*.bak
+*.local
+
+# ==========================================
+# 2. .NET / C# (Backend)
+# ==========================================
+# Carpetas de compilación e intermediate output
+[Bb]in/
+[Oo]bj/
+# Archivos de publicación y empaquetado
+/publish/
+*.nupkg
+# Logs de Entity Framework y crash dumps
+*.log
+*.crash
+# CONFIGURACIONES LOCALES CON CREDENCIALES (¡Súper importante!)
+# Esto evita que subas las contraseñas de tus bases de datos locales
+appsettings.Development.json
+appsettings.local.json
+
+# ==========================================
+# 3. NODE.JS / REACT / VITE (Frontend)
+# ==========================================
+# Dependencias
+node_modules/
+jspm_packages/
+# Carpetas de producción / builds
+dist/
+build/
+out/
+.next/
+# Archivos de empaquetamiento y logs de error
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+# VARIABLES DE ENTORNO LOCALES (Secretos del frontend)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ==========================================
+# 4. SISTEMA OPERATIVO Y OTROS
+# ==========================================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
