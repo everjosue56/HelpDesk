@@ -1,4 +1,5 @@
 ﻿using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.ImpactDto;
 using HelpDesk.Services.ImpactServices;
 using Microsoft.AspNetCore.Authorization;
@@ -21,9 +22,9 @@ namespace HelpDesk.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ResponseDto<IEnumerable<ImpactDto>>>> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] ImpactFilterDto filter)
         {
-            var response = await _impactService.GetAllAsync();
+            var response = await _impactService.GetAllAsync(filter);
             return StatusCode(response.StatusCode, response);
         }
 

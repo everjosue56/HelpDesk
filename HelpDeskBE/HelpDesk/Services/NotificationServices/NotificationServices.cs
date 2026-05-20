@@ -2,10 +2,13 @@
 using HelpDesk.Database;
 using HelpDesk.Database.Entities;
 using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.NotificationDto;
+using HelpDesk.Helpers;
 using HelpDesk.Services.AuthService;
 using HelpDesk.Services.NotificationServices;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,25 +21,72 @@ namespace HelpDesk.Services.NotificationService
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
         private readonly IAuthService _authService;
+        private readonly ILogger _logger;
 
-        public NotificationService(ApplicationDbContext context, IMapper mapper, IAuthService authService)
+        public NotificationService(ApplicationDbContext context, IMapper mapper, IAuthService authService, ILogger<NotificationService> logger)
         {
             _context = context;
             _mapper = mapper;
             _authService = authService;
+            _logger = logger;
         }
 
-        // Obtener todas las notificaciones 
-        public async Task<ResponseDto<IEnumerable<NotificationDto>>> GetAllAsync()
+        public async Task<PagedResponseDto<NotificationDto>> GetAllAsync(NotificationFilterDto filter)
         {
-            var entities = await _context.Notifications
-                .OrderByDescending(n => n.CreatedDate)
-                .Include(n => n.Users)
-                .Include(n => n.AlertTypes)
-                .ToListAsync();
+            try
+            {
+                var query = _context.Notifications
+                    .Include(n => n.Users)
+                    .Include(n => n.AlertTypes)
+                    .AsQueryable();
 
-            var dtos = _mapper.Map<IEnumerable<NotificationDto>>(entities);
-            return new ResponseDto<IEnumerable<NotificationDto>> { Status = true, StatusCode = 200, Data = dtos };
+                if (filter.IdUser.HasValue)
+                {
+                    query = query.Where(n => n.IdUser == filter.IdUser.Value);
+                }
+
+                if (filter.IdAlertType.HasValue)
+                {
+                    query = query.Where(n => n.IdAlertType == filter.IdAlertType.Value);
+                }
+
+                if (filter.IsRead.HasValue)
+                {
+                    query = query.Where(n => n.IsRead == filter.IsRead.Value);
+                }
+
+                if (!string.IsNullOrWhiteSpace(filter.Keyword))
+                {
+                    string term = filter.Keyword.Trim().ToLower();
+                    query = query.Where(n => n.TextMessage.ToLower().Contains(term));
+                }
+
+                var (entities, totalItems, totalPages) = await query.ToPagedListAsync(filter.PageNumber, filter.PageSize);
+
+                var notificationsDto = _mapper.Map<IEnumerable<NotificationDto>>(entities);
+
+                return new PagedResponseDto<NotificationDto>
+                {
+                    Status = true,
+                    StatusCode = 200,
+                    Message = "Listado de notificaciones obtenido correctamente.",
+                    Data = notificationsDto,
+                    CurrentPage = filter.PageNumber,
+                    PageSize = filter.PageSize,
+                    TotalItems = totalItems,
+                    TotalPages = totalPages
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener el listado de notificaciones.");
+                return new PagedResponseDto<NotificationDto>
+                {
+                    Status = false,
+                    StatusCode = 500,
+                    Message = "Error interno del servidor al recuperar las notificaciones."
+                };
+            }
         }
         public async Task<ResponseDto<IEnumerable<NotificationDto>>> GetUnreadByUserIdAsync(long userId)
         {

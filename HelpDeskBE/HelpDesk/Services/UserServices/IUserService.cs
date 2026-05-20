@@ -1,4 +1,5 @@
 ﻿using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.UsersDto;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8,7 +9,7 @@ namespace HelpDesk.Services.UserServices
     public interface IUserService
     {
         // --- Gestión de Usuarios (CRUD) ---
-        Task<ResponseDto<IEnumerable<UserResponseDto>>> GetAllAsync();
+        Task<PagedResponseDto<UserResponseDto>> GetAllAsync(UserFilterDto filter);
         Task<ResponseDto<UserResponseDto>> GetByIdAsync(long id);
         Task<ResponseDto<UserResponseDto>> CreateAsync(UserRegisterDto userDto);
         Task<ResponseDto<UserResponseDto>> UpdateAsync(long id, UpdateUserDto userDto);

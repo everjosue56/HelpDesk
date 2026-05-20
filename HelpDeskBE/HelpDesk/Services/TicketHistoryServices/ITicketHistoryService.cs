@@ -1,4 +1,5 @@
 ﻿using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.TicketDto;
 using HelpDesk.Dtos.TicketHistory;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ namespace HelpDesk.Services.TicketHistoryServices
 {
     public interface ITicketHistoryService
     {
-        Task<ResponseDto<IEnumerable<TicketHistoryDto>>> GetAllAsync();
+        Task<PagedResponseDto<TicketHistoryDto>> GetAllAsync(TicketHistoryFilterDto filter);
         Task<ResponseDto<TicketHistoryDto>> GetByIdAsync(long id);
         Task<ResponseDto<TicketHistoryDto>> CreateAsync(long ticketId, long resolutionId, long userId);
         Task<ResponseDto<bool>> DeleteAsync(long id);

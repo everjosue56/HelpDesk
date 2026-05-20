@@ -1,4 +1,5 @@
 ﻿using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.MaintenanceDto;
 using HelpDesk.Dtos.OrganizationsDto;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ namespace HelpDesk.Services.MaintenanceService
 {
     public interface IMaintenanceService
     {
-        Task<ResponseDto<IEnumerable<MaintenanceDto>>> GetAllAsync();
+        Task<PagedResponseDto<MaintenanceDto>> GetAllAsync(MaintenanceFilterDto filter);
         Task<ResponseDto<MaintenanceDto>> GetByIdAsync(long id);
         Task<ResponseDto<MaintenanceDto>> CreateAsync(CreateMaintenanceDto dto);
         Task<ResponseDto<MaintenanceDto>> UpdateAsync(UpdateMaintenanceDto dto, long id);

@@ -1,4 +1,5 @@
 ﻿using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.NotificationDto;
 using HelpDesk.Services.NotificationService;
 using HelpDesk.Services.NotificationServices;
@@ -23,9 +24,9 @@ namespace HelpDesk.Api.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Administrador,TI")] // Solo auditoría o TI ven el historial global
-        public async Task<ActionResult<ResponseDto<IEnumerable<NotificationDto>>>> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] NotificationFilterDto filter)
         {
-            var response = await _notificationService.GetAllAsync();
+            var response = await _notificationService.GetAllAsync(filter);
             return StatusCode(response.StatusCode, response);
         }
 

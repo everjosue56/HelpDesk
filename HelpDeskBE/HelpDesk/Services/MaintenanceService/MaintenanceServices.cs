@@ -2,12 +2,16 @@
 using HelpDesk.Database;
 using HelpDesk.Database.Entities;
 using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.MaintenanceDto;
 using HelpDesk.Services.AuthService;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
+using HelpDesk.Helpers;
 
 namespace HelpDesk.Services.MaintenanceService
 {
@@ -16,30 +20,84 @@ namespace HelpDesk.Services.MaintenanceService
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
         private readonly IAuthService _authService;
+        private readonly ILogger _logger;
 
-        public MaintenanceService(ApplicationDbContext context, IMapper mapper, IAuthService authService)
+        public MaintenanceService(ApplicationDbContext context, IMapper mapper, IAuthService authService, ILogger<MaintenanceService> logger)
         {
             _context = context;
             _mapper = mapper;
             _authService = authService;
+            _logger = logger;
         }
 
-        public async Task<ResponseDto<IEnumerable<MaintenanceDto>>> GetAllAsync()
+        public async Task<PagedResponseDto<MaintenanceDto>> GetAllAsync(MaintenanceFilterDto filter)
         {
-            var entities = await _context.Maintenances
-                .Include(m => m.TypeMaintenance)
-                .Include(m => m.Area)
-                .Include(m => m.Device)
-                .ToListAsync();
-
-            var dtos = _mapper.Map<IEnumerable<MaintenanceDto>>(entities);
-
-            return new ResponseDto<IEnumerable<MaintenanceDto>>
+            try
             {
-                Status = true,
-                StatusCode = 200,
-                Data = dtos
-            };
+                var query = _context.Maintenances
+                    .Include(m => m.TypeMaintenance)
+                    .Include(m => m.Area)
+                    .Include(m => m.Device)
+                    .AsQueryable();
+
+                if (filter.IdMaintenanceType.HasValue)
+                {
+                    query = query.Where(m => m.IdMaintenanceType == filter.IdMaintenanceType.Value);
+                }
+
+                if (filter.IdArea.HasValue)
+                {
+                    query = query.Where(m => m.IdArea == filter.IdArea.Value);
+                }
+
+                if (filter.IdDevice.HasValue)
+                {
+                    query = query.Where(m => m.IdDevice == filter.IdDevice.Value);
+                }
+
+                if (!string.IsNullOrWhiteSpace(filter.Keyword))
+                {
+                    string term = filter.Keyword.Trim().ToLower();
+                    query = query.Where(m => m.Details.ToLower().Contains(term));
+                }
+
+                if (filter.DateFrom.HasValue)
+                {
+                    query = query.Where(m => m.NotificationDate >= filter.DateFrom.Value);
+                }
+
+                if (filter.DateTo.HasValue)
+                {
+                    var endOfDay = filter.DateTo.Value.Date.AddDays(1).AddTicks(-1);
+                    query = query.Where(m => m.NotificationDate <= endOfDay);
+                }
+
+                var (entities, totalItems, totalPages) = await query.ToPagedListAsync(filter.PageNumber, filter.PageSize);
+
+                var maintenancesDto = _mapper.Map<IEnumerable<MaintenanceDto>>(entities);
+
+                return new PagedResponseDto<MaintenanceDto>
+                {
+                    Status = true,
+                    StatusCode = 200,
+                    Message = "Listado de mantenimientos obtenido correctamente.",
+                    Data = maintenancesDto,
+                    CurrentPage = filter.PageNumber,
+                    PageSize = filter.PageSize,
+                    TotalItems = totalItems,
+                    TotalPages = totalPages
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener el listado de mantenimientos.");
+                return new PagedResponseDto<MaintenanceDto>
+                {
+                    Status = false,
+                    StatusCode = 500,
+                    Message = "Error interno del servidor al recuperar el historial de mantenimientos."
+                };
+            }
         }
 
         public async Task<ResponseDto<MaintenanceDto>> GetByIdAsync(long id)

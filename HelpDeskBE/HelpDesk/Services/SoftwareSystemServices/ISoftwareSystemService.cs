@@ -1,4 +1,5 @@
 ﻿using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.SoftwareSystemDto;
 using HelpDesk.Dtos.TypeErrorDto;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ namespace HelpDesk.Services.SoftwareSystemServices
 {
     public interface ISoftwareSystemService
     {
-        Task<ResponseDto<IEnumerable<SoftwareSystemDto>>> GetAllAsync();
+        Task<PagedResponseDto<SoftwareSystemDto>> GetAllAsync(SoftwareSystemFilterDto filter);
         Task<ResponseDto<SoftwareSystemDto>> GetByIdAsync(long id);
         Task<ResponseDto<SoftwareSystemDto>> CreateAsync(CreateSoftwareSystemDto dto);
         Task<ResponseDto<SoftwareSystemDto>> UpdateAsync(UpdateSoftwareSystemDto dto, long id);

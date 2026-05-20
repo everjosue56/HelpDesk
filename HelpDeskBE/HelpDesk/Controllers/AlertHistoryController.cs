@@ -1,5 +1,6 @@
 ﻿using HelpDesk.Dtos.AlertHistoryDto;
 using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Services.AlertHistoryService;
 using HelpDesk.Services.AlertHistoryServices;
 using Microsoft.AspNetCore.Authorization;
@@ -22,9 +23,9 @@ namespace HelpDesk.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ResponseDto<IEnumerable<AlertHistoryDto>>>> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] AlertHistoryFilterDto filter)
         {
-            var response = await _historyService.GetAllAsync();
+            var response = await _historyService.GetAllAsync(filter);
             return StatusCode(response.StatusCode, response);
         }
 

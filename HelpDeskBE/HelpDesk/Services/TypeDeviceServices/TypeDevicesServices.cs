@@ -2,12 +2,16 @@
 using HelpDesk.Database;
 using HelpDesk.Database.Entities;
 using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.TypeDevicesDto;
+using HelpDesk.Helpers;
 using HelpDesk.Services.AuthService;
 using HelpDesk.Services.TypeDeviceServices;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace HelpDesk.Services.TypeDeviceService
@@ -17,25 +21,54 @@ namespace HelpDesk.Services.TypeDeviceService
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
         private readonly IAuthService _authService;
+        private readonly ILogger _logger;
 
-        public TypeDeviceService(ApplicationDbContext context, IMapper mapper, IAuthService authService)
+        public TypeDeviceService(ApplicationDbContext context, IMapper mapper, IAuthService authService, ILogger<TypeDeviceService> logger)
         {
             _context = context;
             _mapper = mapper;
             _authService = authService;
+            _logger = logger;
         }
 
-        public async Task<ResponseDto<IEnumerable<TypeDevicesDto>>> GetAllAsync()
+        public async Task<PagedResponseDto<TypeDevicesDto>> GetAllAsync(TypeDeviceFilterDto filter)
         {
-            var entities = await _context.TypeDevices.ToListAsync();
-            var dtos = _mapper.Map<IEnumerable<TypeDevicesDto>>(entities);
-
-            return new ResponseDto<IEnumerable<TypeDevicesDto>>
+            try
             {
-                Status = true,
-                StatusCode = 200,
-                Data = dtos
-            };
+                var query = _context.TypeDevices.AsQueryable();
+
+                if (!string.IsNullOrWhiteSpace(filter.Name))
+                {
+                    string searchTerm = filter.Name.Trim().ToLower();
+                    query = query.Where(td => td.Name.ToLower().Contains(searchTerm));
+                }
+
+                var (entities, totalItems, totalPages) = await query.ToPagedListAsync(filter.PageNumber, filter.PageSize);
+
+                var typeDevicesDto = _mapper.Map<IEnumerable<TypeDevicesDto>>(entities);
+
+                return new PagedResponseDto<TypeDevicesDto >
+                {
+                    Status = true,
+                    StatusCode = 200,
+                    Message = "Tipos de dispositivo obtenidos correctamente.",
+                    Data = typeDevicesDto,
+                    CurrentPage = filter.PageNumber,
+                    PageSize = filter.PageSize,
+                    TotalItems = totalItems,
+                    TotalPages = totalPages
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener los tipos de dispositivos.");
+                return new PagedResponseDto<TypeDevicesDto>
+                {
+                    Status = false,
+                    StatusCode = 500,
+                    Message = "Error interno del servidor al recuperar los datos."
+                };
+            }
         }
 
         public async Task<ResponseDto<TypeDevicesDto>> GetByIdAsync(long id)

@@ -1,4 +1,5 @@
 ﻿using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.TypeDevicesDto;
 using HelpDesk.Services.TypeDeviceService;
 using HelpDesk.Services.TypeDeviceServices;
@@ -22,9 +23,9 @@ namespace HelpDesk.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ResponseDto<IEnumerable<TypeDevicesDto>>>> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] TypeDeviceFilterDto filter)
         {
-            var response = await _typeDeviceService.GetAllAsync();
+            var response = await _typeDeviceService.GetAllAsync(filter);
             return StatusCode(response.StatusCode, response);
         }
 

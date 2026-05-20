@@ -1,5 +1,6 @@
 ﻿using HelpDesk.Dtos.Common;
 using HelpDesk.Dtos.DeviceDto;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Services.DeviceService;
 using HelpDesk.Services.DeviceServices;
 using Microsoft.AspNetCore.Authorization;
@@ -22,9 +23,9 @@ namespace HelpDesk.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ResponseDto<IEnumerable<DeviceDto>>>> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] DevicesFilterDto filter)
         {
-            var response = await _deviceService.GetAllAsync();
+            var response = await _deviceService.GetAllAsync(filter);
             return StatusCode(response.StatusCode, response);
         }
 

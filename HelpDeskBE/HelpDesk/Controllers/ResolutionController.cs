@@ -1,4 +1,5 @@
 ﻿using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.ResolutionDto;
 using HelpDesk.Services.ResolutionService;
 using Microsoft.AspNetCore.Authorization;
@@ -21,9 +22,9 @@ namespace HelpDesk.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ResponseDto<IEnumerable<ResolutionDto>>>> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] ResolutionFilterDto filter)
         {
-            var response = await _resolutionService.GetAllAsync();
+            var response = await _resolutionService.GetAllAsync(filter);
             return StatusCode(response.StatusCode, response);
         }
 

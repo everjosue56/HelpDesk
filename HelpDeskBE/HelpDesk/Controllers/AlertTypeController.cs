@@ -1,6 +1,7 @@
 ﻿// Api/Controllers/AlertTypeController.cs
 using HelpDesk.Dtos.AlertTypeDto;
 using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Services.AlertTypeService;
 using HelpDesk.Services.AlertTypeServices;
 using Microsoft.AspNetCore.Authorization;
@@ -23,9 +24,9 @@ namespace HelpDesk.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ResponseDto<IEnumerable<AlertTypeDto>>>> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] AlertTypeFilterDto filter)
         {
-            var response = await _alertTypeService.GetAllAsync();
+            var response = await _alertTypeService.GetAllAsync(filter);
             return StatusCode(response.StatusCode, response);
         }
 

@@ -3,12 +3,14 @@ using HelpDesk.Database;
 using HelpDesk.Database.Entities;
 using HelpDesk.Dtos.AreaDto;
 using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
+using HelpDesk.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace HelpDesk.Services.AreaServices
 {
@@ -25,28 +27,43 @@ namespace HelpDesk.Services.AreaServices
             _logger = logger;
         }
 
-        public async Task<ResponseDto<IEnumerable<AreaDto>>> GetAllAsync()
+        public async Task<PagedResponseDto<AreaDto>> GetAllAsync(AreaFilterDto pagination)
         {
             try
             {
-                var areasEntity = await _context.Areas
-                    .Include(a => a.Agencies) 
-                    .Where(a => a.IsActive)
-                    .ToListAsync();
+                var query = _context.Areas
+                    .Include(a => a.Agencies)
+                    .Where(a => a.IsActive);
 
-                var areasDto = _mapper.Map<IEnumerable<AreaDto>>(areasEntity);
+                if (!string.IsNullOrWhiteSpace(pagination.SearchName))
+                {
+                    string searchTerm = pagination.SearchName.Trim().ToLower();
+                    query = query.Where(a => a.NameArea.ToLower().Contains(searchTerm));
+                }
 
-                return new ResponseDto<IEnumerable<AreaDto>>
+                var (entities, totalItems, totalPages) = await query.ToPagedListAsync(pagination.PageNumber, pagination.PageSize);
+                var areasDto = _mapper.Map<IEnumerable<AreaDto>>(entities);
+                return new PagedResponseDto<AreaDto>
                 {
                     Status = true,
+                    StatusCode = 200,
+                    Message = "Listado de áreas obtenido correctamente.",
                     Data = areasDto,
-                    Message = "Listado de áreas obtenido correctamente."
+                    CurrentPage = pagination.PageNumber,
+                    PageSize = pagination.PageSize,
+                    TotalItems = totalItems,
+                    TotalPages = totalPages
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al obtener áreas.");
-                return new ResponseDto<IEnumerable<AreaDto>> { Status = false, Message = "Error al recuperar los datos." };
+                return new PagedResponseDto<AreaDto>
+                {
+                    Status = false,
+                    StatusCode = 500,
+                    Message = "Error al recuperar los datos."
+                };
             }
         }
 

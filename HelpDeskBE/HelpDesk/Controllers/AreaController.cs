@@ -1,5 +1,6 @@
 ﻿using HelpDesk.Dtos.AreaDto;
 using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Services.AreaServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,10 +22,10 @@ namespace HelpDesk.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ResponseDto<IEnumerable<AreaDto>>>> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] AreaFilterDto pagination)
         {
-            var response = await _areaService.GetAllAsync();
-            return response.Status ? Ok(response) : BadRequest(response);
+            var response = await _areaService.GetAllAsync(pagination);
+            return StatusCode(response.StatusCode, response);
         }
 
         [HttpGet("{id}")]

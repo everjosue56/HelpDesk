@@ -2,13 +2,17 @@
 using HelpDesk.Database;
 using HelpDesk.Database.Entities;
 using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.ResolutionDto;
+using HelpDesk.Helpers;
 using HelpDesk.Services.AuthService;
 using HelpDesk.Services.ResolutionService;
 using HelpDesk.Services.TicketHistoryServices;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace HelpDesk.Services
@@ -19,33 +23,98 @@ namespace HelpDesk.Services
         private readonly IMapper _mapper;
         private readonly ITicketHistoryService _historyService;
         private readonly IAuthService _authService;
+        private readonly ILogger _logger;
 
-        public ResolutionServices(ApplicationDbContext context, IMapper mapper, ITicketHistoryService historyService, IAuthService authService)
+        public ResolutionServices(ApplicationDbContext context, IMapper mapper, ITicketHistoryService historyService, IAuthService authService, ILogger<ResolutionServices> logger)
         {
             _context = context;
             _mapper = mapper;
             _historyService = historyService;
             _authService = authService;
+            _logger = logger;
         }
 
-        public async Task<ResponseDto<IEnumerable<ResolutionDto>>> GetAllAsync()
+        public async Task<PagedResponseDto<ResolutionDto>> GetAllAsync(ResolutionFilterDto filter)
         {
-            var entities = await _context.Resolutions
-                .Include(r => r.Ticket)
-                .Include(r => r.User)
-                .Include(r => r.SolutionStatus)
-                .Include(r => r.Device)
-                .Include(r => r.Priority)
-                .ToListAsync();
-
-            var dtos = _mapper.Map<IEnumerable<ResolutionDto>>(entities);
-
-            return new ResponseDto<IEnumerable<ResolutionDto>>
+            try
             {
-                Status = true,
-                Data = dtos,
-                StatusCode = 200
-            };
+                var query = _context.Resolutions
+                    .Include(r => r.Ticket)
+                    .Include(r => r.User)
+                    .Include(r => r.SolutionStatus)
+                    .Include(r => r.Device)
+                    .Include(r => r.Priority)
+                    .AsQueryable();
+
+                if (filter.IdTicket.HasValue)
+                {
+                    query = query.Where(r => r.IdTicket == filter.IdTicket.Value);
+                }
+
+                if (filter.IdUser.HasValue)
+                {
+                    query = query.Where(r => r.IdUser == filter.IdUser.Value);
+                }
+
+                if (filter.IdSolutionStatus.HasValue)
+                {
+                    query = query.Where(r => r.IdSolutionStatus == filter.IdSolutionStatus.Value);
+                }
+
+                if (filter.IdDevice.HasValue)
+                {
+                    query = query.Where(r => r.IdDevice == filter.IdDevice.Value);
+                }
+
+                if (filter.IdPriority.HasValue)
+                {
+                    query = query.Where(r => r.IdPriority == filter.IdPriority.Value);
+                }
+
+                if (!string.IsNullOrWhiteSpace(filter.Keyword))
+                {
+                    string term = filter.Keyword.Trim().ToLower();
+                    query = query.Where(r => r.RootCause.ToLower().Contains(term)
+                                           || r.Observation.ToLower().Contains(term));
+                }
+
+                if (filter.DateFrom.HasValue)
+                {
+                    query = query.Where(r => r.ResolutionDate >= filter.DateFrom.Value);
+                }
+
+                if (filter.DateTo.HasValue)
+                {
+                    var endOfDay = filter.DateTo.Value.Date.AddDays(1).AddTicks(-1);
+                    query = query.Where(r => r.ResolutionDate <= endOfDay);
+                }
+
+                var (entities, totalItems, totalPages) = await query.ToPagedListAsync(filter.PageNumber, filter.PageSize);
+
+                var dtos = _mapper.Map<IEnumerable<ResolutionDto>>(entities);
+
+                return new PagedResponseDto<ResolutionDto>
+                {
+                    Status = true,
+                    StatusCode = 200,
+                    Message = "Listado de resoluciones obtenido correctamente.",
+                    Data = dtos,
+                    CurrentPage = filter.PageNumber,
+                    PageSize = filter.PageSize,
+                    TotalItems = totalItems,
+                    TotalPages = totalPages
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener el listado de resoluciones paginado.");
+                return new PagedResponseDto<ResolutionDto>
+                {
+                    Status = false,
+                    StatusCode = 500,
+                    Message = "Error interno del servidor al recuperar las resoluciones."
+                };
+            }
         }
 
         public async Task<ResponseDto<ResolutionDto>> GetByIdAsync(long id)

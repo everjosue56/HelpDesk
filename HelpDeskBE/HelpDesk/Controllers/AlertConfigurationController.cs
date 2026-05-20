@@ -1,5 +1,6 @@
-﻿using HelpDesk.Dtos.Common;
-using HelpDesk.Dtos.AlertConfigurationDto;
+﻿using HelpDesk.Dtos.AlertConfigurationDto;
+using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Services.AlertConfigurationService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,9 +22,9 @@ namespace HelpDesk.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ResponseDto<IEnumerable<AlertConfigurationDto>>>> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] AlertConfigurationFilterDto filter)
         {
-            var response = await _configurationService.GetAllAsync();
+            var response = await _configurationService.GetAllAsync(filter);
             return StatusCode(response.StatusCode, response);
         }
 

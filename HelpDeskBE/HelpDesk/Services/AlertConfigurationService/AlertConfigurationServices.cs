@@ -3,11 +3,14 @@ using HelpDesk.Database;
 using HelpDesk.Database.Entities;
 using HelpDesk.Dtos.AlertConfigurationDto;
 using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.NotificationDto;
-using HelpDesk.Services.AuthService;
+using HelpDesk.Helpers;
 using HelpDesk.Services.AlertHistoryServices;
+using HelpDesk.Services.AuthService;
 using HelpDesk.Services.NotificationServices;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,30 +25,78 @@ namespace HelpDesk.Services.AlertConfigurationService
         private readonly IAuthService _authService;
         private readonly INotificationService _notificationService;
         private readonly IAlertHistoryService _alertHistoryService;
+        private readonly ILogger _logger;
 
         public AlertConfigurationService(
             ApplicationDbContext context,
             IMapper mapper,
             IAuthService authService,
             INotificationService notificationService,
-            IAlertHistoryService alertHistoryService)
+            IAlertHistoryService alertHistoryService,
+            ILogger<AlertConfigurationService> logger)
         {
             _context = context;
             _mapper = mapper;
             _authService = authService;
             _notificationService = notificationService;
             _alertHistoryService = alertHistoryService;
+            _logger = logger;
         }
 
-        public async Task<ResponseDto<IEnumerable<AlertConfigurationDto>>> GetAllAsync()
+        public async Task<PagedResponseDto<AlertConfigurationDto>> GetAllAsync(AlertConfigurationFilterDto filter)
         {
-            var entities = await _context.AlertConfigurations
-                .Include(ac => ac.Areas)
-                .Include(ac => ac.Agencys)
-                .ToListAsync();
+            try
+            {
+                var query = _context.AlertConfigurations
+                    .Include(ac => ac.Areas)
+                    .Include(ac => ac.Agencys)
+                    .AsQueryable(); 
 
-            var dtos = _mapper.Map<IEnumerable<AlertConfigurationDto>>(entities);
-            return new ResponseDto<IEnumerable<AlertConfigurationDto>> { Status = true, StatusCode = 200, Data = dtos };
+                if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+                {
+                    string term = filter.SearchTerm.Trim().ToLower();
+
+                    query = query.Where(ac => ac.Title.ToLower().Contains(term)
+                                           || ac.Subject.ToLower().Contains(term)
+                                           || ac.Description.ToLower().Contains(term));
+                }
+
+                if (filter.IsActive.HasValue)
+                {
+                    query = query.Where(ac => ac.IsActive == filter.IsActive.Value);
+                }
+
+                if (filter.IsGlobal.HasValue)
+                {
+                    query = query.Where(ac => ac.IsGlobal == filter.IsGlobal.Value);
+                }
+
+                var (entities, totalItems, totalPages) = await query.ToPagedListAsync(filter.PageNumber, filter.PageSize);
+
+                var dtos = _mapper.Map<IEnumerable<AlertConfigurationDto>>(entities);
+
+                return new PagedResponseDto<AlertConfigurationDto>
+                {
+                    Status = true,
+                    StatusCode = 200,
+                    Message = "Configuraciones de alertas obtenidas correctamente.",
+                    Data = dtos,
+                    CurrentPage = filter.PageNumber,
+                    PageSize = filter.PageSize,
+                    TotalItems = totalItems,
+                    TotalPages = totalPages
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener las configuraciones de alertas.");
+                return new PagedResponseDto<AlertConfigurationDto>
+                {
+                    Status = false,
+                    StatusCode = 500,
+                    Message = "Error interno del servidor al recuperar las alertas."
+                };
+            }
         }
 
         public async Task<ResponseDto<AlertConfigurationDto>> GetByIdAsync(long id)

@@ -3,12 +3,16 @@ using HelpDesk.Database;
 using HelpDesk.Database.Entities;
 using HelpDesk.Dtos.Common;
 using HelpDesk.Dtos.DeviceDto;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Services.AuthService;
 using HelpDesk.Services.DeviceServices;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
+using HelpDesk.Helpers;
 
 namespace HelpDesk.Services.DeviceService
 {
@@ -17,30 +21,74 @@ namespace HelpDesk.Services.DeviceService
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
         private readonly IAuthService _authService;
+        private readonly ILogger _logger;
 
-        public DeviceService(ApplicationDbContext context, IMapper mapper, IAuthService authService)
+        public DeviceService(ApplicationDbContext context, IMapper mapper, IAuthService authService, ILogger<DeviceService> logger)
         {
             _context = context;
             _mapper = mapper;
             _authService = authService;
+            _logger = logger;
         }
 
-        public async Task<ResponseDto<IEnumerable<DeviceDto>>> GetAllAsync()
+        public async Task<PagedResponseDto<DeviceDto>> GetAllAsync(DevicesFilterDto filter)
         {
-            var entities = await _context.Devices
-                .Include(d => d.TypeDevices)
-                .Include(d => d.Users)
-                .Include(d => d.Areas)
-                .ToListAsync();
-
-            var dtos = _mapper.Map<IEnumerable<DeviceDto>>(entities);
-
-            return new ResponseDto<IEnumerable<DeviceDto>>
+            try
             {
-                Status = true,
-                StatusCode = 200,
-                Data = dtos
-            };
+                var query = _context.Devices
+                    .Include(d => d.TypeDevices)
+                    .Include(d => d.Users)
+                    .Include(d => d.Areas)
+                    .Where(d => d.IsActive);
+
+                if (filter.IdUser.HasValue)
+                {
+                    query = query.Where(d => d.IdUser == filter.IdUser.Value);
+                }
+
+                if (filter.IdArea.HasValue)
+                {
+                    query = query.Where(d => d.IdArea == filter.IdArea.Value);
+                }
+
+                if (filter.IdDeviceType.HasValue)
+                {
+                    query = query.Where(d => d.IdDeviceType == filter.IdDeviceType.Value);
+                }
+
+                if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+                {
+                    string term = filter.SearchTerm.Trim().ToLower();
+                    query = query.Where(d => d.BrandName.ToLower().Contains(term)
+                                           || d.Code.ToLower().Contains(term));
+                }
+
+                var (entities, totalItems, totalPages) = await query.ToPagedListAsync(filter.PageNumber, filter.PageSize);
+
+                var devicesDto = _mapper.Map<IEnumerable<DeviceDto>>(entities);
+
+                return new PagedResponseDto<DeviceDto>
+                {
+                    Status = true,
+                    StatusCode = 200,
+                    Message = "Listado de dispositivos obtenido correctamente.",
+                    Data = devicesDto,
+                    CurrentPage = filter.PageNumber,
+                    PageSize = filter.PageSize,
+                    TotalItems = totalItems,
+                    TotalPages = totalPages
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener el listado de dispositivos.");
+                return new PagedResponseDto<DeviceDto>
+                {
+                    Status = false,
+                    StatusCode = 500,
+                    Message = "Error interno del servidor al recuperar el inventario de dispositivos."
+                };
+            }
         }
 
         public async Task<ResponseDto<DeviceDto>> GetByIdAsync(long id)

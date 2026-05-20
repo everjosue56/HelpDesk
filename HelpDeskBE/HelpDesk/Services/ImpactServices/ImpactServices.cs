@@ -2,40 +2,72 @@
 using HelpDesk.Database;
 using HelpDesk.Database.Entities;
 using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.ImpactDto;
+using HelpDesk.Helpers;
 using HelpDesk.Services.AuthService;
 using HelpDesk.Services.ImpactServices;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace HelpDesk.Services
 {
-    public class ImpactService : IImpactService 
+    public class ImpactService : IImpactService
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
         private readonly IAuthService _authService;
+        private readonly ILogger _logger;
 
-        public ImpactService(ApplicationDbContext context, IMapper mapper, IAuthService authService)
+        public ImpactService(ApplicationDbContext context, IMapper mapper, IAuthService authService, ILogger<ImpactService> logger)
         {
             _context = context;
             _mapper = mapper;
             _authService = authService;
+            _logger = logger;
         }
 
-        public async Task<ResponseDto<IEnumerable<ImpactDto>>> GetAllAsync()
+        public async Task<PagedResponseDto<ImpactDto>> GetAllAsync(ImpactFilterDto filter)
         {
-            var entities = await _context.Impacts.ToListAsync();
-            var dtos = _mapper.Map<IEnumerable<ImpactDto>>(entities);
-
-            return new ResponseDto<IEnumerable<ImpactDto>>
+            try
             {
-                Status = true,
-                Data = dtos,
-                StatusCode = 200
-            };
+                var query = _context.Impacts.AsQueryable();
+                if (!string.IsNullOrWhiteSpace(filter.Name))
+                {
+                    string searchTerm = filter.Name.Trim().ToLower();
+                    query = query.Where(i => i.Name.ToLower().Contains(searchTerm));
+                }
+
+                var (entities, totalItems, totalPages) = await query.ToPagedListAsync(filter.PageNumber, filter.PageSize);
+
+                var impactsDto = _mapper.Map<IEnumerable<ImpactDto>>(entities);
+
+                return new PagedResponseDto<ImpactDto>
+                {
+                    Status = true,
+                    StatusCode = 200,
+                    Message = "Niveles de impacto obtenidos correctamente.",
+                    Data = impactsDto,
+                    CurrentPage = filter.PageNumber,
+                    PageSize = filter.PageSize,
+                    TotalItems = totalItems,
+                    TotalPages = totalPages
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener los niveles de impacto.");
+                return new PagedResponseDto<ImpactDto>
+                {
+                    Status = false,
+                    StatusCode = 500,
+                    Message = "Error interno del servidor al recuperar los datos."
+                };
+            }
         }
 
         public async Task<ResponseDto<ImpactDto>> GetByIdAsync(long id)

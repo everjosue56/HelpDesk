@@ -1,4 +1,5 @@
 ﻿using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.MaintenanceDto;
 using HelpDesk.Services.MaintenanceService;
 using Microsoft.AspNetCore.Authorization;
@@ -21,9 +22,9 @@ namespace HelpDesk.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ResponseDto<IEnumerable<MaintenanceDto>>>> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] MaintenanceFilterDto filter)
         {
-            var response = await _maintenanceService.GetAllAsync();
+            var response = await _maintenanceService.GetAllAsync(filter);
             return StatusCode(response.StatusCode, response);
         }
 

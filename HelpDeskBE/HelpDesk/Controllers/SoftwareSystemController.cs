@@ -1,4 +1,5 @@
 ﻿using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.SoftwareSystemDto;
 using HelpDesk.Services.SoftwareSystemServices;
 using Microsoft.AspNetCore.Authorization;
@@ -21,9 +22,9 @@ namespace HelpDesk.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ResponseDto<IEnumerable<SoftwareSystemDto>>>> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] SoftwareSystemFilterDto filter)
         {
-            var response = await _softwareSystemService.GetAllAsync();
+            var response = await _softwareSystemService.GetAllAsync(filter);
             return StatusCode(response.StatusCode, response);
         }
 

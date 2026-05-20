@@ -2,10 +2,13 @@
 using HelpDesk.Database;
 using HelpDesk.Database.Entities;
 using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.UsersDto;
+using HelpDesk.Helpers;
 using HelpDesk.Services.UserServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
@@ -23,35 +26,81 @@ namespace HelpDesk.Services
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
+        private readonly ILogger _logger;
 
-        public UserService(ApplicationDbContext context, IMapper mapper, IConfiguration configuration)
+        public UserService(ApplicationDbContext context, IMapper mapper, IConfiguration configuration, ILogger<UserService> logger)
         {
             _context = context;
             _mapper = mapper;
             _configuration = configuration;
+            _logger = logger;
         }
 
         // --- GESTIÓN DE USUARIOS (CRUD) ---
 
-        public async Task<ResponseDto<IEnumerable<UserResponseDto>>> GetAllAsync()
+        public async Task<PagedResponseDto<UserResponseDto>> GetAllAsync(UserFilterDto filter)
         {
-            var users = await _context.Users
-                .Include(u => u.Roles)
-                .Include(u => u.Agency)  
-                .Include(u => u.Area)
-                .Where(u => u.IsActive)
-                .ToListAsync();
-
-            var data = _mapper.Map<IEnumerable<UserResponseDto>>(users);
-
-            return new ResponseDto<IEnumerable<UserResponseDto>>
+            try
             {
-                Data = data,
-                Status = true,
-                Message = "Listado de usuarios obtenido correctamente."
-            };
-        }
+                var query = _context.Users
+                    .Include(u => u.Roles)
+                    .Include(u => u.Agency)
+                    .Include(u => u.Area)
+                    .Where(u => u.IsActive)
+                    .AsQueryable();
+        
+                if (filter.IdRol.HasValue)
+                {
+                    query = query.Where(u => u.IdRol == filter.IdRol.Value);
+                }
 
+                if (filter.IdAgency.HasValue)
+                {
+                    query = query.Where(u => u.IdAgency == filter.IdAgency.Value);
+                }
+
+                if (filter.IdArea.HasValue)
+                {
+                    query = query.Where(u => u.IdArea == filter.IdArea.Value);
+                }
+
+                if (!string.IsNullOrWhiteSpace(filter.Keyword))
+                {
+                    string term = filter.Keyword.Trim().ToLower();
+                    query = query.Where(u => u.FirstName.ToLower().Contains(term)
+                                           || u.LastName.ToLower().Contains(term)
+                                           || u.UserName.ToLower().Contains(term)
+                                           || u.Email.ToLower().Contains(term));
+                }
+
+                var (entities, totalItems, totalPages) = await query.ToPagedListAsync(filter.PageNumber, filter.PageSize);
+
+                var usersDto = _mapper.Map<IEnumerable<UserResponseDto>>(entities);
+
+                return new PagedResponseDto<UserResponseDto>
+                {
+                    Status = true,
+                    StatusCode = 200,
+                    Message = "Listado de usuarios obtenido correctamente.",
+                    Data = usersDto,
+                    CurrentPage = filter.PageNumber,
+                    PageSize = filter.PageSize,
+                    TotalItems = totalItems,
+                    TotalPages = totalPages
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener el listado de usuarios paginado.");
+                return new PagedResponseDto<UserResponseDto>
+                {
+                    Status = false,
+                    StatusCode = 500,
+                    Message = "Error interno del servidor al recuperar los usuarios."
+                };
+            }
+        }
+        
         public async Task<ResponseDto<UserResponseDto>> GetByIdAsync(long id)
         {
             var user = await _context.Users

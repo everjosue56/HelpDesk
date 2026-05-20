@@ -2,12 +2,16 @@
 using HelpDesk.Database;
 using HelpDesk.Database.Entities;
 using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.SoftwareSystemDto;
+using HelpDesk.Helpers;
 using HelpDesk.Services.AuthService;
 using HelpDesk.Services.SoftwareSystemServices;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace HelpDesk.Services
@@ -17,25 +21,53 @@ namespace HelpDesk.Services
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
         private readonly IAuthService _authService;
-
-        public SoftwareSystemService(ApplicationDbContext context, IMapper mapper, IAuthService authService)
+        private readonly ILogger _logger;
+        public SoftwareSystemService(ApplicationDbContext context, IMapper mapper, IAuthService authService, ILogger<SoftwareSystemService> logger)
         {
             _context = context;
             _mapper = mapper;
             _authService = authService;
+            _logger = logger;
         }
 
-        public async Task<ResponseDto<IEnumerable<SoftwareSystemDto>>> GetAllAsync()
+        public async Task<PagedResponseDto<SoftwareSystemDto>> GetAllAsync(SoftwareSystemFilterDto filter)
         {
-            var entities = await _context.SoftwareSystems.ToListAsync();
-            var dtos = _mapper.Map<IEnumerable<SoftwareSystemDto>>(entities);
-
-            return new ResponseDto<IEnumerable<SoftwareSystemDto>>
+            try
             {
-                Status = true,
-                Data = dtos,
-                StatusCode = 200
-            };
+                var query = _context.SoftwareSystems.AsQueryable();
+
+                if (!string.IsNullOrWhiteSpace(filter.Name))
+                {
+                    string searchTerm = filter.Name.Trim().ToLower();
+                    query = query.Where(ss => ss.Name.ToLower().Contains(searchTerm));
+                }
+
+                var (entities, totalItems, totalPages) = await query.ToPagedListAsync(filter.PageNumber, filter.PageSize);
+
+                var softwareSystemsDto = _mapper.Map<IEnumerable<SoftwareSystemDto>>(entities);
+
+                return new PagedResponseDto<SoftwareSystemDto>
+                {
+                    Status = true,
+                    StatusCode = 200,
+                    Message = "Sistemas de software obtenidos correctamente.",
+                    Data = softwareSystemsDto,
+                    CurrentPage = filter.PageNumber,
+                    PageSize = filter.PageSize,
+                    TotalItems = totalItems,
+                    TotalPages = totalPages
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener los sistemas de software.");
+                return new PagedResponseDto<SoftwareSystemDto>
+                {
+                    Status = false,
+                    StatusCode = 500,
+                    Message = "Error interno del servidor al recuperar los datos."
+                };
+            }
         }
 
         public async Task<ResponseDto<SoftwareSystemDto>> GetByIdAsync(long id)

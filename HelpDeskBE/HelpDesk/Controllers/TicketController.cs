@@ -1,4 +1,5 @@
 ﻿using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.TicketDto;
 using HelpDesk.Services.TicketService;
 using Microsoft.AspNetCore.Authorization;
@@ -21,9 +22,9 @@ namespace HelpDesk.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ResponseDto<IEnumerable<TicketDto>>>> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] TicketFilterDto filter)
         {
-            var response = await _ticketService.GetAllAsync();
+            var response = await _ticketService.GetAllAsync(filter);
             return StatusCode(response.StatusCode, response);
         }
 

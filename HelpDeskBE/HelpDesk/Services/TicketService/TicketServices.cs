@@ -2,15 +2,19 @@
 using HelpDesk.Database;
 using HelpDesk.Database.Entities;
 using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.NotificationDto; 
 using HelpDesk.Dtos.TicketDto;
+using HelpDesk.Helpers;
 using HelpDesk.Services.AuthService;
 using HelpDesk.Services.NotificationService;
 using HelpDesk.Services.NotificationServices;
 using HelpDesk.Services.TicketService;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace HelpDesk.Services
@@ -21,38 +25,97 @@ namespace HelpDesk.Services
         private readonly IMapper _mapper;
         public readonly IAuthService _authService;
         private readonly INotificationService _notificationService;
+        private readonly ILogger _logger;
 
         public TicketServices(
             ApplicationDbContext context,
             IMapper mapper,
             IAuthService authService,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            ILogger<TicketServices> logger)
         {
             _context = context;
             _mapper = mapper;
             _authService = authService;
             _notificationService = notificationService;
+            _logger = logger;
         }
 
-        public async Task<ResponseDto<IEnumerable<TicketDto>>> GetAllAsync()
+        public async Task<PagedResponseDto<TicketDto>> GetAllAsync(TicketFilterDto filter)
         {
-            var entities = await _context.Tickets
-                .Include(t => t.User)
-                .Include(t => t.TypeError)
-                .Include(t => t.Area)
-                .Include(t => t.SoftwareSystem)
-                .Include(t => t.Impact)
-                .Include(t => t.Priority)
-                .ToListAsync();
-
-            var dtos = _mapper.Map<IEnumerable<TicketDto>>(entities);
-
-            return new ResponseDto<IEnumerable<TicketDto>>
+            try
             {
-                Status = true,
-                Data = dtos,
-                StatusCode = 200
-            };
+                var query = _context.Tickets
+                    .Include(t => t.User)
+                    .Include(t => t.TypeError)
+                    .Include(t => t.Area)
+                    .Include(t => t.SoftwareSystem)
+                    .Include(t => t.Impact)
+                    .Include(t => t.Priority)
+                    .Where(t => t.IsActive); 
+
+                if (filter.IdUser.HasValue)
+                    query = query.Where(t => t.IdUser == filter.IdUser.Value);
+
+                if (filter.IdTypeError.HasValue)
+                    query = query.Where(t => t.IdTypeError == filter.IdTypeError.Value);
+
+                if (filter.IdArea.HasValue)
+                    query = query.Where(t => t.IdArea == filter.IdArea.Value);
+
+                if (filter.IdSoftwareSystem.HasValue)
+                    query = query.Where(t => t.IdSoftwareSystem == filter.IdSoftwareSystem.Value);
+
+                if (filter.IdImpact.HasValue)
+                    query = query.Where(t => t.IdImpact == filter.IdImpact.Value);
+
+                if (filter.IdPriority.HasValue)
+                    query = query.Where(t => t.IdPriority == filter.IdPriority.Value);
+
+                if (!string.IsNullOrWhiteSpace(filter.Keyword))
+                {
+                    string term = filter.Keyword.Trim().ToLower();
+                    query = query.Where(t => t.Description.ToLower().Contains(term));
+                }
+
+                if (filter.DateFrom.HasValue)
+                {
+                    query = query.Where(t => t.ReportDate >= filter.DateFrom.Value);
+                }
+
+                if (filter.DateTo.HasValue)
+                {
+                    var endOfDay = filter.DateTo.Value.Date.AddDays(1).AddTicks(-1);
+                    query = query.Where(t => t.ReportDate <= endOfDay);
+                }
+
+
+                var (entities, totalItems, totalPages) = await query.ToPagedListAsync(filter.PageNumber, filter.PageSize);
+
+                var ticketsDto = _mapper.Map<IEnumerable<TicketDto>>(entities);
+
+                return new PagedResponseDto<TicketDto>
+                {
+                    Status = true,
+                    StatusCode = 200,
+                    Message = "Listado de tickets obtenido correctamente.",
+                    Data = ticketsDto,
+                    CurrentPage = filter.PageNumber,
+                    PageSize = filter.PageSize,
+                    TotalItems = totalItems,
+                    TotalPages = totalPages
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener el listado de tickets paginado.");
+                return new PagedResponseDto<TicketDto>
+                {
+                    Status = false,
+                    StatusCode = 500,
+                    Message = "Error interno del servidor al recuperar los tickets."
+                };
+            }
         }
 
         public async Task<ResponseDto<TicketDto>> GetByIdAsync(long id)

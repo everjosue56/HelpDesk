@@ -1,4 +1,5 @@
 ﻿using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.TypeErrorDto;
 using HelpDesk.Services.TypeError;
 using Microsoft.AspNetCore.Authorization;
@@ -23,10 +24,11 @@ namespace HelpDesk.Api.Controllers
 
         [HttpGet]
         [AllowAnonymous] // Permitimos que cualquier usuario autenticado vea los tipos de error al crear un ticket
-        public async Task<ActionResult<ResponseDto<IEnumerable<TypeErrorDto>>>> GetAll()
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] TypeErrorFilterDto filter)
         {
-            var response = await _typeErrorService.GetAllAsync();
-            return response.Status ? Ok(response) : BadRequest(response);
+            var response = await _typeErrorService.GetAllAsync(filter);
+            return StatusCode(response.StatusCode, response);
         }
 
         [HttpGet("{id}")]

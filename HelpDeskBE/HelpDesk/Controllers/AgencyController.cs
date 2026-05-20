@@ -1,4 +1,5 @@
 ﻿using HelpDesk.Dtos.AgenciesDto;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Services.AgencyService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,11 +20,11 @@ namespace HelpDesk.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] AgencyFilterDto filter)
         {
-            var response = await _agencyService.GetAllAsync();
-            return response.Status ? Ok(response) : BadRequest(response);
-        }
+            var response = await _agencyService.GetAllAsync(filter);
+            return StatusCode(response.StatusCode, response);
+        }  
 
         [HttpGet("{id}")]
         public async Task<ActionResult> GetById(long id)

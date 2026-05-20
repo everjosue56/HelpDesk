@@ -1,4 +1,5 @@
-﻿using HelpDesk.Dtos.UsersDto;
+﻿using HelpDesk.Dtos.FiltersDto;
+using HelpDesk.Dtos.UsersDto;
 using HelpDesk.Services.UserServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -31,10 +32,10 @@ namespace HelpDesk.Controllers
 
         [HttpGet]
        [Authorize(Roles = "Administrador")] // Solo admins pueden ver la lista completa
-        public async Task<ActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] UserFilterDto filter)
         {
-            var response = await _userService.GetAllAsync();
-            return Ok(response);
+            var response = await _userService.GetAllAsync(filter);
+            return StatusCode(response.StatusCode, response);
         }
 
         [HttpGet("{id}")]

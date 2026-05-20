@@ -2,12 +2,16 @@
 using HelpDesk.Database;
 using HelpDesk.Database.Entities;
 using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.TypeErrorDto;
+using HelpDesk.Helpers;
 using HelpDesk.Services.AuthService;
 using HelpDesk.Services.TypeError;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace HelpDesk.Services
@@ -17,25 +21,47 @@ namespace HelpDesk.Services
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
         private readonly IAuthService _authService;
-
-        public TypeErrorService(ApplicationDbContext context, IMapper mapper, IAuthService authService)
+        private readonly ILogger _logger;
+        public TypeErrorService(ApplicationDbContext context, IMapper mapper, IAuthService authService, ILogger<TypeErrorService> logger)
         {
             _context = context;
             _mapper = mapper;
             _authService = authService;
+            _logger = logger;
         }
 
-        public async Task<ResponseDto<IEnumerable<TypeErrorDto>>> GetAllAsync()
+        public async Task<PagedResponseDto<TypeErrorDto>> GetAllAsync(TypeErrorFilterDto filter)
         {
-            var entities = await _context.TypeErrors.ToListAsync();
-            var dtos = _mapper.Map<IEnumerable<TypeErrorDto>>(entities);
-
-            return new ResponseDto<IEnumerable<TypeErrorDto>>
+            try
             {
-                Status = true,
-                Data = dtos,
-                StatusCode = 200
-            };
+                var query = _context.TypeErrors.AsQueryable();
+
+                if (!string.IsNullOrWhiteSpace(filter.Name))
+                {
+                    string searchTerm = filter.Name.Trim().ToLower();
+                    query = query.Where(te => te.Name.ToLower().Contains(searchTerm));
+                }
+
+                var (entities, totalItems, totalPages) = await query.ToPagedListAsync(filter.PageNumber, filter.PageSize);
+                var dtos = _mapper.Map<IEnumerable<TypeErrorDto>>(entities);
+
+                return new PagedResponseDto<TypeErrorDto>
+                {
+                    Status = true,
+                    StatusCode = 200,
+                    Message = "Tipos de error obtenidos correctamente.",
+                    Data = dtos,
+                    CurrentPage = filter.PageNumber,
+                    PageSize = filter.PageSize,
+                    TotalItems = totalItems,
+                    TotalPages = totalPages
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener los tipos de errores.");
+                return new PagedResponseDto<TypeErrorDto> { Status = false, StatusCode = 500, Message = "Error interno del servidor." };
+            }
         }
 
         public async Task<ResponseDto<TypeErrorDto>> GetByIdAsync(long id)

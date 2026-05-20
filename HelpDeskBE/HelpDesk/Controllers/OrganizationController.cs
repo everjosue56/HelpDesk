@@ -1,4 +1,5 @@
 ﻿using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.OrganizationsDto;
 using HelpDesk.Services;
 using HelpDesk.Services.Organizations;
@@ -23,9 +24,9 @@ namespace HelpDesk.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ResponseDto<IEnumerable<OrganizationDto>>>> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] OrganizationFilterDto filter)
         {
-            var response = await _organizationService.GetAllAsync();
+            var response = await _organizationService.GetAllAsync(filter);
             return StatusCode(response.StatusCode, response);
         }
 

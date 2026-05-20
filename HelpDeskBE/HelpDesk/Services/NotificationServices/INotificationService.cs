@@ -1,4 +1,5 @@
 ﻿using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.MaintenanceHistoryDto;
 using HelpDesk.Dtos.NotificationDto;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ namespace HelpDesk.Services.NotificationServices
 {
     public interface INotificationService
     {
-        Task<ResponseDto<IEnumerable<NotificationDto>>> GetAllAsync();
+        Task<PagedResponseDto<NotificationDto>> GetAllAsync(NotificationFilterDto filter);
         Task<ResponseDto<IEnumerable<NotificationDto>>> GetUnreadByUserIdAsync(long userId);
         Task<ResponseDto<NotificationDto>> GetByIdAsync(long id);
         Task<ResponseDto<NotificationDto>> CreateAsync(CreateNotificationDto dto);

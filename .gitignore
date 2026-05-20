@@ -29,6 +29,7 @@
 # Esto evita que subas las contraseñas de tus bases de datos locales
 appsettings.Development.json
 appsettings.local.json
+appsettings.json
 
 # ==========================================
 # 3. NODE.JS / REACT / VITE (Frontend)

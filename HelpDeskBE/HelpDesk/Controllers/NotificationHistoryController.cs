@@ -1,4 +1,5 @@
 ﻿using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.NotificationHistoryDto;
 using HelpDesk.Services.NotificationHistoryService;
 using Microsoft.AspNetCore.Authorization;
@@ -21,9 +22,9 @@ namespace HelpDesk.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ResponseDto<IEnumerable<NotificationHistoryDto>>>> GetLog()
+        public async Task<IActionResult> GetLog([FromQuery] NotificationHistoryFilterDto filter)
         {
-            var response = await _historyService.GetLogAsync();
+            var response = await _historyService.GetLogAsync(filter);
             return StatusCode(response.StatusCode, response);
         }
 

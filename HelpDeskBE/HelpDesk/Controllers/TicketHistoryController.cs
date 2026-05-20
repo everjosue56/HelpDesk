@@ -1,4 +1,5 @@
 ﻿using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.TicketHistory;
 using HelpDesk.Services.TicketHistoryService;
 using HelpDesk.Services.TicketHistoryServices;
@@ -22,9 +23,9 @@ namespace HelpDesk.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ResponseDto<IEnumerable<TicketHistoryDto>>>> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] TicketHistoryFilterDto filter)
         {
-            var response = await _historyService.GetAllAsync();
+            var response = await _historyService.GetAllAsync(filter);
             return StatusCode(response.StatusCode, response);
         }
 

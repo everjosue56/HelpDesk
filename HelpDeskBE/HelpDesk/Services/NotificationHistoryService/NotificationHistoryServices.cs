@@ -1,8 +1,12 @@
 ﻿using AutoMapper;
 using HelpDesk.Database;
 using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.NotificationHistoryDto;
+using HelpDesk.Helpers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,24 +17,67 @@ namespace HelpDesk.Services.NotificationHistoryService
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
+        private readonly ILogger _logger;
 
-        public NotificationHistoryService(ApplicationDbContext context, IMapper mapper)
+        public NotificationHistoryService(ApplicationDbContext context, IMapper mapper, ILogger<NotificationHistoryService> logger)
         {
             _context = context;
             _mapper = mapper;
+            _logger = logger;
         }
 
-        public async Task<ResponseDto<IEnumerable<NotificationHistoryDto>>> GetLogAsync()
+        public async Task<PagedResponseDto<NotificationHistoryDto>> GetLogAsync(NotificationHistoryFilterDto filter)
         {
-            // Cargamos las relaciones en cadena para alimentar tu DTO plano
-            var entities = await _context.NotificationHistories
-                .OrderByDescending(nh => nh.ActionDate)
-                .Include(nh => nh.Notifications)
-                .ThenInclude(n => n.Users)   
-                .ToListAsync();
+            try
+            {
+                var query = _context.NotificationHistories
+                    .OrderByDescending(nh => nh.ActionDate)
+                    .Include(nh => nh.Notifications)
+                        .ThenInclude(n => n.Users)
+                    .AsQueryable();
 
-            var dtos = _mapper.Map<IEnumerable<NotificationHistoryDto>>(entities);
-            return new ResponseDto<IEnumerable<NotificationHistoryDto>> { Status = true, StatusCode = 200, Data = dtos };
+                if (filter.IdNotification.HasValue)
+                {
+                    query = query.Where(nh => nh.IdNotification == filter.IdNotification.Value);
+                }
+
+                if (filter.DateFrom.HasValue)
+                {
+                    query = query.Where(nh => nh.ActionDate >= filter.DateFrom.Value);
+                }
+
+                if (filter.DateTo.HasValue)
+                {
+                    var endOfDay = filter.DateTo.Value.Date.AddDays(1).AddTicks(-1);
+                    query = query.Where(nh => nh.ActionDate <= endOfDay);
+                }
+
+                var (entities, totalItems, totalPages) = await query.ToPagedListAsync(filter.PageNumber, filter.PageSize);
+
+                var dtos = _mapper.Map<IEnumerable<NotificationHistoryDto>>(entities);
+
+                return new PagedResponseDto<NotificationHistoryDto>
+                {
+                    Status = true,
+                    StatusCode = 200,
+                    Message = "Log de notificaciones obtenido correctamente.",
+                    Data = dtos,
+                    CurrentPage = filter.PageNumber,
+                    PageSize = filter.PageSize,
+                    TotalItems = totalItems,
+                    TotalPages = totalPages
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener el log de notificaciones.");
+                return new PagedResponseDto<NotificationHistoryDto>
+                {
+                    Status = false,
+                    StatusCode = 500,
+                    Message = "Error interno del servidor al recuperar el log."
+                };
+            }
         }
 
         public async Task<ResponseDto<NotificationHistoryDto>> GetLogByIdAsync(long id)

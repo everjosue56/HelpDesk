@@ -1,4 +1,5 @@
 ﻿using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.ImpactDto;
 using HelpDesk.Dtos.PriorityDto;
 using HelpDesk.Services.ImpactServices;
@@ -23,9 +24,9 @@ namespace HelpDesk.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ResponseDto<IEnumerable<PriorityDto>>>> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] PriorityFilterDto filter)
         {
-            var response = await _priorityService.GetAllAsync();
+            var response = await _priorityService.GetAllAsync(filter);
             return StatusCode(response.StatusCode, response);
         }
 

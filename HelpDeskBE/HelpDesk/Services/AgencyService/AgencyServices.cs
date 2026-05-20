@@ -3,6 +3,8 @@ using HelpDesk.Database;
 using HelpDesk.Database.Entities;
 using HelpDesk.Dtos.AgenciesDto;
 using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
+using HelpDesk.Helpers;
 using HelpDesk.Services.AuthService;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -28,28 +30,44 @@ namespace HelpDesk.Services.AgencyService
             _authService = authService;
         }
 
-        public async Task<ResponseDto<IEnumerable<AgencyDto>>> GetAllAsync()
+        public async Task<PagedResponseDto<AgencyDto>> GetAllAsync(AgencyFilterDto filter)
         {
             try
             {
-                var agenciesEntity = await _context.Agencies
-                    .Include(a => a.Organizations) // Carga la relación para el AutoMapper
-                    .Where(a => a.IsActive)       // Solo las activas (Borrado lógico)
-                    .ToListAsync();
+                var query = _context.Agencies
+                    .Include(a => a.Organizations) 
+                    .Where(a => a.IsActive);     
 
-                var agenciesDto = _mapper.Map<IEnumerable<AgencyDto>>(agenciesEntity);
+                if (!string.IsNullOrWhiteSpace(filter.Name))
+                {
+                    string searchTerm = filter.Name.Trim().ToLower();
+                    query = query.Where(a => a.Name.ToLower().Contains(searchTerm));
+                }
 
-                return new ResponseDto<IEnumerable<AgencyDto>>
+                var (entities, totalItems, totalPages) = await query.ToPagedListAsync(filter.PageNumber, filter.PageSize);
+                var agenciesDto = _mapper.Map<IEnumerable<AgencyDto>>(entities);
+
+                return new PagedResponseDto<AgencyDto>
                 {
                     Status = true,
+                    StatusCode = 200,
+                    Message = "Agencias obtenidas correctamente.",
                     Data = agenciesDto,
-                    Message = "Agencias obtenidas correctamente."
+                    CurrentPage = filter.PageNumber,
+                    PageSize = filter.PageSize,
+                    TotalItems = totalItems,
+                    TotalPages = totalPages
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al obtener las agencias.");
-                return new ResponseDto<IEnumerable<AgencyDto>> { Status = false, Message = "Error interno del servidor." };
+                return new PagedResponseDto<AgencyDto>
+                {
+                    Status = false,
+                    StatusCode = 500,
+                    Message = "Error interno del servidor al recuperar los datos."
+                };
             }
         }
 

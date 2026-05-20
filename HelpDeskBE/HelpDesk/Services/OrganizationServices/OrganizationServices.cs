@@ -2,12 +2,16 @@
 using HelpDesk.Database;
 using HelpDesk.Database.Entities;
 using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.OrganizationsDto;
+using HelpDesk.Helpers;
 using HelpDesk.Services.AuthService;
 using HelpDesk.Services.Organizations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace HelpDesk.Services
@@ -17,24 +21,53 @@ namespace HelpDesk.Services
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
         private readonly IAuthService _authService;
-        public OrganizationService(ApplicationDbContext context, IMapper mapper, IAuthService authService)
+        private readonly ILogger _logger;
+        public OrganizationService(ApplicationDbContext context, IMapper mapper, IAuthService authService, ILogger<OrganizationService> logger)
         {
             _context = context;
             _mapper = mapper;
             _authService = authService;
+            _logger = logger;
         }
 
-        public async Task<ResponseDto<IEnumerable<OrganizationDto>>> GetAllAsync()
+        public async Task<PagedResponseDto<OrganizationDto>> GetAllAsync(OrganizationFilterDto filter)
         {
-            var entities = await _context.Organizations.ToListAsync();
-            var dtos = _mapper.Map<IEnumerable<OrganizationDto>>(entities);
-
-            return new ResponseDto<IEnumerable<OrganizationDto>>
+            try
             {
-                Status = true,
-                Data = dtos,
-                StatusCode = 200
-            };
+                var query = _context.Organizations
+                    .AsQueryable();
+                if (!string.IsNullOrWhiteSpace(filter.Name))
+                {
+                    string searchTerm = filter.Name.Trim().ToLower();
+                    query = query.Where(o => o.Name.ToLower().Contains(searchTerm));
+                }
+
+                var (entities, totalItems, totalPages) = await query.ToPagedListAsync(filter.PageNumber, filter.PageSize);
+
+                var organizationsDto = _mapper.Map<IEnumerable<OrganizationDto>>(entities);
+
+                return new PagedResponseDto<OrganizationDto>
+                {
+                    Status = true,
+                    StatusCode = 200,
+                    Message = "Organizaciones obtenidas correctamente.",
+                    Data = organizationsDto,
+                    CurrentPage = filter.PageNumber,
+                    PageSize = filter.PageSize,
+                    TotalItems = totalItems,
+                    TotalPages = totalPages
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener las organizaciones.");
+                return new PagedResponseDto<OrganizationDto>
+                {
+                    Status = false,
+                    StatusCode = 500,
+                    Message = "Error interno del servidor al recuperar los datos."
+                };
+            }
         }
 
         public async Task<ResponseDto<OrganizationDto>> GetByIdAsync(long id)

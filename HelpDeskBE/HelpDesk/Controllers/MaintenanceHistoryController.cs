@@ -1,4 +1,5 @@
 ﻿using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.MaintenanceHistoryDto;
 using HelpDesk.Services.MaintenanceHistoryService;
 using HelpDesk.Services.MaintenancesHistoryService;
@@ -22,12 +23,12 @@ namespace HelpDesk.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ResponseDto<IEnumerable<MaintenanceHistoryDto>>>> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] MaintenanceHistoryFilterDto filter)
         {
-            var response = await _historyService.GetAllAsync();
+            var response = await _historyService.GetAllAsync(filter);
             return StatusCode(response.StatusCode, response);
         }
-
+            
         [HttpGet("{id}")]
         public async Task<ActionResult<ResponseDto<MaintenanceHistoryDto>>> GetById(long id)
         {
