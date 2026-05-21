@@ -11,6 +11,7 @@ using HelpDesk.Services.AlertTypeService;
 using HelpDesk.Services.AlertTypeServices;
 using HelpDesk.Services.AreaServices;
 using HelpDesk.Services.AuthService;
+using HelpDesk.Services.DashboardServices;
 using HelpDesk.Services.DeviceService;
 using HelpDesk.Services.DeviceServices;
 using HelpDesk.Services.EmailService;
@@ -88,7 +89,7 @@ builder.Services.AddScoped<IAlertConfigurationService,  AlertConfigurationServic
 builder.Services.AddScoped<INotificationHistoryService, NotificationHistoryService>();
 builder.Services.AddScoped<IAlertHistoryService, AlertHistoryService>();
 builder.Services.AddHostedService<AlertSchedulerWorker>();
-
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 // Inyeccion de email 
 // Mapear la sección del appsettings.json a la clase EmailSettings
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));

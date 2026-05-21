@@ -37,10 +37,10 @@ namespace HelpDesk.BackgroundServices
                         // Para saber si ya se ejecutó, verificamos si NO existe en la tabla de históricos de alertas
                         var pendingAlerts = await context.AlertConfigurations
                             .Where(ac => ac.IsActive
-                                       && ac.ScheduledDate.HasValue
-                                      && ac.ScheduledDate.Value <= now
-                                      && !context.AlertHistories.Any(ah => ah.IdAlertConfiguration == ac.Id))
-                            .ToListAsync(stoppingToken);
+                                         && ac.ScheduledDate.HasValue
+                                         && ac.ScheduledDate.Value <= now
+                                         && !context.AlertHistories.Any(ah => ah.IdAlertConfiguration == ac.Id)) 
+                                        .ToListAsync(stoppingToken);
 
                         foreach (var alert in pendingAlerts)
                         {

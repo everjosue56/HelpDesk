@@ -3,10 +3,12 @@ using HelpDesk.Database;
 using HelpDesk.Database.Entities;
 using HelpDesk.Dtos.Common;
 using HelpDesk.Dtos.FiltersDto;
+using HelpDesk.Dtos.NotificationDto;
 using HelpDesk.Dtos.ResolutionDto;
 using HelpDesk.Helpers;
 using HelpDesk.Services.AuthService;
 using HelpDesk.Services.EmailService;
+using HelpDesk.Services.NotificationServices;
 using HelpDesk.Services.ResolutionService;
 using HelpDesk.Services.TicketHistoryServices;
 using Microsoft.EntityFrameworkCore;
@@ -26,14 +28,22 @@ namespace HelpDesk.Services
         private readonly IAuthService _authService;
         private readonly ILogger _logger;
         private readonly IEmailService _emailService;
+        private readonly INotificationService _notificationService;
 
-        public ResolutionServices(ApplicationDbContext context, IMapper mapper, ITicketHistoryService historyService, IAuthService authService, ILogger<ResolutionServices> logger, IEmailService emailService)
+        public ResolutionServices(ApplicationDbContext context, 
+            IMapper mapper, 
+            ITicketHistoryService historyService,
+            IAuthService authService, 
+            ILogger<ResolutionServices> logger, 
+            IEmailService emailService,
+            INotificationService notificationService)
         {
             _context = context;
             _mapper = mapper;
             _historyService = historyService;
             _authService = authService;
             _logger = logger;
+            _notificationService = notificationService;
             _emailService = emailService;
         }
 
@@ -186,6 +196,23 @@ namespace HelpDesk.Services
 
             // 5. CREAR EL HISTORIAL AUTOMÁTICAMENTE
             await _historyService.CreateAsync(ticket.Id, entity.Id, entity.IdUser);
+
+            try
+            {
+                var notificationDto = new CreateNotificationDto
+                {
+                    IdUser = ticket.CreatedBy, 
+                    IdAlertType = 1,         
+                    TextMessage = $"Su ticket #{ticket.Id} ha sido resuelto: {entity.RootCause}",
+                    IdReference = entity.Id   
+                };
+
+                await _notificationService.CreateAsync(notificationDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al generar la notificación interna en la app para el ticket #{TicketId}", ticket.Id);
+            }
 
             // =========================================================================
             // 6. NOTIFICACIÓN DE RESOLUCIÓN POR CORREO (De TI al Cliente)

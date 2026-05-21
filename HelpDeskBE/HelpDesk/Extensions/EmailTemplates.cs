@@ -1,4 +1,6 @@
-﻿namespace HelpDesk.Helpers
+﻿using System;
+
+namespace HelpDesk.Helpers
 {
     public static class EmailTemplates
     {
@@ -77,6 +79,38 @@
                 <div style='background-color: #f9fafb; padding: 15px; text-align: center; border-top: 1px solid #e5e7eb;'>
                     <p style='color: #9ca3af; font-size: 12px; margin: 0;'>Soporte Técnico Financiera Codimersa</p>
                     <p style='color: #10b981; font-size: 12px; font-weight: bold; margin: 5px 0 0 0;'>Powered by TI</p>
+                </div>
+            </div>";
+        }
+
+        // 3. plantilla para configuracion de alertas (TI hacia Clientes)
+        public static string GetAlertConfigurationTemplate(string title, string subject, string description, string scope)
+        {
+                    return $@"
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;'>
+                <div style='background-color: #dc2626; padding: 20px; text-align: center;'>
+                    <h1 style='color: #ffffff; margin: 0; font-size: 24px;'>HelpDesk - Notificación </h1>
+                    <p style='color: #fca5a5; margin: 5px 0 0 0;'>Alerta de Infraestructura y Soporte</p>
+                </div>
+                <div style='padding: 20px; background-color: #ffffff;'>
+                    <h2 style='color: #111827; margin-top: 0;'>{title}</h2>
+                    <p style='color: #374151; font-weight: bold; font-size: 16px; margin-bottom: 10px;'>Asunto: {subject}</p>
+            
+                    <div style='background-color: #fef2f2; padding: 15px; border-left: 4px solid #dc2626; color: #991b1b; margin: 15px 0; border-radius: 0 6px 6px 0;'>
+                        <strong>Detalle de la Alerta:</strong><br/>
+                        <p style='color: #4b5563; margin: 5px 0 0 0; line-height: 1.6; font-style: italic;'>""{description}""</p>
+                    </div>
+
+                    <div style='margin-top: 20px; font-size: 13px; color: #6b7280;'>
+                        <p style='margin: 4px 0;'><strong>Alcance del Mensaje:</strong> {scope}</p>
+                        <p style='margin: 4px 0;'><strong>Fecha de Emisión:</strong> {DateTime.Now:dd/MM/yyyy hh:mm tt}</p>
+                    </div>
+
+                    <p style='color: #4b5563; line-height: 1.6; margin-top: 25px;'>Por favor, tome las medidas necesarias correspondientes a su área de trabajo en Financier Codimersa.</p>
+                </div>
+                <div style='background-color: #f9fafb; padding: 15px; text-align: center; border-top: 1px solid #e5e7eb;'>
+                    <p style='color: #9ca3af; font-size: 12px; margin: 0;'>Este es un aviso automatizado del departamento de TI.</p>
+                    <p style='color: #dc2626; font-size: 12px; font-weight: bold; margin: 5px 0 0 0;'>Powered by TI</p>
                 </div>
             </div>";
         }

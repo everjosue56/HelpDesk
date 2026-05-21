@@ -8,6 +8,7 @@ using HelpDesk.Dtos.NotificationDto;
 using HelpDesk.Helpers;
 using HelpDesk.Services.AlertHistoryServices;
 using HelpDesk.Services.AuthService;
+using HelpDesk.Services.EmailService;
 using HelpDesk.Services.NotificationServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -26,6 +27,7 @@ namespace HelpDesk.Services.AlertConfigurationService
         private readonly INotificationService _notificationService;
         private readonly IAlertHistoryService _alertHistoryService;
         private readonly ILogger _logger;
+        private readonly IEmailService _emailService;
 
         public AlertConfigurationService(
             ApplicationDbContext context,
@@ -33,7 +35,8 @@ namespace HelpDesk.Services.AlertConfigurationService
             IAuthService authService,
             INotificationService notificationService,
             IAlertHistoryService alertHistoryService,
-            ILogger<AlertConfigurationService> logger)
+            ILogger<AlertConfigurationService> logger,
+            IEmailService emailService)
         {
             _context = context;
             _mapper = mapper;
@@ -41,6 +44,7 @@ namespace HelpDesk.Services.AlertConfigurationService
             _notificationService = notificationService;
             _alertHistoryService = alertHistoryService;
             _logger = logger;
+            _emailService = emailService;
         }
 
         public async Task<PagedResponseDto<AlertConfigurationDto>> GetAllAsync(AlertConfigurationFilterDto filter)
@@ -164,19 +168,30 @@ namespace HelpDesk.Services.AlertConfigurationService
         public async Task<ResponseDto<bool>> ExecuteAlertAsync(long alertConfigurationId)
         {
             var executorUserId = _authService.GetUserId();
+
+            if (executorUserId == 0)
+            {
+                executorUserId = 1; 
+            }
+
             var hasActiveTransaction = _context.Database.CurrentTransaction != null;
             using var transaction = hasActiveTransaction ? null : await _context.Database.BeginTransactionAsync();
-           
 
             try
             {
-                var config = await _context.AlertConfigurations.FindAsync(alertConfigurationId);
+                var config = await _context.AlertConfigurations
+                    .Include(ac => ac.Areas)
+                    .Include(ac => ac.Agencys)
+                    .FirstOrDefaultAsync(ac => ac.Id == alertConfigurationId);
+
                 if (config == null || !config.IsActive)
                 {
                     return new ResponseDto<bool> { Status = false, StatusCode = 404, Message = "Configuración de alerta no encontrada o inactiva.", Data = false };
                 }
 
                 IQueryable<UserEntity> query = _context.Users.Where(u => u.IsActive);
+
+                await _alertHistoryService.CreateAsync(config.Id, executorUserId);
 
                 if (!config.IsGlobal)
                 {
@@ -189,6 +204,7 @@ namespace HelpDesk.Services.AlertConfigurationService
 
                 var targetUsers = await query.ToListAsync();
 
+                // 1. Notificaciones internas en la Base de Datos
                 foreach (var user in targetUsers)
                 {
                     var notificationDto = new CreateNotificationDto
@@ -202,16 +218,53 @@ namespace HelpDesk.Services.AlertConfigurationService
                     await _notificationService.CreateAsync(notificationDto);
                 }
 
-                // Guardamos la auditoría
-                await _alertHistoryService.CreateAsync(config.Id, config.CreatedBy);
+                // Guardamos la auditoría en la DB
+                await _alertHistoryService.CreateAsync(config.Id, executorUserId);
 
+                // 2. Confirmamos la transacción en la Base de Datos
                 if (transaction != null) await transaction.CommitAsync();
+
+                // =========================================================================
+                // 3. DISPARO DE ALERTAS POR CORREO ELECTRÓNICO (FUERA DE LA TRANSACCIÓN)
+                // =========================================================================
+                try
+                {
+                    string scopeText = config.IsGlobal
+                        ? "Global (Toda la institución)"
+                        : $"Específico - Área: {config.Areas?.NameArea ?? "N/A"} | Agencia: {config.Agencys?.Name ?? "N/A"}";
+
+                    string emailHtml = EmailTemplates.GetAlertConfigurationTemplate(
+                        config.Title,
+                        config.Subject,
+                        config.Description,
+                        scopeText
+                    );
+
+                    // Enviamos el correo a cada uno de los usuarios que entraron en la segmentación
+                    foreach (var user in targetUsers)
+                    {
+                        if (!string.IsNullOrWhiteSpace(user.Email))
+                        {
+                            await _emailService.SendEmailAsync(
+                                user.Email,
+                                $"🚨 [ALERTA TI] {config.Subject}",
+                                emailHtml
+                            );
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Si falla el servidor SMTP, lo logueamos pero la ejecución ya fue exitosa en la DB
+                    _logger.LogError(ex, "La alerta #{ConfigId} se procesó en la DB, pero falló el envío masivo de correos.", config.Id);
+                }
 
                 return new ResponseDto<bool> { Status = true, StatusCode = 200, Message = "Alerta ejecutada y despachada con éxito.", Data = true };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 if (transaction != null) await transaction.RollbackAsync();
+                _logger.LogError(ex, "Error crítico al ejecutar la alerta #{AlertConfigurationId}", alertConfigurationId);
                 throw;
             }
         }
