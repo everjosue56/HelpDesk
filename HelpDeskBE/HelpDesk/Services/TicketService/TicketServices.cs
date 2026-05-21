@@ -7,6 +7,7 @@ using HelpDesk.Dtos.NotificationDto;
 using HelpDesk.Dtos.TicketDto;
 using HelpDesk.Helpers;
 using HelpDesk.Services.AuthService;
+using HelpDesk.Services.EmailService;
 using HelpDesk.Services.NotificationService;
 using HelpDesk.Services.NotificationServices;
 using HelpDesk.Services.TicketService;
@@ -26,19 +27,22 @@ namespace HelpDesk.Services
         public readonly IAuthService _authService;
         private readonly INotificationService _notificationService;
         private readonly ILogger _logger;
+        private readonly IEmailService _emailService;
 
         public TicketServices(
             ApplicationDbContext context,
             IMapper mapper,
             IAuthService authService,
             INotificationService notificationService,
-            ILogger<TicketServices> logger)
+            ILogger<TicketServices> logger,
+            IEmailService emailService)
         {
             _context = context;
             _mapper = mapper;
             _authService = authService;
             _notificationService = notificationService;
             _logger = logger;
+            _emailService = emailService;
         }
 
         public async Task<PagedResponseDto<TicketDto>> GetAllAsync(TicketFilterDto filter)
@@ -169,16 +173,15 @@ namespace HelpDesk.Services
                 await _context.SaveChangesAsync();
 
                 // ----------------------------------------------
-                // 1. DISPARAR EL SERVICIO DE NOTIFICACIONES
+                // 1. DISPARAR EL SERVICIO DE NOTIFICACIONES INTERNAS
                 // ----------------------------------------------
                 var createNotificationDto = new CreateNotificationDto
                 {
-                    IdUser = entity.IdUser,     
-                    IdAlertType = 2,             
+                    IdUser = entity.IdUser,
+                    IdAlertType = 2,
                     TextMessage = $"Tu Ticket #{entity.Id} ha sido creado exitosamente. Pronto un técnico tomará tu caso.",
-                    IdReference = entity.Id      
+                    IdReference = entity.Id
                 };
-                // en 'notification' y 'notification_history' de un solo golpe.
                 await _notificationService.CreateAsync(createNotificationDto);
 
                 // --------------------------------
@@ -186,6 +189,63 @@ namespace HelpDesk.Services
                 // --------------------------------
                 await transaction.CommitAsync();
 
+                // =========================================================================
+                // 3. FLUJO DE CORREOS AUTOMÁTICOS (FUERA DE LA TRANSACCIÓN)
+                // =========================================================================
+                try
+                {
+                    // Jalamos la información con sus Includes para alimentar la plantilla con nombres reales
+                    var ticketInfo = await _context.Tickets
+                        .Include(t => t.User)
+                        .Include(t => t.Area)
+                        .Include(t => t.SoftwareSystem)
+                        .Include(t => t.Priority)
+                        .FirstOrDefaultAsync(t => t.Id == entity.Id);
+
+                    if (ticketInfo != null)
+                    {
+                        // A. Correo al Cliente que reportó el problema
+                        string clientHtml = HelpDesk.Helpers.EmailTemplates.GetTicketCreationTemplate(
+                            $"{ticketInfo.User.FirstName} {ticketInfo.User.LastName}",
+                            ticketInfo.Id,
+                            ticketInfo.Area.NameArea,
+                            ticketInfo.SoftwareSystem.Name,
+                            ticketInfo.Priority.Name,
+                            ticketInfo.Description
+                        );
+
+                        // Disparo asíncrono al cliente
+                        await _emailService.SendEmailAsync(
+                            ticketInfo.User.Email,
+                            $"[Financiera Codimersa] Ticket #{ticketInfo.Id} registrado con éxito",
+                            clientHtml
+                        );
+
+                        // B. Correo a los encargados de TI / Soporte Técnico
+                        // Buscamos los correos de los usuarios que tengan rol de Admin o Técnico
+                        var tiEmails = await _context.Users
+                            .Where(u => u.IdRol == 1 || u.IdRol == 2)
+                            .Select(u => u.Email)
+                            .ToListAsync();
+
+                        string tiSubject = $"⚠️ NUEVO TICKET #{ticketInfo.Id} - Área: {ticketInfo.Area.NameArea}";
+
+                        foreach (var tiEmail in tiEmails)
+                        {
+                            // Reutilizamos la plantilla para alertar al staff técnico
+                            await _emailService.SendEmailAsync(tiEmail, tiSubject, clientHtml);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Capturamos el error en los logs si el servidor de correos falla,
+                    // pero NO interrumpimos la respuesta exitosa hacia el cliente en React.
+                    _logger.LogError(ex, "El ticket #{TicketId} se guardó, pero falló el envío de alertas por correo electrónico.", entity.Id);
+                }
+                // =========================================================================
+
+                // Retornamos la respuesta del ticket recién creado
                 return await GetByIdAsync(entity.Id);
             }
             catch (Exception)

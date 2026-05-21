@@ -6,6 +6,7 @@ using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.ResolutionDto;
 using HelpDesk.Helpers;
 using HelpDesk.Services.AuthService;
+using HelpDesk.Services.EmailService;
 using HelpDesk.Services.ResolutionService;
 using HelpDesk.Services.TicketHistoryServices;
 using Microsoft.EntityFrameworkCore;
@@ -24,14 +25,16 @@ namespace HelpDesk.Services
         private readonly ITicketHistoryService _historyService;
         private readonly IAuthService _authService;
         private readonly ILogger _logger;
+        private readonly IEmailService _emailService;
 
-        public ResolutionServices(ApplicationDbContext context, IMapper mapper, ITicketHistoryService historyService, IAuthService authService, ILogger<ResolutionServices> logger)
+        public ResolutionServices(ApplicationDbContext context, IMapper mapper, ITicketHistoryService historyService, IAuthService authService, ILogger<ResolutionServices> logger, IEmailService emailService)
         {
             _context = context;
             _mapper = mapper;
             _historyService = historyService;
             _authService = authService;
             _logger = logger;
+            _emailService = emailService;
         }
 
         public async Task<PagedResponseDto<ResolutionDto>> GetAllAsync(ResolutionFilterDto filter)
@@ -168,7 +171,7 @@ namespace HelpDesk.Services
             entity.SolutionTime = (decimal)timeSpan.TotalHours;
             entity.ResolutionDate = DateTime.Now;
             entity.CreatedDate = DateTime.Now;
-            entity.CreatedBy = currentUserId; 
+            entity.CreatedBy = currentUserId;
             entity.IdUser = currentUserId;
 
             // 4. Guardar la Resolución
@@ -184,10 +187,53 @@ namespace HelpDesk.Services
             // 5. CREAR EL HISTORIAL AUTOMÁTICAMENTE
             await _historyService.CreateAsync(ticket.Id, entity.Id, entity.IdUser);
 
-            // 6. Retornar la respuesta final (con los datos cargados)
+            // =========================================================================
+            // 6. NOTIFICACIÓN DE RESOLUCIÓN POR CORREO (De TI al Cliente)
+            // =========================================================================
+            try
+            {
+                // Jalamos la info detallada con Includes para inyectar nombres reales en el HTML
+                var resolutionInfo = await _context.Resolutions
+                    .Include(r => r.User) // Técnico que resuelve el ticket
+                    .Include(r => r.Ticket)
+                        .ThenInclude(t => t.User) // Usuario afectado que abrió el ticket
+                    .FirstOrDefaultAsync(r => r.Id == entity.Id);
+
+                if (resolutionInfo != null && resolutionInfo.Ticket != null)
+                {
+                    var cliente = resolutionInfo.Ticket.User;
+                    var tecnico = resolutionInfo.User;
+
+                    string clientName = $"{cliente.FirstName} {cliente.LastName}";
+                    string technicianName = $"{tecnico.FirstName} {tecnico.LastName}";
+
+                    // Construimos el cuerpo HTML interactivo usando la plantilla de SystemdeLuxe
+                    string resolutionHtml = HelpDesk.Helpers.EmailTemplates.GetTicketResolutionTemplate(
+                        clientName,
+                        resolutionInfo.IdTicket,
+                        technicianName,
+                        resolutionInfo.RootCause,
+                        resolutionInfo.Observation
+                    );
+
+                    // Disparo asíncrono directo al correo del cliente
+                    await _emailService.SendEmailAsync(
+                        cliente.Email,
+                        $"✅ [Financiera Codimersa] Solución Aplicada al Ticket #{resolutionInfo.IdTicket}",
+                        resolutionHtml
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                // Si el SMTP falla, lo registramos en los logs pero permitimos que el flujo continúe sin tirar 500
+                _logger.LogError(ex, "La resolución #{ResolutionId} se guardó con éxito, pero falló el envío de notificación por correo al cliente.", entity.Id);
+            }
+            // =========================================================================
+
+            // 7. Retornar la respuesta final (con los datos cargados)
             return await GetByIdAsync(entity.Id);
         }
-
         public async Task<ResponseDto<ResolutionDto>> UpdateAsync(UpdateResolutionDto dto, long id)
         {
             var entity = await _context.Resolutions.FindAsync(id);

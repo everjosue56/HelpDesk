@@ -1,4 +1,5 @@
 using HelpDesk.BackgroundServices;
+using HelpDesk.Config;
 using HelpDesk.Database;
 using HelpDesk.Herlpers;
 using HelpDesk.Services;
@@ -12,6 +13,7 @@ using HelpDesk.Services.AreaServices;
 using HelpDesk.Services.AuthService;
 using HelpDesk.Services.DeviceService;
 using HelpDesk.Services.DeviceServices;
+using HelpDesk.Services.EmailService;
 using HelpDesk.Services.ImpactServices;
 using HelpDesk.Services.MaintenanceHistoryService;
 using HelpDesk.Services.MaintenanceService;
@@ -86,6 +88,11 @@ builder.Services.AddScoped<IAlertConfigurationService,  AlertConfigurationServic
 builder.Services.AddScoped<INotificationHistoryService, NotificationHistoryService>();
 builder.Services.AddScoped<IAlertHistoryService, AlertHistoryService>();
 builder.Services.AddHostedService<AlertSchedulerWorker>();
+
+// Inyeccion de email 
+// Mapear la sección del appsettings.json a la clase EmailSettings
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddTransient<IEmailService, EmailService>();
 
 //Configuracion de Automapper
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));

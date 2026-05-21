@@ -27,7 +27,9 @@ namespace HelpDesk.Database.Seed
                 new RolEntity
                 {
                     Id = 3,
-                    Name = "Cliente"
+                    Name = "Cliente",
+                    CreatedDate = new DateTime(2026, 5, 11),
+                    CreatedBy = 1
                 }
          
             );

@@ -31,7 +31,7 @@ namespace HelpDesk.Controllers
         }
 
         [HttpGet]
-       [Authorize(Roles = "Administrador")] // Solo admins pueden ver la lista completa
+       [Authorize(Roles = "Administrador, TI")] 
         public async Task<IActionResult> GetAll([FromQuery] UserFilterDto filter)
         {
             var response = await _userService.GetAllAsync(filter);
@@ -39,7 +39,7 @@ namespace HelpDesk.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Roles = "Administrador, TI")]
         public async Task<ActionResult> GetById(long id)
         {
             var response = await _userService.GetByIdAsync(id);
@@ -51,7 +51,7 @@ namespace HelpDesk.Controllers
         }
 
         [HttpPost("register")]
-        [AllowAnonymous] // Permitir que nuevos usuarios se registren
+        [Authorize(Roles = "Administrador, TI")]
         public async Task<ActionResult> Register([FromBody] UserRegisterDto registerDto)
         {
             var response = await _userService.CreateAsync(registerDto);
@@ -75,7 +75,7 @@ namespace HelpDesk.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Administrador")]
+        [Authorize(Roles = "Administrador, TI")]
         public async Task<ActionResult> Delete(long id)
         {
             var response = await _userService.DeleteAsync(id);
