@@ -55,6 +55,11 @@ namespace HelpDesk.Database.Entities
         [Column("id_area")]
         public long IdArea { get; set; }
 
+        [Column("password_reset_code")]
+        public string? PasswordResetCode { get; set; }
+        [Column("reset_code_expiry")]
+        public DateTime? ResetCodeExpiry { get; set; }
+
         [ForeignKey(nameof(IdArea))]
         public virtual AreaEntity Area { get; set; } = null!;
         // Llaves Foraneas 

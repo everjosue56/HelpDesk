@@ -4,6 +4,7 @@ using HelpDesk.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HelpDesk.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260522145019_resolutionandusers")]
+    partial class resolutionandusers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1872,10 +1875,6 @@ namespace HelpDesk.Migrations
                         .HasColumnType("varbinary(max)")
                         .HasColumnName("password_hash");
 
-                    b.Property<string>("PasswordResetCode")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("password_reset_code");
-
                     b.Property<byte[]>("PasswordSalt")
                         .IsRequired()
                         .HasColumnType("varbinary(max)")
@@ -1891,10 +1890,6 @@ namespace HelpDesk.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("refresh_token");
-
-                    b.Property<DateTime?>("ResetCodeExpiry")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("reset_code_expiry");
 
                     b.Property<DateTime>("TokenCreated")
                         .HasColumnType("datetime2")

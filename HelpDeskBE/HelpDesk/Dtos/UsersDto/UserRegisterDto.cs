@@ -27,7 +27,6 @@ namespace HelpDesk.Dtos.UsersDto
         [DataType(DataType.Password)]
         public required string Password { get; set; }
 
-        [Phone(ErrorMessage = "El formato del número de teléfono no es válido.")]
         [StringLength(13, ErrorMessage = "El teléfono no puede exceder los 13 caracteres.")]
         public string? PhoneNumber { get; set; }
 

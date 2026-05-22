@@ -50,7 +50,6 @@ namespace HelpDesk.Database.Entities
         public long IdUser { get; set; }
 
         [Column("device_id")]
-        [Required]
         public long IdDevice { get; set; } 
 
         [Column("solution_time")]

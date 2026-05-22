@@ -33,7 +33,6 @@ namespace HelpDesk.Dtos.ResolutionDto
         [Range(1, long.MaxValue, ErrorMessage = "Debe seleccionar una prioridad válida.")]
         public long IdPriority { get; set; }
 
-        [Required(ErrorMessage = "El dispositivo afectado es obligatorio.")]
         [Range(1, long.MaxValue, ErrorMessage = "Debe seleccionar un dispositivo válido.")]
         public long IdDevice { get; set; }
 
