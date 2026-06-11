@@ -131,6 +131,17 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("HelpDeskCorsPolicy", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173") 
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 builder.Services.AddHttpContextAccessor();
 
 // CONFIGURAR EL ESQUEMA DE AUTENTICACIÓN
@@ -154,20 +165,18 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
-// 2. CONFIGURACIÓN DEL PIPELINE (Middleware)
-
-// Si estamos en desarrollo, activamos Swagger para probar los endpoints
 if (app.Environment.IsDevelopment())
 {     
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
-        // Esto hace que Swagger sea la página de inicio por defecto
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "HelpDesk API V1");
     });
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("HelpDeskCorsPolicy");
 
 app.UseAuthentication();
 

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HelpDesk.Dtos.AgenciesDto
@@ -13,5 +14,7 @@ namespace HelpDesk.Dtos.AgenciesDto
         public long IdOrganization { get; set; }
         public bool IsActive { get; set; } = true;
         public string OrganizationName { get; set; } = string.Empty;
-    }
+        public long OrganizationId { get; set; }
+        public DateTime CreatedDate { get; set; }
+    } 
 }

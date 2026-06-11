@@ -93,8 +93,7 @@ namespace HelpDesk.Herlpers
                 .ForMember(dest => dest.OrganizationName,
                            opt => opt.MapFrom(src => src.Organizations.Name));
             CreateMap<CreateAgencyDto, AgencyEntity>();
-            CreateMap<UpdateAgencyDto, AgencyEntity>()
-                .ForMember(dest => dest.IdOrganization, opt => opt.Ignore());
+            CreateMap<UpdateAgencyDto, AgencyEntity>();
         }
 
         private void MapsForArea()

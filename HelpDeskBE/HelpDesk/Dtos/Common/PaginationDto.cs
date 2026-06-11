@@ -3,7 +3,7 @@
     public class PaginationDto
     {
         private int _pageNumber = 1;
-        private int _pageSize = 10;
+        private int _pageSize = 5;
         private const int MaxPageSize = 50; 
 
         public int PageNumber
@@ -15,9 +15,9 @@
         public int PageSize
         {
             get => _pageSize;
-            set => _pageSize = (value < 1) ? 10 : (value > MaxPageSize) ? MaxPageSize : value;
+            set => _pageSize = (value < 1) ? 5 : (value > MaxPageSize) ? MaxPageSize : value;
         }
 
-
+            
     }
 }
