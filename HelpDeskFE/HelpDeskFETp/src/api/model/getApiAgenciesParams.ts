@@ -7,6 +7,7 @@
 
 export type GetApiAgenciesParams = {
 Name?: string;
+SearchOrganizationName?: string;
 PageNumber?: number;
 PageSize?: number;
 };

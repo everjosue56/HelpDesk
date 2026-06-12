@@ -88,7 +88,7 @@ export const OrganizationsPage: React.FC = () => {
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
                     <div className="space-y-1">
                         <p className="text-sm font-medium text-gray-500">Total Organizaciones</p>
-                        <p className="text-3xl font-bold text-slate-800">{isLoading ? "..." : totalCount}</p>
+                        <p className="text-3xl font-bold text-slate-800">{isLoading ? "0" : totalCount}</p>
                     </div>
                     <div className="p-3 bg-slate-50 border border-gray-100 rounded-xl">
                         <Building2 className="h-6 w-6 text-slate-600" />

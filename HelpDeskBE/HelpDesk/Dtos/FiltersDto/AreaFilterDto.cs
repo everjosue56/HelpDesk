@@ -7,5 +7,6 @@ namespace HelpDesk.Dtos.FiltersDto
 
         // Filtro de area por nombre 
         public string? SearchName { get; set; } 
+        public string? SearchAgencyName { get; set; }
     }
 }

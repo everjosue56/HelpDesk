@@ -12,5 +12,8 @@ export interface AreaDto {
   isActive?: boolean;
   idAgency?: number;
   /** @nullable */
+  searchAgencyName?: string | null;
+  /** @nullable */
   agencyName?: string | null;
+  createdDate?: string;
 }

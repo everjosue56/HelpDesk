@@ -7,6 +7,7 @@
 
 export type GetApiAreasParams = {
 SearchName?: string;
+SearchAgencyName?: string;
 PageNumber?: number;
 PageSize?: number;
 };

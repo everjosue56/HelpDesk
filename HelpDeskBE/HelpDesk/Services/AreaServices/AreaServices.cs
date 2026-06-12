@@ -33,12 +33,18 @@ namespace HelpDesk.Services.AreaServices
             {
                 var query = _context.Areas
                     .Include(a => a.Agencies)
-                    .Where(a => a.IsActive);
+                    .AsQueryable();
 
                 if (!string.IsNullOrWhiteSpace(pagination.SearchName))
                 {
                     string searchTerm = pagination.SearchName.Trim().ToLower();
                     query = query.Where(a => a.NameArea.ToLower().Contains(searchTerm));
+                }
+
+                if (!string.IsNullOrWhiteSpace(pagination.SearchAgencyName))
+                {
+                    string agencySearch = pagination.SearchAgencyName.Trim().ToLower();
+                    query = query.Where(a => a.Agencies != null && a.Agencies.Name.ToLower().Contains(agencySearch));
                 }
 
                 var (entities, totalItems, totalPages) = await query.ToPagedListAsync(pagination.PageNumber, pagination.PageSize);
@@ -71,7 +77,7 @@ namespace HelpDesk.Services.AreaServices
         {
             var areaEntity = await _context.Areas
                 .Include(a => a.Agencies)
-                .FirstOrDefaultAsync(a => a.Id == id && a.IsActive);
+                .FirstOrDefaultAsync(a => a.Id == id);
 
             if (areaEntity == null)
             {
@@ -117,11 +123,6 @@ namespace HelpDesk.Services.AreaServices
             {
                 var areaEntity = await _context.Areas.FindAsync(id);
 
-                if (areaEntity == null || !areaEntity.IsActive)
-                {
-                    return new ResponseDto<AreaDto> { Status = false, Message = "Área no encontrada." };
-                }
-
                 // Si se intenta cambiar de agencia, validamos que la nueva exista
                 if (dto.IdAgency != areaEntity.IdAgency)
                 {
@@ -156,12 +157,13 @@ namespace HelpDesk.Services.AreaServices
                     return new ResponseDto<bool> { Status = false, Message = "Área no encontrada.", Data = false };
                 }
 
-                // Borrado lógico para mantener integridad con usuarios y tickets
+                areaEntity.IsDeleted = true;
                 areaEntity.IsActive = false;
+
                 _context.Areas.Update(areaEntity);
                 await _context.SaveChangesAsync();
 
-                return new ResponseDto<bool> { Status = true, Message = "Área desactivada correctamente.", Data = true };
+                return new ResponseDto<bool> { Status = true, Message = "Área eliminada correctamente.", Data = true };
             }
             catch (Exception ex)
             {

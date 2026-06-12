@@ -13,11 +13,12 @@ export interface AgencyItem {
   organizationName: string;
   organizationId: number;
   isActive: boolean;
-  createDate?: string;
+  createdDate?: string;
 }
 
 export const useAgencies = (
   searchTerm: string,
+  organizationSearch: string,
   page: number,
   pageSize: number = 5,
 ) => {
@@ -40,6 +41,7 @@ export const useAgencies = (
       const response = await agencyService.getApiAgencies({
         PageNumber: page,
         PageSize: pageSize,
+        SearchOrganizationName: organizationSearch,
         Name: searchTerm || undefined,
       });
 
@@ -61,7 +63,7 @@ export const useAgencies = (
               item.organizationName || item.organization?.name || "N/A",
             organizationId: item.idOrganization || item.organizationId || 0,
             isActive: item.isActive ?? true,
-            createDate: item.createDate || "N/A",
+            createdDate: item.createdDate || "N/A",
           }))
         : [];
 
@@ -72,7 +74,14 @@ export const useAgencies = (
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated, searchTerm, page, pageSize, agencyService]);
+  }, [
+    isAuthenticated,
+    searchTerm,
+    page,
+    pageSize,
+    agencyService,
+    organizationSearch,
+  ]);
 
   // 2. Obtener registro individual por ID
   const getAgencyById = useCallback(
@@ -99,7 +108,7 @@ export const useAgencies = (
           organizationId: item.idOrganization || 0,
           organizationName: item.organizationName || "",
           isActive: item.isActive ?? true,
-          createDate: item.createDate,
+          createdDate: item.createdDate,
         };
 
         setAgency(formatted);
@@ -176,7 +185,7 @@ export const useAgencies = (
     agencies,
     totalCount,
     isLoading,
-    agency, 
+    agency,
     isFetching,
     getAgencyById,
     createAgency,

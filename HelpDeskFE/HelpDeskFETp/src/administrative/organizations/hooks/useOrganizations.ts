@@ -11,7 +11,7 @@ export interface OrganizationItem {
   address?: string;
   description?: string,
   logo?: string;
-  createDate?: string;
+  createdDate?: string;
 }
 
 export const useOrganizations = (searchTerm: string, page: number, pageSize: number = 5) => {
@@ -51,7 +51,7 @@ export const useOrganizations = (searchTerm: string, page: number, pageSize: num
             address: org.address || 'N/A',
             description: org.description  || "N/A",
             logo: org.logo || '',
-            createDate: org.createDate || "N/A"
+            createdDate: org.createdDate || "N/A"
           }))
         : [];
 
@@ -86,7 +86,7 @@ export const useOrganizations = (searchTerm: string, page: number, pageSize: num
         address: org.address || '',
         description: org.description || '',
         logo: org.logo || '',
-        createDate: org.createDate || 'N/A'  
+        createdDate: org.createdDate || 'N/A'  
       };
 
       setOrganization(formatted); 

@@ -6,5 +6,6 @@ namespace HelpDesk.Dtos.FiltersDto
     {
         // filtro para buscar agencias por nombre 
         public string? Name { get; set; } 
+        public string? SearchOrganizationName { get; set; }
     }
 }

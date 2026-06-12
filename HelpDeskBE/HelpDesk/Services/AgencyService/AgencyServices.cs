@@ -35,13 +35,18 @@ namespace HelpDesk.Services.AgencyService
             try
             {
                 var query = _context.Agencies
-                    .Include(a => a.Organizations) 
-                    .Where(a => a.IsActive);     
+                    .Include(a => a.Organizations)
+                    .AsQueryable();
 
                 if (!string.IsNullOrWhiteSpace(filter.Name))
                 {
                     string searchTerm = filter.Name.Trim().ToLower();
                     query = query.Where(a => a.Name.ToLower().Contains(searchTerm));
+                }
+                if (!string.IsNullOrWhiteSpace(filter.SearchOrganizationName))
+                {
+                    string orgSearch = filter.SearchOrganizationName.Trim().ToLower();
+                    query = query.Where(a => a.Organizations != null && a.Organizations.Name.ToLower().Contains(orgSearch));
                 }
 
                 var (entities, totalItems, totalPages) = await query.ToPagedListAsync(filter.PageNumber, filter.PageSize);
@@ -75,7 +80,7 @@ namespace HelpDesk.Services.AgencyService
         {
             var agencyEntity = await _context.Agencies
                 .Include(a => a.Organizations)
-                .FirstOrDefaultAsync(a => a.Id == id && a.IsActive);
+                .FirstOrDefaultAsync(a => a.Id == id );
 
             if (agencyEntity == null)
             {
@@ -102,7 +107,7 @@ namespace HelpDesk.Services.AgencyService
 
                 var agencyEntity = _mapper.Map<AgencyEntity>(dto);
 
-                _context.Agencies.Add(agencyEntity);
+                await _context.Agencies.AddAsync(agencyEntity);
                 await _context.SaveChangesAsync();
 
                 // Recargamos para incluir la organización en la respuesta
@@ -120,11 +125,6 @@ namespace HelpDesk.Services.AgencyService
             try
             {
                 var agencyEntity = await _context.Agencies.FindAsync(id);
-
-                if (agencyEntity == null || !agencyEntity.IsActive)
-                {
-                    return new ResponseDto<AgencyDto> { Status = false, Message = "Agencia no encontrada." };
-                }
 
                 // Usamos AutoMapper para actualizar la entidad existente
                 _mapper.Map(dto, agencyEntity);
@@ -145,24 +145,25 @@ namespace HelpDesk.Services.AgencyService
         {
             try
             {
-                var agencyEntity = await _context.Agencies.FindAsync(id);
+                var angencyEntity = await _context.Agencies.FindAsync(id);
 
-                if (agencyEntity == null)
+                if (angencyEntity == null)
                 {
                     return new ResponseDto<bool> { Status = false, Message = "Agencia no encontrada.", Data = false };
                 }
 
-                // Borrado lógico: desactivamos en lugar de borrar físicamente
-                agencyEntity.IsActive = false;
-                _context.Agencies.Update(agencyEntity);
+                angencyEntity.IsDeleted = true;
+                angencyEntity.IsActive = false;
+
+                _context.Agencies.Update(angencyEntity);
                 await _context.SaveChangesAsync();
 
                 return new ResponseDto<bool> { Status = true, Message = "Agencia desactivada correctamente.", Data = true };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al eliminar la agencia.");
-                return new ResponseDto<bool> { Status = false, Message = "Error al eliminar.", Data = false };
+                _logger.LogError(ex, "Error al desactivar agencia.");
+                return new ResponseDto<bool> { Status = false, Message = "Error al procesar la desactivacion.", Data = false };
             }
         }
     }

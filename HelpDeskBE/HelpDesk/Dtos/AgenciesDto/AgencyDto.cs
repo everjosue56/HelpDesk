@@ -15,6 +15,7 @@ namespace HelpDesk.Dtos.AgenciesDto
         public bool IsActive { get; set; } = true;
         public string OrganizationName { get; set; } = string.Empty;
         public long OrganizationId { get; set; }
+        public string? SearchOrganizationName { get; set; }
         public DateTime CreatedDate { get; set; }
     } 
 }

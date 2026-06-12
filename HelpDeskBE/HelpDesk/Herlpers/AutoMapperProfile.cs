@@ -58,7 +58,8 @@ namespace HelpDesk.Herlpers
 
         private void MapsForOrganization()
         {
-            CreateMap<OrganizationEntity, OrganizationDto>();
+            CreateMap<OrganizationEntity, OrganizationDto>()
+                .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => src.CreatedDate));
             CreateMap<CreateOrganizationDto, OrganizationEntity>();
             CreateMap<UpdateOrganizationDto, OrganizationEntity>();
         }
@@ -91,7 +92,8 @@ namespace HelpDesk.Herlpers
    
             CreateMap<AgencyEntity, AgencyDto>()
                 .ForMember(dest => dest.OrganizationName,
-                           opt => opt.MapFrom(src => src.Organizations.Name));
+                           opt => opt.MapFrom(src => src.Organizations.Name))
+                .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => src.CreatedDate));
             CreateMap<CreateAgencyDto, AgencyEntity>();
             CreateMap<UpdateAgencyDto, AgencyEntity>();
         }
@@ -100,7 +102,8 @@ namespace HelpDesk.Herlpers
         {
             CreateMap<AreaEntity, AreaDto>()
                 .ForMember(dest => dest.AgencyName,
-                           opt => opt.MapFrom(src => src.Agencies.Name));
+                           opt => opt.MapFrom(src => src.Agencies.Name))
+                .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => src.CreatedDate));
 
             CreateMap<CreateAreaDto, AreaEntity>();
             CreateMap<UpdateAreaDto, AreaEntity>();

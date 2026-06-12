@@ -25,6 +25,17 @@ export const OrganizationDetailModal: React.FC<OrganizationDetailModalProps> = (
     // Pequeña validación por si la URL del logo es válida
     const hasValidLogo = organization.logo && organization.logo.startsWith('http');
 
+      const formatFecha = (fechaStr?: string) => {
+    if (!fechaStr) return 'N/A';
+
+    const fecha = new Date(fechaStr);
+    return new Intl.DateTimeFormat('es-HN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).format(fecha);
+  };
+
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="sm:max-w-md w-[90%] rounded-2xl p-6 bg-white border border-gray-100 shadow-2xl gap-0 select-none animate-in fade-in-50 zoom-in-95 duration-200">
@@ -112,7 +123,7 @@ export const OrganizationDetailModal: React.FC<OrganizationDetailModalProps> = (
                 <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-2">
                     {/* Badge sutil con el ID de la base de datos de PostgreSQL */}
                     <span className="inline-flex items-center bg-slate-100 text-slate-500 font-mono text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider">
-                        ID: {organization.id} - Creado: {organization.createDate}
+                        ID: {organization.id} - Creado: {formatFecha(organization.createdDate)}
                     </span>
                    
 

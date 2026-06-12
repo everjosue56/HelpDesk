@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { useAgencies, type AgencyItem } from '../hooks/useAgencies';
+import { useAreas, type AreaItem } from '../hooks/useAreas';
+import { useAgencies } from '../../agencies/hooks/useAgencies'; 
 import {
-    Building2,
-    Users,
     Plus,
     Search,
     Eye,
@@ -12,22 +11,25 @@ import {
 } from 'lucide-react';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '../../../../@/components/ui/pagination';
 import { useNavigate } from 'react-router-dom';
-import { AgencyDeleteModal } from '../components/AgencyDeleteModal';
+import { AreaDeleteModal } from '../components/AreaDeleteModal';
 import { toast } from 'sonner';
+import { FiMapPin } from 'react-icons/fi';
+import { AreaDetailModal } from '../components/AreaDetailModal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../@/components/ui/select';
-import { useOrganizations } from '../../organizations/hooks/useOrganizations';
 
-export const ListAgenciesPage: React.FC = () => {
+export const ListAreasPage: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [agencySearch, setAgencySearch] = useState(''); 
     const [page, setPage] = useState(1);
-    const [organizationSearch, setOrganizationSearch] = useState('');
     const pageSize = 5;
 
-   
-    const { agencies, totalCount, isLoading, deleteAgency } = useAgencies(searchTerm, organizationSearch, page, pageSize);
-
-    // Traemos las organizaciones vivas para alimentar el filtro select 
-    const { organizations } = useOrganizations('', 1, 100);
+    const {
+    areas,
+    totalCount,
+    isLoading,
+    deleteArea
+} = useAreas(searchTerm, agencySearch, page, pageSize);
+    const { agencies } = useAgencies('','', 1, 100);
 
     const totalPages = Math.ceil(totalCount / pageSize) || 1;
     const navigate = useNavigate();
@@ -51,15 +53,17 @@ export const ListAgenciesPage: React.FC = () => {
         setPage(pageNumber);
     };
 
-    const [selectedAgency, setSelectedAgency] = useState<AgencyItem | null>(null);
+    // Estados para Modales 
+    const [selectedArea, setSelectedArea] = useState<AreaItem | null>(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
     const handleConfirmDelete = async (id: number) => {
         try {
-            await deleteAgency(id);
-            toast.success("Agencia desactivada correctamente");
+            await deleteArea(id);
+            toast.success("Área desactivada correctamente");
         } catch (error) {
-            toast.error("Error al intentar desactivar la agencia");
+            toast.error("Error al intentar desactivar el área");
             console.error(error);
         }
     };
@@ -67,7 +71,7 @@ export const ListAgenciesPage: React.FC = () => {
     return (
         <div className="p-6 space-y-6 bg-[#f8f9fa] min-h-screen font-sans animate-fadeIn text-left">
 
-            {/* Historial superior */}
+            {/* Historial superior (Breadcrumbs) */}
             <div className="flex flex-col gap-0.5">
                 <div className="text-[13px] font-semibold text-neutral-400 flex items-center gap-1.5 tracking-wide select-none">
                     <span
@@ -84,34 +88,23 @@ export const ListAgenciesPage: React.FC = () => {
                         Administrativo
                     </span>
                     <span className="text-neutral-300 font-normal">&gt;</span>
-                    <span className="text-neutral-400 font-semibold">Agencias</span>
+                    <span className="text-neutral-400 font-semibold">Áreas</span>
                 </div>
                 <h1 className="text-2xl font-black text-neutral-800 tracking-tight mt-1">
-                    Agencias
+                    Áreas
                 </h1>
             </div>
 
             {/* ─── CONTENEDOR DE KPIS ─── */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* KPI Total Agencias */}
+                {/* KPI Total Áreas */}
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
                     <div className="space-y-1">
-                        <p className="text-sm font-medium text-gray-500">Total Agencias</p>
+                        <p className="text-sm font-medium text-gray-500">Total Áreas</p>
                         <p className="text-3xl font-bold text-slate-800">{totalCount || 0}</p>
                     </div>
                     <div className="p-3 bg-slate-50 border border-gray-100 rounded-xl">
-                        <Building2 className="h-6 w-6 text-slate-600" />
-                    </div>
-                </div>
-
-                {/* KPI Usuarios Activos */}
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
-                    <div className="space-y-1">
-                        <p className="text-sm font-medium text-gray-500">Usuarios Activos</p>
-                        <p className="text-3xl font-bold text-slate-800">500</p>
-                    </div>
-                    <div className="p-3 bg-slate-50 border border-gray-100 rounded-xl">
-                        <Users className="h-6 w-6 text-slate-600" />
+                        <FiMapPin className="h-6 w-6 text-slate-600" />
                     </div>
                 </div>
             </div>
@@ -122,20 +115,22 @@ export const ListAgenciesPage: React.FC = () => {
                 {/* Fila del Título de la sección y Botón Agregar */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <h2 className="text-lg font-bold text-slate-800">Lista de Agencias</h2>
-                        <p className="text-xs text-gray-400">Gestiona todas las agencias registradas en el sistema</p>
+                        <h2 className="text-lg font-bold text-slate-800">Lista de Áreas</h2>
+                        <p className="text-xs text-gray-400">Gestiona todas las áreas registradas en el sistema</p>
                     </div>
                     <button
                         className="inline-flex items-center justify-center gap-2 bg-[#1e5f8a] hover:bg-[#154666] text-white font-medium text-sm px-4 py-2.5 rounded-xl transition-colors shadow-sm"
                         onClick={() => { navigate("create") }}
                     >
                         <Plus className="h-4 w-4" />
-                        Nueva Agencia
+                        Nueva Área
                     </button>
                 </div>
+
+                {/* ─── CONTENEDOR DE FILTROS INTERACTIVOS CORREGIDO ─── */}
                 <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
 
-                    {/* Barra de Búsqueda Interactiva */}
+                    {/* Barra de Búsqueda por Nombre del Área */}
                     <div className="relative w-full sm:max-w-xs">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <input
@@ -155,35 +150,37 @@ export const ListAgenciesPage: React.FC = () => {
                         )}
                     </div>
 
-                    {/* Filtro por Organización */}
+                    {/* Filtro por Agencia */}
                     <div className="flex items-center gap-2 w-full sm:max-w-xs">
                         <Select
-                            onValueChange={(val) => { setOrganizationSearch(val); setPage(1); }}
-                            value={organizationSearch || ""}
+                            onValueChange={(val) => { setAgencySearch(val); setPage(1); }}
+                            value={agencySearch || ""}
                         >
                             <SelectTrigger className="rounded-xl border-gray-200 h-9.5 pl-4 pr-3 text-sm text-slate-700 focus:ring-[#1e5f8a]/20 focus:border-[#1e5f8a] w-full bg-white select-none shadow-none">
-                                <SelectValue placeholder="Filtrar por Organización" className='text-gray-400!' />
+                                <SelectValue placeholder="Filtrar por Agencia" />
                             </SelectTrigger>
+
                             <SelectContent className="bg-white rounded-xl border border-gray-200 select-none">
-                                {organizations.map((org) => (
-                                    <SelectItem key={org.id} value={org.name} className="cursor-pointer text-sm">
-                                        {org.name}
+                                {agencies.map((agency) => (
+                                    <SelectItem key={agency.id} value={agency.name} className="cursor-pointer text-sm">
+                                        {agency.name}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
 
-                        {/* Botón rápido de borrado del filtro de Organización */}
-                        {organizationSearch && (
+                        {/* Botón rápido de borrado del select */}
+                        {agencySearch && (
                             <button
-                                onClick={() => setOrganizationSearch('')}
+                                onClick={() => setAgencySearch('')}
                                 className="p-2 bg-slate-100 hover:bg-slate-200/80 border border-slate-200/60 rounded-xl text-slate-500 hover:text-slate-700 transition-colors cursor-pointer shrink-0"
-                                title="Limpiar filtro de organización"
+                                title="Limpiar filtro de agencia"
                             >
                                 <X className="h-4 w-4" />
                             </button>
                         )}
                     </div>
+
                 </div>
 
                 {/* ─── TABLA DE DATOS ─── */}
@@ -193,8 +190,7 @@ export const ListAgenciesPage: React.FC = () => {
                             <tr className="bg-[#eef2f5] text-slate-600 font-semibold border-b border-gray-200">
                                 <th className="p-3 w-16">ID</th>
                                 <th className="p-3">Nombre</th>
-                                <th className="p-3">Contacto</th>
-                                <th className="p-3">Organización</th>
+                                <th className="p-3">Agencia</th>
                                 <th className="p-3 w-32">Estado</th>
                                 <th className="p-3 w-28 text-center">Acciones</th>
                             </tr>
@@ -202,42 +198,44 @@ export const ListAgenciesPage: React.FC = () => {
                         <tbody className="divide-y divide-gray-100 text-slate-700">
                             {isLoading ? (
                                 <tr>
-                                    <td colSpan={6} className="p-8 text-center text-gray-400 animate-pulse">
-                                        Cargando agencias de forma segura...
+                                    <td colSpan={5} className="p-8 text-center text-gray-400 animate-pulse">
+                                        Cargando áreas de forma segura...
                                     </td>
                                 </tr>
-                            ) : agencies.length === 0 ? (
+                            ) : areas.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="p-8 text-center text-gray-400">
-                                        No se encontraron agencias registradas.
+                                    <td colSpan={5} className="p-8 text-center text-gray-400">
+                                        No se encontraron áreas registradas.
                                     </td>
                                 </tr>
                             ) : (
-                                agencies.map((agency) => (
-                                    <tr key={agency.id} className="hover:bg-slate-50/70 transition-colors">
+                                areas.map((area) => (
+                                    <tr key={area.id} className="hover:bg-slate-50/70 transition-colors">
                                         <td className="p-3 font-mono text-gray-400 text-xs">
-                                            {agency.id}
+                                            {area.id}
                                         </td>
-                                        <td className="p-3 font-medium text-slate-800 truncate max-w-55" title={agency.name}>
-                                            {agency.name}
+                                        <td className="p-3 font-medium text-slate-800 truncate max-w-55" title={area.nameArea}>
+                                            {area.nameArea}
                                         </td>
-                                        <td className="p-3 text-gray-500">{agency.contact}</td>
-                                        <td className="p-3 text-gray-500 truncate max-w-50" title={agency.organizationName}>
-                                            {agency.organizationName}
+                                        <td className="p-3 text-gray-500 truncate max-w-50" title={area.agencyName}>
+                                            {area.agencyName || 'Sin asignar'}
                                         </td>
                                         <td className="p-3">
-                                            <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold w-24 border ${agency.isActive
+                                            <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold w-24 border ${area.isActive
                                                 ? 'bg-[#e6f9f0] text-[#1b8a65] border-[#bbf7d0]'
                                                 : 'bg-[#fee2e2] text-[#ef4444] border-[#fecaca]'
                                                 }`}>
-                                                {agency.isActive ? 'Activo' : 'Inactivo'}
+                                                {area.isActive ? 'Activo' : 'Inactivo'}
                                             </span>
                                         </td>
                                         <td className="p-3">
                                             <div className="flex items-center justify-center gap-3 text-gray-400">
                                                 <button
                                                     className="hover:text-slate-600 transition-colors"
-                                                    onClick={() => navigate(`details/${agency.id}`)}
+                                                    onClick={() => {
+                                                        setSelectedArea(area);
+                                                        setIsDetailsModalOpen(true);
+                                                    }}
                                                     title="Ver detalle"
                                                 >
                                                     <Eye className="h-4 w-4" />
@@ -245,7 +243,7 @@ export const ListAgenciesPage: React.FC = () => {
                                                 <button
                                                     className="hover:text-red-500 transition-colors"
                                                     onClick={() => {
-                                                        setSelectedAgency(agency);
+                                                        setSelectedArea(area);
                                                         setIsDeleteModalOpen(true);
                                                     }}
                                                     title="Eliminar"
@@ -254,7 +252,7 @@ export const ListAgenciesPage: React.FC = () => {
                                                 </button>
                                                 <button
                                                     className="hover:text-[#1e5f8a] transition-colors"
-                                                    onClick={() => navigate(`edit/${agency.id}`)}
+                                                    onClick={() => navigate(`edit/${area.id}`)}
                                                     title="Editar"
                                                 >
                                                     <Edit className="h-4 w-4" />
@@ -317,17 +315,29 @@ export const ListAgenciesPage: React.FC = () => {
                         </Pagination>
                     </div>
                 )}
+
             </div>
 
-            <AgencyDeleteModal
+            {/* Modales Controlados */}
+            <AreaDetailModal
+                isOpen={isDetailsModalOpen}
+                onClose={() => {
+                    setIsDetailsModalOpen(false);
+                    setSelectedArea(null);
+                }}
+                area={selectedArea}
+            />
+
+            <AreaDeleteModal
                 isOpen={isDeleteModalOpen}
                 onClose={() => {
                     setIsDeleteModalOpen(false);
-                    setSelectedAgency(null);
+                    setSelectedArea(null);
                 }}
                 onConfirm={handleConfirmDelete}
-                agency={selectedAgency}
+                area={selectedArea}
             />
+
         </div>
     );
 };

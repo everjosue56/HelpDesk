@@ -24,6 +24,8 @@ namespace HelpDesk.Database.Entities
         [Column("updated_by")]
         public long? UpdatedBy { get; set; }
 
+        public bool IsDeleted { get; set; } = false;
+
         // Fecha actualización
         [Column("updated_date")]
         public DateTime? UpdatedDate { get; set; }

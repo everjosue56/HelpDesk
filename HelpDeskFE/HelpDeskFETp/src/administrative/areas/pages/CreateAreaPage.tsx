@@ -1,43 +1,43 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAgencies } from '../hooks/useAgencies';
-import { useOrganizations } from '../../organizations/hooks/useOrganizations'; 
-import { AgencyForm } from '../components/AgencyForm';
-import { type AgencyFormValues } from '../hooks/agencySchema';
+import { useAreas } from '../hooks/useAreas';
+import { useAgencies } from '../../agencies/hooks/useAgencies'; 
+import { AreaForm } from '../components/AreaForm';
+import { type AreaFormValues } from '../hooks/areaSchema';
 import { toast } from "sonner";
 
-export const CreateAgencyPage: React.FC = () => {
+export const CreateAreaPage: React.FC = () => {
   const navigate = useNavigate();
-  const { createAgency, isLoading } = useAgencies('', 1, 1);
+  const { createArea, isLoading } = useAreas('', 1, 1);
 
-  const { organizations: realOrganizations } = useOrganizations('', 1, 100);
+  // Carga hasta 100 agencias para el selector del formulario
+  const { agencies: realAgencies } = useAgencies('', 1, 100);
 
-  const handleSubmit = async (values: AgencyFormValues) => {
-    try {
+  const handleSubmit = async (values: AreaFormValues) => {
+  try {
+    await createArea({ 
+      nameArea: values.name,    
+      idAgency: Number(values.idAgency), 
+      isActive: values.isActive ?? true 
+    });
+    
+    toast.success("Área registrada exitosamente", {
+      description: `El área "${values.name}" ha sido guardada en el sistema.`,
+    });
 
-      await createAgency({ 
-        ...values,
-        idOrganization: Number(values.idOrganization), 
-        isActive: true 
-      });
-      
-      toast.success("Agencia registrada exitosamente", {
-        description: `La agencia "${values.name}" ha sido guardada en el sistema.`,
-      });
-
-      navigate('/dashboard/agencies');
-    } catch (error) {
-      console.error(error);
-      toast.error("No se pudo registrar la agencia", {
-        description: "Hubo un problema con el servidor. Inténtalo de nuevo.",
-      });
-    }
-  };
+    navigate('/dashboard/areas');
+  } catch (error) {
+    console.error(error);
+    toast.error("No se pudo registrar el área", {
+      description: "Hubo un problema con el servidor al procesar la solicitud.",
+    });
+  }
+};
 
   return (
     <div className="p-6 space-y-6 bg-[#f8f9fa] min-h-screen font-sans animate-fadeIn text-left">
       
-      {/* Historial superior */}
+      {/* Historial superior (Breadcrumbs) */}
       <div className="flex flex-col gap-0.5">
         <div className="text-[13px] font-semibold text-neutral-400 flex items-center gap-1.5 tracking-wide select-none">
           <span
@@ -55,25 +55,25 @@ export const CreateAgencyPage: React.FC = () => {
           </span>
           <span className="text-neutral-300 font-normal">&gt;</span>
           <span
-            onClick={() => navigate('/dashboard/agencies')}
+            onClick={() => navigate('/dashboard/areas')}
             className="hover:text-[#1a558b] hover:underline cursor-pointer transition-colors"
           >
-            Agencias
+            Áreas
           </span>
           <span className="text-neutral-300 font-normal">&gt;</span>
           <span className="text-gray-400 font-semibold">Crear</span>
         </div>
         <h1 className="text-2xl font-black text-slate-800 tracking-tight mt-1">
-          Agencias
+          Áreas
         </h1>
       </div>
 
       {/* Formulario Conectado */}
-      <AgencyForm 
+      <AreaForm 
         initialData={undefined} 
-        organizations={realOrganizations} 
+        agencies={realAgencies} 
         onSubmit={handleSubmit}
-        onCancel={() => navigate('/dashboard/agencies')}
+        onCancel={() => navigate('/dashboard/areas')}
         isSubmitting={isLoading}
       />
     </div>

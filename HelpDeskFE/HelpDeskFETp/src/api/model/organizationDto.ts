@@ -17,4 +17,5 @@ export interface OrganizationDto {
   description?: string | null;
   /** @nullable */
   address?: string | null;
+  createdDate?: string;
 }

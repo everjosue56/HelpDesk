@@ -43,6 +43,7 @@ namespace HelpDesk.Database
         public DbSet<AlertConfigurationEntity> AlertConfigurations { get; set; }
         public DbSet<NotificationHistoryEntity> NotificationHistories { get; set; }
         public DbSet<AlertHistoryEntity> AlertHistories { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -91,15 +92,15 @@ namespace HelpDesk.Database
                 .HasForeignKey(u => u.IdAgency)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Relacion de agencia a organizacion 
+            // Relación de agencia a organizacion 
             modelBuilder.Entity<AgencyEntity>(entity =>
-          {
-              entity.ToTable("agency");
-              entity.HasOne(a => a.Organizations)
-                  .WithMany(o => o.Agencies)
-                  .HasForeignKey(a => a.IdOrganization)
-                  .OnDelete(DeleteBehavior.Restrict);
-          });
+            {
+                entity.ToTable("agency");
+                entity.HasOne(a => a.Organizations)
+                    .WithMany(o => o.Agencies)
+                    .HasForeignKey(a => a.IdOrganization)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
             modelBuilder.Entity<AreaEntity>(entity =>
             {
@@ -109,7 +110,7 @@ namespace HelpDesk.Database
                 entity.HasOne(a => a.Agencies)
                     .WithMany(ag => ag.Areas)
                     .HasForeignKey(a => a.IdAgency)
-                    .OnDelete(DeleteBehavior.Restrict); 
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // Relación Usuario -> Área
@@ -126,51 +127,9 @@ namespace HelpDesk.Database
 
                 // Relación con Usuario
                 entity.HasOne(t => t.User)
-                    .WithMany() 
+                    .WithMany()
                     .HasForeignKey(t => t.IdUser)
-                    .OnDelete(DeleteBehavior.Restrict); 
-
-                // Relación con Tipo de Error
-                entity.HasOne(t => t.TypeError)
-                    .WithMany()
-                    .HasForeignKey(t => t.IdTypeError)
                     .OnDelete(DeleteBehavior.Restrict);
-
-                // Relación con Área
-                entity.HasOne(t => t.Area)
-                    .WithMany()
-                    .HasForeignKey(t => t.IdArea)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-                // Relación con SoftwareSystem 
-                entity.HasOne(t => t.SoftwareSystem)
-                    .WithMany()
-                    .HasForeignKey(t => t.IdSoftwareSystem)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-                // Relación con Impacto
-                entity.HasOne(t => t.Impact)
-                    .WithMany()
-                    .HasForeignKey(t => t.IdImpact)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-                // Relación con Prioridad
-                entity.HasOne(t => t.Priority)
-                    .WithMany()
-                    .HasForeignKey(t => t.IdPriority)
-                    .OnDelete(DeleteBehavior.Restrict);
-            });
-            
-            // Configuración para la entidad Ticket
-            modelBuilder.Entity<TicketEntity>(entity =>
-            {
-                entity.ToTable("ticket");
-
-                // Relación con Usuario
-                entity.HasOne(t => t.User)
-                    .WithMany() 
-                    .HasForeignKey(t => t.IdUser)
-                    .OnDelete(DeleteBehavior.Restrict); 
 
                 // Relación con Tipo de Error
                 entity.HasOne(t => t.TypeError)
@@ -209,7 +168,7 @@ namespace HelpDesk.Database
 
                 // Relación con el Ticket 
                 entity.HasOne(r => r.Ticket)
-                    .WithMany() 
+                    .WithMany()
                     .HasForeignKey(r => r.IdTicket)
                     .OnDelete(DeleteBehavior.Restrict);
 
@@ -293,14 +252,13 @@ namespace HelpDesk.Database
 
             modelBuilder.Entity<MaintenanceEntity>(entity =>
             {
-                // Especificamos el nombre de la tabla
                 entity.ToTable("maintenance");
 
                 // 1. Relación con Tipo de Mantenimiento
                 entity.HasOne(m => m.TypeMaintenance)
-                    .WithMany() 
+                    .WithMany()
                     .HasForeignKey(m => m.IdMaintenanceType)
-                    .OnDelete(DeleteBehavior.Restrict); 
+                    .OnDelete(DeleteBehavior.Restrict);
 
                 // 2. Relación con el Área Física
                 entity.HasOne(m => m.Area)
@@ -333,9 +291,9 @@ namespace HelpDesk.Database
                     .HasForeignKey(mh => mh.IdUser)
                     .OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(mh => mh.DevicesType)
-                .WithMany()
-                .HasForeignKey(mh => mh.IdTypeDevice)
-                .OnDelete(DeleteBehavior.Restrict);
+                    .WithMany()
+                    .HasForeignKey(mh => mh.IdTypeDevice)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<NotificationEntity>(entity =>
@@ -352,10 +310,10 @@ namespace HelpDesk.Database
                     .HasForeignKey(n => n.IdAlertType)
                     .OnDelete(DeleteBehavior.Restrict);
             });
+
             modelBuilder.Entity<AlertConfigurationEntity>(entity =>
             {
                 entity.ToTable("alert_configuration");
-
 
                 entity.HasOne(ac => ac.Areas)
                       .WithMany()
@@ -367,31 +325,35 @@ namespace HelpDesk.Database
                       .HasForeignKey(ac => ac.IdAgency)
                       .OnDelete(DeleteBehavior.Restrict);
             });
+
             modelBuilder.Entity<NotificationHistoryEntity>(entity =>
             {
                 entity.ToTable("notification_history");
 
                 entity.HasOne(nh => nh.Notifications)
-                .WithMany()
-                .HasForeignKey(nh => nh.IdNotification)
-                .OnDelete(DeleteBehavior.Restrict);
-
+                    .WithMany()
+                    .HasForeignKey(nh => nh.IdNotification)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
+
             modelBuilder.Entity<AlertHistoryEntity>(entity =>
             {
                 entity.ToTable("alert_history");
 
                 entity.HasOne(ah => ah.AlertConfiguration)
-                .WithMany()
-                .HasForeignKey(ah => ah.IdAlertConfiguration)
-                .OnDelete(DeleteBehavior.Restrict);
+                    .WithMany()
+                    .HasForeignKey(ah => ah.IdAlertConfiguration)
+                    .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(ah => ah.User)
-                .WithMany()
-                .HasForeignKey(ah => ah.IdUser)
-                .OnDelete(DeleteBehavior.Restrict);
+                    .WithMany()
+                    .HasForeignKey(ah => ah.IdUser)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
+
+            modelBuilder.Entity<OrganizationEntity>().HasQueryFilter(o => !o.IsDeleted);
+            modelBuilder.Entity<AgencyEntity>().HasQueryFilter(a => !a.IsDeleted);
+            modelBuilder.Entity<AreaEntity>().HasQueryFilter(a => !a.IsDeleted);
         }
-         
     }
 }
