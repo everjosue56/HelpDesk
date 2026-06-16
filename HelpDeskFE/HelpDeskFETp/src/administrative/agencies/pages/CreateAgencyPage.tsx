@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 export const CreateAgencyPage: React.FC = () => {
   const navigate = useNavigate();
-  const { createAgency, isLoading } = useAgencies('', 1, 1);
+  const { createAgency, isLoading } = useAgencies('', '', 1, 1);
 
   const { organizations: realOrganizations } = useOrganizations('', 1, 100);
 

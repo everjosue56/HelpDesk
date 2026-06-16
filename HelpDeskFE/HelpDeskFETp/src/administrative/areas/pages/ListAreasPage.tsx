@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAreas, type AreaItem } from '../hooks/useAreas';
-import { useAgencies } from '../../agencies/hooks/useAgencies'; 
+import { useAgencies } from '../../agencies/hooks/useAgencies';
 import {
     Plus,
     Search,
@@ -19,17 +19,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 
 export const ListAreasPage: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
-    const [agencySearch, setAgencySearch] = useState(''); 
+    const [agencySearch, setAgencySearch] = useState('');
     const [page, setPage] = useState(1);
     const pageSize = 5;
 
     const {
-    areas,
-    totalCount,
-    isLoading,
-    deleteArea
-} = useAreas(searchTerm, agencySearch, page, pageSize);
-    const { agencies } = useAgencies('','', 1, 100);
+        areas,
+        totalCount,
+        isLoading,
+        deleteArea
+    } = useAreas(searchTerm, agencySearch, page, pageSize);
+    const { agencies } = useAgencies('', '', 1, 100);
 
     const totalPages = Math.ceil(totalCount / pageSize) || 1;
     const navigate = useNavigate();
@@ -95,13 +95,15 @@ export const ListAreasPage: React.FC = () => {
                 </h1>
             </div>
 
-            {/* ─── CONTENEDOR DE KPIS ─── */}
+            {/* ─── CONTENEDOR DE KPIS (ANTIPARPADEO) ─── */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* KPI Total Áreas */}
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
                     <div className="space-y-1">
                         <p className="text-sm font-medium text-gray-500">Total Áreas</p>
-                        <p className="text-3xl font-bold text-slate-800">{totalCount || 0}</p>
+                        <p className="text-3xl font-bold text-slate-800">
+                            {totalCount ?? 0}
+                        </p>
                     </div>
                     <div className="p-3 bg-slate-50 border border-gray-100 rounded-xl">
                         <FiMapPin className="h-6 w-6 text-slate-600" />
@@ -119,7 +121,7 @@ export const ListAreasPage: React.FC = () => {
                         <p className="text-xs text-gray-400">Gestiona todas las áreas registradas en el sistema</p>
                     </div>
                     <button
-                        className="inline-flex items-center justify-center gap-2 bg-[#1e5f8a] hover:bg-[#154666] text-white font-medium text-sm px-4 py-2.5 rounded-xl transition-colors shadow-sm"
+                        className="inline-flex items-center justify-center gap-2 bg-[#1e5f8a] hover:bg-[#154666] text-white font-medium text-sm px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer"
                         onClick={() => { navigate("create") }}
                     >
                         <Plus className="h-4 w-4" />
@@ -169,7 +171,6 @@ export const ListAreasPage: React.FC = () => {
                             </SelectContent>
                         </Select>
 
-                        {/* Botón rápido de borrado del select */}
                         {agencySearch && (
                             <button
                                 onClick={() => setAgencySearch('')}
@@ -183,20 +184,22 @@ export const ListAreasPage: React.FC = () => {
 
                 </div>
 
-                {/* ─── TABLA DE DATOS ─── */}
+                {/* ─── TABLA DE DATOS CON ATENUACIÓN VISUAL SUAVE ─── */}
                 <div className="overflow-x-auto rounded-xl border border-gray-100">
                     <table className="w-full text-left border-collapse text-sm">
                         <thead>
                             <tr className="bg-[#eef2f5] text-slate-600 font-semibold border-b border-gray-200">
-                                <th className="p-3 w-16">ID</th>
+                                <th className="p-3 w-16">No.</th>
                                 <th className="p-3">Nombre</th>
                                 <th className="p-3">Agencia</th>
                                 <th className="p-3 w-32">Estado</th>
                                 <th className="p-3 w-28 text-center">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 text-slate-700">
-                            {isLoading ? (
+                        <tbody className={`divide-y divide-gray-100 text-slate-700 transition-opacity duration-200 ${
+                            isLoading ? 'opacity-40 pointer-events-none' : 'opacity-100'
+                        }`}>
+                            {isLoading && areas.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="p-8 text-center text-gray-400 animate-pulse">
                                         Cargando áreas de forma segura...
@@ -209,58 +212,61 @@ export const ListAreasPage: React.FC = () => {
                                     </td>
                                 </tr>
                             ) : (
-                                areas.map((area) => (
-                                    <tr key={area.id} className="hover:bg-slate-50/70 transition-colors">
-                                        <td className="p-3 font-mono text-gray-400 text-xs">
-                                            {area.id}
-                                        </td>
-                                        <td className="p-3 font-medium text-slate-800 truncate max-w-55" title={area.nameArea}>
-                                            {area.nameArea}
-                                        </td>
-                                        <td className="p-3 text-gray-500 truncate max-w-50" title={area.agencyName}>
-                                            {area.agencyName || 'Sin asignar'}
-                                        </td>
-                                        <td className="p-3">
-                                            <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold w-24 border ${area.isActive
-                                                ? 'bg-[#e6f9f0] text-[#1b8a65] border-[#bbf7d0]'
-                                                : 'bg-[#fee2e2] text-[#ef4444] border-[#fecaca]'
-                                                }`}>
-                                                {area.isActive ? 'Activo' : 'Inactivo'}
-                                            </span>
-                                        </td>
-                                        <td className="p-3">
-                                            <div className="flex items-center justify-center gap-3 text-gray-400">
-                                                <button
-                                                    className="hover:text-slate-600 transition-colors"
-                                                    onClick={() => {
-                                                        setSelectedArea(area);
-                                                        setIsDetailsModalOpen(true);
-                                                    }}
-                                                    title="Ver detalle"
-                                                >
-                                                    <Eye className="h-4 w-4" />
-                                                </button>
-                                                <button
-                                                    className="hover:text-red-500 transition-colors"
-                                                    onClick={() => {
-                                                        setSelectedArea(area);
-                                                        setIsDeleteModalOpen(true);
-                                                    }}
-                                                    title="Eliminar"
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
-                                                <button
-                                                    className="hover:text-[#1e5f8a] transition-colors"
-                                                    onClick={() => navigate(`edit/${area.id}`)}
-                                                    title="Editar"
-                                                >
-                                                    <Edit className="h-4 w-4" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
+                                areas.map((area, index) => {
+                                    const itemNumber = (page - 1) * pageSize + index + 1;
+                                    return (
+                                        <tr key={area.id} className="hover:bg-slate-50/70 transition-colors">
+                                            <td className="p-3 font-mono text-gray-400 text-xs font-semibold">
+                                                {itemNumber}
+                                            </td>
+                                            <td className="p-3 font-medium text-slate-800 truncate max-w-55" title={area.nameArea}>
+                                                {area.nameArea}
+                                            </td>
+                                            <td className="p-3 text-gray-500 truncate max-w-50" title={area.agencyName}>
+                                                {area.agencyName || 'Sin asignar'}
+                                            </td>
+                                            <td className="p-3">
+                                                <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold w-24 border ${area.isActive
+                                                    ? 'bg-[#e6f9f0] text-[#1b8a65] border-[#bbf7d0]'
+                                                    : 'bg-[#fee2e2] text-[#ef4444] border-[#fecaca]'
+                                                    }`}>
+                                                    {area.isActive ? 'Activo' : 'Inactivo'}
+                                                </span>
+                                            </td>
+                                            <td className="p-3">
+                                                <div className="flex items-center justify-center gap-3 text-gray-400">
+                                                    <button
+                                                        className="hover:text-slate-600 transition-colors cursor-pointer"
+                                                        onClick={() => {
+                                                            setSelectedArea(area);
+                                                            setIsDetailsModalOpen(true);
+                                                        }}
+                                                        title="Ver detalle"
+                                                    >
+                                                        <Eye className="h-4 w-4" />
+                                                    </button>
+                                                    <button
+                                                        className="hover:text-red-500 transition-colors cursor-pointer"
+                                                        onClick={() => {
+                                                            setSelectedArea(area);
+                                                            setIsDeleteModalOpen(true);
+                                                        }}
+                                                        title="Eliminar"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                    <button
+                                                        className="hover:text-[#1e5f8a] transition-colors cursor-pointer"
+                                                        onClick={() => navigate(`edit/${area.id}`)}
+                                                        title="Editar"
+                                                    >
+                                                        <Edit className="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
                             )}
                         </tbody>
                     </table>

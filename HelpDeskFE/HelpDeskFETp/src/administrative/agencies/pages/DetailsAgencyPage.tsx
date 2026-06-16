@@ -10,7 +10,7 @@ export const DetailsAgencyPage: React.FC = () => {
   const agencyId = Number(id);
 
   // Consumimos el hook inyectando 
-  const { agency, isFetching, getAgencyById } = useAgencies('', 1, 1);
+  const { agency, isFetching, getAgencyById } = useAgencies('','', 1, 1);
 
   // Cargar la información de la agencia al montar el componente o cambiar de ID
   useEffect(() => {

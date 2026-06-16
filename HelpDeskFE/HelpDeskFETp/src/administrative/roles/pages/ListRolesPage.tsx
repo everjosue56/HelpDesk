@@ -45,8 +45,8 @@ export const ListRolesPage: React.FC = () => {
             </div>
 
             {/* ─── CONTENEDOR DE KPI REPLICADO ─── */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex justify-between items-center max-w-sm">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
                     <div className="space-y-1">
                         <p className="text-base font-bold text-gray-500 tracking-tight">Total Roles</p>
                         <p className="text-4xl font-black text-neutral-700">{totalCount || 0}</p>
@@ -70,7 +70,7 @@ export const ListRolesPage: React.FC = () => {
                     <table className="w-full text-left border-collapse text-sm">
                         <thead>
                             <tr className="bg-[#eef2f5] text-slate-600 font-bold border-b border-gray-200">
-                                <th className="p-3.5 w-24">ID</th>
+                                <th className="p-3.5 w-24">No.</th>
                                 <th className="p-3.5 w-48">Nombre</th>
                                 <th className="p-3.5">Descripcion del Acceso</th>
                                 <th className="p-3.5 w-48 text-center">Nivel de Permisos</th>
@@ -95,7 +95,7 @@ export const ListRolesPage: React.FC = () => {
                                         <td className="p-3.5 font-mono text-gray-400 text-xs font-semibold">
                                             {role.id}
                                         </td>
-                                        <td className="p-3.5 font-bold text-slate-800"> 
+                                        <td className="p-3.5 font-bold text-slate-800">
                                             {role.name}
                                         </td>
                                         <td className="p-3.5 text-gray-500 text-mx max-w-xl">

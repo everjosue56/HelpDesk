@@ -39,6 +39,7 @@ export * from './getApiAlertConfigurationsParams';
 export * from './getApiAlertHistoriesParams';
 export * from './getApiAlertTypesParams';
 export * from './getApiAreasParams';
+export * from './getApiAuditParams';
 export * from './getApiDevicesParams';
 export * from './getApiImpactsParams';
 export * from './getApiMaintenanceHistoriesParams';

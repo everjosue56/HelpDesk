@@ -5,14 +5,14 @@ import { OrganizationDetailModal } from '../components/OrganizationDetailModal';
 import type { OrganizationItem } from '../hooks/useOrganizations';
 import { OrganizationDeleteModal } from '../components/OrganizationDeleteModal';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '../../../../@/components/ui/pagination';
-import { Search, X, Building2, Users, Plus, Eye, Trash2, Edit } from 'lucide-react';
+import { Search, X, Building2, Plus, Eye, Trash2, Edit } from 'lucide-react';
 
 export const OrganizationsPage: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const navigate = useNavigate();
 
     const [currentPage, setCurrentPage] = useState<number>(1);
-    const pageSize = 5; 
+    const pageSize = 5;
 
     const { organizations, totalCount, isLoading, deleteOrganization, getOrganizationById } = useOrganizations(searchTerm, currentPage, pageSize);
 
@@ -56,7 +56,7 @@ export const OrganizationsPage: React.FC = () => {
     };
 
     return (
-        <div className="p-6 space-y-6 bg-[#f8f9fa] min-h-screen font-sans animate-fadeIn">
+        <div className="p-6 space-y-6 bg-[#f8f9fa] min-h-screen font-sans animate-fadeIn text-left">
 
             {/* Historial superior */}
             <div className="flex flex-col gap-0.5">
@@ -82,27 +82,17 @@ export const OrganizationsPage: React.FC = () => {
                 </h1>
             </div>
 
-            {/* ─── CONTENEDOR DE KPIS  ─── */}
+            {/* ─── CONTENEDOR DE KPIS (ANTIPARPADEO) ─── */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* KPI Total Organizaciones */}
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
                     <div className="space-y-1">
                         <p className="text-sm font-medium text-gray-500">Total Organizaciones</p>
-                        <p className="text-3xl font-bold text-slate-800">{isLoading ? "0" : totalCount}</p>
+                        <p className="text-3xl font-bold text-slate-800">
+                            {totalCount ?? 0}
+                        </p>
                     </div>
                     <div className="p-3 bg-slate-50 border border-gray-100 rounded-xl">
                         <Building2 className="h-6 w-6 text-slate-600" />
-                    </div>
-                </div>
-
-                {/* KPI Usuarios Activos */}
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
-                    <div className="space-y-1">
-                        <p className="text-sm font-medium text-gray-500">Usuarios Activos</p>
-                        <p className="text-3xl font-bold text-slate-800">500</p>
-                    </div>
-                    <div className="p-3 bg-slate-50 border border-gray-100 rounded-xl">
-                        <Users className="h-6 w-6 text-slate-600" />
                     </div>
                 </div>
             </div>
@@ -145,20 +135,23 @@ export const OrganizationsPage: React.FC = () => {
                     )}
                 </div>
 
-                {/* ─── TABLA DE DATOS ─── */}
+                {/* ─── TABLA DE DATOS CON OPACIDAD FLUIDA ─── */}
                 <div className="overflow-x-auto rounded-xl border border-gray-100">
                     <table className="w-full text-left border-collapse text-sm">
                         <thead>
                             <tr className="bg-[#eef2f5] text-slate-600 font-semibold border-b border-gray-200">
-                                <th className="p-3 w-16">ID</th>
+                                <th className="p-3 w-16">No.</th>
                                 <th className="p-3">Nombre</th>
                                 <th className="p-3">Contacto</th>
                                 <th className="p-3">Dirección</th>
                                 <th className="p-3 w-28 text-center">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 text-slate-700">
-                            {isLoading ? (
+                        <tbody className={`divide-y divide-gray-100 text-slate-700 transition-opacity duration-200 ${
+                            isLoading ? 'opacity-40 pointer-events-none' : 'opacity-100'
+                        }`}>
+                            {/* Solo si la lista viene completamente vacía de fábrica y está cargando mostramos el pulse */}
+                            {isLoading && organizations.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="p-8 text-center text-gray-400 animate-pulse">
                                         Cargando organizaciones de forma segura...
@@ -171,44 +164,49 @@ export const OrganizationsPage: React.FC = () => {
                                     </td>
                                 </tr>
                             ) : (
-                                organizations.map((org) => (
-                                    <tr key={org.id} className="hover:bg-slate-50/70 transition-colors">
-                                        <td className="p-3 font-mono text-gray-400 text-xs">{org.id}</td>
-                                        <td className="p-3 font-medium text-slate-800 truncate max-w-55" title={org.name}>
-                                            {org.name}
-                                        </td>
-                                        <td className="p-3 text-gray-500">{org.contact}</td>
-                                        <td className="p-3 text-gray-500 truncate max-w-60" title={org.address}>
-                                            {org.address}
-                                        </td>
-                                        {/* Panel de acciones usando iconos limpios nativos */}
-                                        <td className="p-3">
-                                            <div className="flex items-center justify-center gap-3 text-gray-400">
-                                                <button
-                                                    className="hover:text-slate-600 transition-colors cursor-pointer"
-                                                    onClick={() => handleOpenDetail(org.id)}
-                                                    title="Ver detalle"
-                                                >
-                                                    <Eye className="h-4 w-4" />
-                                                </button>
-                                                <button
-                                                    className="hover:text-red-500 transition-colors cursor-pointer"
-                                                    onClick={() => handleOpenDelete(org)}
-                                                    title="Eliminar"
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
-                                                <button
-                                                    className="hover:text-[#1e5f8a] transition-colors cursor-pointer"
-                                                    onClick={() => navigate(`edit/${org.id}`)}
-                                                    title="Editar"
-                                                >
-                                                    <Edit className="h-4 w-4" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
+                                organizations.map((org, index) => {
+                                    const itemNumber = (currentPage - 1) * pageSize + index + 1;
+
+                                    return (
+                                        <tr key={org.id} className="hover:bg-slate-50/70 transition-colors">
+                                            <td className="p-3 font-mono text-gray-400 text-xs font-semibold">
+                                                {itemNumber}
+                                            </td>
+                                            <td className="p-3 font-medium text-slate-800 truncate max-w-55" title={org.name}>
+                                                {org.name}
+                                            </td>
+                                            <td className="p-3 text-gray-500">{org.contact}</td>
+                                            <td className="p-3 text-gray-500 truncate max-w-60" title={org.address}>
+                                                {org.address}
+                                            </td>
+                                            <td className="p-3">
+                                                <div className="flex items-center justify-center gap-3 text-gray-400">
+                                                    <button
+                                                        className="hover:text-slate-600 transition-colors cursor-pointer"
+                                                        onClick={() => handleOpenDetail(org.id)}
+                                                        title="Ver detalle"
+                                                    >
+                                                        <Eye className="h-4 w-4" />
+                                                    </button>
+                                                    <button
+                                                        className="hover:text-red-500 transition-colors cursor-pointer"
+                                                        onClick={() => handleOpenDelete(org)}
+                                                        title="Eliminar"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                    <button
+                                                        className="hover:text-[#1e5f8a] transition-colors cursor-pointer"
+                                                        onClick={() => navigate(`edit/${org.id}`)}
+                                                        title="Editar"
+                                                    >
+                                                        <Edit className="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
                             )}
                         </tbody>
                     </table>

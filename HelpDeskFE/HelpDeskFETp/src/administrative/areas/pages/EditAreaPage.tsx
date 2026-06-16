@@ -11,12 +11,12 @@ export const EditAreaPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const areaId = Number(id);
 
-  const { updateArea, getAreaById, isLoading, isFetching } = useAreas('', 1, 1);
-  const { agencies: realAgencies } = useAgencies('', 1, 100);
+  const { updateArea, getAreaById, isLoading, isFetching } = useAreas('', '', 1, 1);
+  const { agencies: realAgencies } = useAgencies('', '', 1, 100);
 
   const [dbArea, setDbArea] = useState<AreaItem | null>(null);
 
-  // Carga inicial del registro específico desde PostgreSQL usando Orval
+  // Carga inicial del registro específico desde usando Orval
   useEffect(() => {
     const loadArea = async () => {
       if (!areaId) return;

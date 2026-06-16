@@ -5,11 +5,7 @@
  * OpenAPI spec version: v1
  */
 
-export type GetApiUsersParams = {
-IdRol?: number;
-IdAgency?: number;
-IdArea?: number;
-IsActive?: boolean;
+export type GetApiAuditParams = {
 Keyword?: string;
 PageNumber?: number;
 PageSize?: number;

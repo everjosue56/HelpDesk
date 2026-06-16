@@ -8,10 +8,10 @@ import { toast } from "sonner";
 
 export const CreateAreaPage: React.FC = () => {
   const navigate = useNavigate();
-  const { createArea, isLoading } = useAreas('', 1, 1);
+  const { createArea, isLoading } = useAreas('', '', 1, 1);
 
   // Carga hasta 100 agencias para el selector del formulario
-  const { agencies: realAgencies } = useAgencies('', 1, 100);
+  const { agencies: realAgencies } = useAgencies('','', 1, 100);
 
   const handleSubmit = async (values: AreaFormValues) => {
   try {

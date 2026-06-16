@@ -30,8 +30,9 @@ export interface UserRegisterDto {
   /**
      * @minLength 8
      * @maxLength 100
+     * @nullable
      */
-  password: string;
+  password?: string | null;
   /**
      * @minLength 0
      * @maxLength 13
@@ -44,4 +45,5 @@ export interface UserRegisterDto {
   idAgency: number;
   /** @minimum 1 */
   idArea: number;
+  isActive?: boolean;
 }

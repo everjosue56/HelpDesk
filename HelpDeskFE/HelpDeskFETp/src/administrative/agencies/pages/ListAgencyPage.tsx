@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useAgencies, type AgencyItem } from '../hooks/useAgencies';
 import {
     Building2,
-    Users,
     Plus,
     Search,
     Eye,
@@ -23,7 +22,6 @@ export const ListAgenciesPage: React.FC = () => {
     const [organizationSearch, setOrganizationSearch] = useState('');
     const pageSize = 5;
 
-   
     const { agencies, totalCount, isLoading, deleteAgency } = useAgencies(searchTerm, organizationSearch, page, pageSize);
 
     // Traemos las organizaciones vivas para alimentar el filtro select 
@@ -91,27 +89,18 @@ export const ListAgenciesPage: React.FC = () => {
                 </h1>
             </div>
 
-            {/* ─── CONTENEDOR DE KPIS ─── */}
+            {/* ─── CONTENEDOR DE KPIS (ANTIPARPADEO) ─── */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* KPI Total Agencias */}
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
                     <div className="space-y-1">
                         <p className="text-sm font-medium text-gray-500">Total Agencias</p>
-                        <p className="text-3xl font-bold text-slate-800">{totalCount || 0}</p>
+                        <p className="text-3xl font-bold text-slate-800">
+                            {totalCount ?? 0}
+                        </p>
                     </div>
                     <div className="p-3 bg-slate-50 border border-gray-100 rounded-xl">
                         <Building2 className="h-6 w-6 text-slate-600" />
-                    </div>
-                </div>
-
-                {/* KPI Usuarios Activos */}
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
-                    <div className="space-y-1">
-                        <p className="text-sm font-medium text-gray-500">Usuarios Activos</p>
-                        <p className="text-3xl font-bold text-slate-800">500</p>
-                    </div>
-                    <div className="p-3 bg-slate-50 border border-gray-100 rounded-xl">
-                        <Users className="h-6 w-6 text-slate-600" />
                     </div>
                 </div>
             </div>
@@ -126,15 +115,15 @@ export const ListAgenciesPage: React.FC = () => {
                         <p className="text-xs text-gray-400">Gestiona todas las agencias registradas en el sistema</p>
                     </div>
                     <button
-                        className="inline-flex items-center justify-center gap-2 bg-[#1e5f8a] hover:bg-[#154666] text-white font-medium text-sm px-4 py-2.5 rounded-xl transition-colors shadow-sm"
+                        className="inline-flex items-center justify-center gap-2 bg-[#1e5f8a] hover:bg-[#154666] text-white font-medium text-sm px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer"
                         onClick={() => { navigate("create") }}
                     >
                         <Plus className="h-4 w-4" />
                         Nueva Agencia
                     </button>
                 </div>
-                <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
 
+                <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
                     {/* Barra de Búsqueda Interactiva */}
                     <div className="relative w-full sm:max-w-xs">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -173,7 +162,6 @@ export const ListAgenciesPage: React.FC = () => {
                             </SelectContent>
                         </Select>
 
-                        {/* Botón rápido de borrado del filtro de Organización */}
                         {organizationSearch && (
                             <button
                                 onClick={() => setOrganizationSearch('')}
@@ -186,12 +174,12 @@ export const ListAgenciesPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* ─── TABLA DE DATOS ─── */}
+                {/* ─── TABLA DE DATOS CON OPACIDAD FLUIDA ─── */}
                 <div className="overflow-x-auto rounded-xl border border-gray-100">
                     <table className="w-full text-left border-collapse text-sm">
                         <thead>
                             <tr className="bg-[#eef2f5] text-slate-600 font-semibold border-b border-gray-200">
-                                <th className="p-3 w-16">ID</th>
+                                <th className="p-3 w-16">No.</th>
                                 <th className="p-3">Nombre</th>
                                 <th className="p-3">Contacto</th>
                                 <th className="p-3">Organización</th>
@@ -199,8 +187,10 @@ export const ListAgenciesPage: React.FC = () => {
                                 <th className="p-3 w-28 text-center">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 text-slate-700">
-                            {isLoading ? (
+                        <tbody className={`divide-y divide-gray-100 text-slate-700 transition-opacity duration-200 ${
+                            isLoading ? 'opacity-40 pointer-events-none' : 'opacity-100'
+                        }`}>
+                            {isLoading && agencies.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="p-8 text-center text-gray-400 animate-pulse">
                                         Cargando agencias de forma segura...
@@ -213,56 +203,60 @@ export const ListAgenciesPage: React.FC = () => {
                                     </td>
                                 </tr>
                             ) : (
-                                agencies.map((agency) => (
-                                    <tr key={agency.id} className="hover:bg-slate-50/70 transition-colors">
-                                        <td className="p-3 font-mono text-gray-400 text-xs">
-                                            {agency.id}
-                                        </td>
-                                        <td className="p-3 font-medium text-slate-800 truncate max-w-55" title={agency.name}>
-                                            {agency.name}
-                                        </td>
-                                        <td className="p-3 text-gray-500">{agency.contact}</td>
-                                        <td className="p-3 text-gray-500 truncate max-w-50" title={agency.organizationName}>
-                                            {agency.organizationName}
-                                        </td>
-                                        <td className="p-3">
-                                            <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold w-24 border ${agency.isActive
-                                                ? 'bg-[#e6f9f0] text-[#1b8a65] border-[#bbf7d0]'
-                                                : 'bg-[#fee2e2] text-[#ef4444] border-[#fecaca]'
-                                                }`}>
-                                                {agency.isActive ? 'Activo' : 'Inactivo'}
-                                            </span>
-                                        </td>
-                                        <td className="p-3">
-                                            <div className="flex items-center justify-center gap-3 text-gray-400">
-                                                <button
-                                                    className="hover:text-slate-600 transition-colors"
-                                                    onClick={() => navigate(`details/${agency.id}`)}
-                                                    title="Ver detalle"
-                                                >
-                                                    <Eye className="h-4 w-4" />
-                                                </button>
-                                                <button
-                                                    className="hover:text-red-500 transition-colors"
-                                                    onClick={() => {
-                                                        setSelectedAgency(agency);
-                                                        setIsDeleteModalOpen(true);
-                                                    }}
-                                                    title="Eliminar"
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
-                                                <button
-                                                    className="hover:text-[#1e5f8a] transition-colors"
-                                                    onClick={() => navigate(`edit/${agency.id}`)}
-                                                    title="Editar"
-                                                >
-                                                    <Edit className="h-4 w-4" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
+                                agencies.map((agency, index) => {
+                                    const itemNumber = (page - 1) * pageSize + index + 1;
+
+                                    return (
+                                        <tr key={agency.id} className="hover:bg-slate-50/70 transition-colors">
+                                            <td className="p-3 font-mono text-gray-400 text-xs font-semibold">
+                                                {itemNumber}
+                                            </td>
+                                            <td className="p-3 font-medium text-slate-800 truncate max-w-55" title={agency.name}>
+                                                {agency.name}
+                                            </td>
+                                            <td className="p-3 text-gray-500">{agency.contact}</td>
+                                            <td className="p-3 text-gray-500 truncate max-w-50" title={agency.organizationName}>
+                                                {agency.organizationName}
+                                            </td>
+                                            <td className="p-3">
+                                                <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold w-24 border ${agency.isActive
+                                                    ? 'bg-[#e6f9f0] text-[#1b8a65] border-[#bbf7d0]'
+                                                    : 'bg-[#fee2e2] text-[#ef4444] border-[#fecaca]'
+                                                    }`}>
+                                                    {agency.isActive ? 'Activo' : 'Inactivo'}
+                                                </span>
+                                            </td>
+                                            <td className="p-3">
+                                                <div className="flex items-center justify-center gap-3 text-gray-400">
+                                                    <button
+                                                        className="hover:text-slate-600 transition-colors cursor-pointer"
+                                                        onClick={() => navigate(`details/${agency.id}`)}
+                                                        title="Ver detalle"
+                                                    >
+                                                        <Eye className="h-4 w-4" />
+                                                    </button>
+                                                    <button
+                                                        className="hover:text-red-500 transition-colors cursor-pointer"
+                                                        onClick={() => {
+                                                            setSelectedAgency(agency);
+                                                            setIsDeleteModalOpen(true);
+                                                        }}
+                                                        title="Eliminar"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                    <button
+                                                        className="hover:text-[#1e5f8a] transition-colors cursor-pointer"
+                                                        onClick={() => navigate(`edit/${agency.id}`)}
+                                                        title="Editar"
+                                                    >
+                                                        <Edit className="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
                             )}
                         </tbody>
                     </table>
