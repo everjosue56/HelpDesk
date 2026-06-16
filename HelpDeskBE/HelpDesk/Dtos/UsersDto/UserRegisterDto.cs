@@ -22,10 +22,10 @@ namespace HelpDesk.Dtos.UsersDto
         [StringLength(240, ErrorMessage = "El correo electrónico no puede exceder los 240 caracteres.")]
         public required string Email { get; set; }
 
-        [Required(ErrorMessage = "La contraseña es obligatoria.")]
+       // [Required(ErrorMessage = "La contraseña es obligatoria.")]
         [StringLength(100, ErrorMessage = "La contraseña debe tener entre 8 y 100 caracteres.", MinimumLength = 8)]
         [DataType(DataType.Password)]
-        public required string Password { get; set; }
+        public string? Password { get; set; }
 
         [StringLength(13, ErrorMessage = "El teléfono no puede exceder los 13 caracteres.")]
         public string? PhoneNumber { get; set; }
@@ -41,5 +41,6 @@ namespace HelpDesk.Dtos.UsersDto
         [Required(ErrorMessage = "El área es obligatoria.")]
         [Range(1, long.MaxValue, ErrorMessage = "Debe seleccionar un área válida.")]
         public long IdArea { get; set; }
+        public bool IsActive { get; set; }
     }
 }

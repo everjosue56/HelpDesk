@@ -1,18 +1,150 @@
 ﻿using HelpDesk.Database.Entities;
 using HelpDesk.Database.Seed;
+using HelpDesk.Models;
+using HelpDesk.Services.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.AccessControl;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace HelpDesk.Database
 {
     public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        private readonly ICurrentUserService _currentUserService;
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, ICurrentUserService currentUserService)
             : base(options)
         {
+            _currentUserService = currentUserService;
         }
 
+        // --- UNIFICADO Fechas automáticas y Auditoría ---
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            // 1. PRIMERO: Capturar los estados para la auditoría antes de alterar el Tracker
+            var auditEntries = OnBeforeSaveChanges();
+
+            // 2. LUEGO: Asignación automática de fechas de BaseEntity
+            var entries = ChangeTracker.Entries<BaseEntity>();
+
+            foreach (var entityEntry in entries)
+            {
+                if (entityEntry.State == EntityState.Added)
+                {
+                    entityEntry.Entity.CreatedDate = DateTime.UtcNow;
+                    entityEntry.Entity.IsDeleted = false;
+                }
+                else if (entityEntry.State == EntityState.Modified)
+                {
+                    entityEntry.Entity.UpdatedDate = DateTime.UtcNow;
+                    entityEntry.Property(x => x.CreatedDate).IsModified = false;
+                    entityEntry.Property(x => x.CreatedBy).IsModified = false;
+                }
+            }
+
+            // 3. Guardar los cambios principales en la base de datos (SQL Server)
+            var result = await base.SaveChangesAsync(cancellationToken);
+
+            // 4. Escribir la bitácora de auditoría si se generaron registros válidos
+            if (auditEntries != null && auditEntries.Count > 0)
+            {
+                await OnAfterSaveChanges(auditEntries);
+            }
+
+            return result;
+        }
+
+        private List<AuditLog> OnBeforeSaveChanges()
+        {
+            // Forzamos a EF a consolidar el estado de todas las entidades en memoria
+            ChangeTracker.DetectChanges();
+            var auditEntries = new List<AuditLog>();
+            var userName = _currentUserService.GetUserName();
+
+            foreach (var entry in ChangeTracker.Entries())
+            {
+                // Evitamos auditar la misma tabla de logs para prevenir bucles infinitos en SQL Server
+                if (entry.Entity is AuditLog || entry.State == EntityState.Detached || entry.State == EntityState.Unchanged)
+                    continue;
+
+                var log = new AuditLog
+                {
+                    UserName = userName,
+                    TableName = entry.Entity.GetType().Name,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                if (entry.State == EntityState.Added)
+                {
+                    log.Action = "CREATE";
+                    log.Description = $"Se creó un nuevo registro en la tabla {log.TableName}.";
+                    auditEntries.Add(log);
+                }
+                else if (entry.State == EntityState.Deleted)
+                {
+                    log.Action = "DELETE";
+                    log.Description = $"Se eliminó de forma física el registro de la tabla {log.TableName}.";
+                    auditEntries.Add(log);
+                }
+                else if (entry.State == EntityState.Modified)
+                {
+                    // 🕵️‍♂️ INTERCEPCIÓN DE BORRADO LÓGICO:
+                    // Buscamos si la entidad modificada tiene las columnas típicas de desactivación
+                    var statusProperty = entry.Properties.FirstOrDefault(p =>
+                        p.Metadata.Name == "IsDeleted" ||
+                        p.Metadata.Name == "IsActive"
+                    );
+
+                    if (statusProperty != null && statusProperty.IsModified)
+                    {
+                        bool currentValue = false;
+
+                        // Evaluamos el valor booleano actual que se va a guardar en SQL Server
+                        if (statusProperty.CurrentValue is bool boolVal)
+                        {
+                            currentValue = boolVal;
+                        }
+
+                        // Caso A: Si 'IsDeleted' cambió a TRUE o Caso B: Si 'IsActive' cambió a FALSE
+                        if ((statusProperty.Metadata.Name == "IsDeleted" && currentValue == true) ||
+                            (statusProperty.Metadata.Name == "IsActive" && currentValue == false))
+                        {
+                            log.Action = "DELETE";
+                            log.Description = $"Se realizó una desactivación (borrado lógico) en la tabla {log.TableName}.";
+                        }
+                        else
+                        {
+                            // Si se modificó la columna pero volvió a activarse o es un UPDATE común
+                            log.Action = "UPDATE";
+                            log.Description = $"Se actualizaron campos en la tabla {log.TableName}.";
+                        }
+                    }
+                    else
+                    {
+                        // Si no se tocó ninguna bandera de estado, es un UPDATE normal de datos
+                        log.Action = "UPDATE";
+                        log.Description = $"Se actualizaron campos en la tabla {log.TableName}.";
+                    }
+
+                    auditEntries.Add(log);
+                }
+            }
+
+            return auditEntries;
+        }
+
+        private async Task OnAfterSaveChanges(List<AuditLog> auditEntries)
+        {
+            if (auditEntries == null || auditEntries.Count == 0) return;
+
+            // Guardamos los logs generados en la base de datos de SQL Server
+            AuditLogs.AddRange(auditEntries);
+            await base.SaveChangesAsync();
+        }
         // --- Tablas de Organizacion ---
         public DbSet<OrganizationEntity> Organizations { get; set; }
         public DbSet<UserEntity> Users { get; set; }
@@ -43,6 +175,9 @@ namespace HelpDesk.Database
         public DbSet<AlertConfigurationEntity> AlertConfigurations { get; set; }
         public DbSet<NotificationHistoryEntity> NotificationHistories { get; set; }
         public DbSet<AlertHistoryEntity> AlertHistories { get; set; }
+
+        // --- Auditoria ---
+        public DbSet<AuditLog> AuditLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -354,6 +489,7 @@ namespace HelpDesk.Database
             modelBuilder.Entity<OrganizationEntity>().HasQueryFilter(o => !o.IsDeleted);
             modelBuilder.Entity<AgencyEntity>().HasQueryFilter(a => !a.IsDeleted);
             modelBuilder.Entity<AreaEntity>().HasQueryFilter(a => !a.IsDeleted);
+            modelBuilder.Entity<UserEntity>().HasQueryFilter(a => !a.IsDeleted);
         }
     }
 }

@@ -42,13 +42,14 @@ namespace HelpDesk.Services
         {
             try
             {
+                // 1. Inicializamos el Queryable sobre la tabla de usuarios
                 var query = _context.Users
                     .Include(u => u.Roles)
                     .Include(u => u.Agency)
                     .Include(u => u.Area)
-                    .Where(u => u.IsActive)
                     .AsQueryable();
-        
+
+                // 2. Aplicamos los filtros condicionales uno a uno
                 if (filter.IdRol.HasValue)
                 {
                     query = query.Where(u => u.IdRol == filter.IdRol.Value);
@@ -64,6 +65,11 @@ namespace HelpDesk.Services
                     query = query.Where(u => u.IdArea == filter.IdArea.Value);
                 }
 
+                if (filter.IsActive.HasValue)
+                {
+                    query = query.Where(u => u.IsActive == filter.IsActive.Value);
+                }
+
                 if (!string.IsNullOrWhiteSpace(filter.Keyword))
                 {
                     string term = filter.Keyword.Trim().ToLower();
@@ -72,6 +78,9 @@ namespace HelpDesk.Services
                                            || u.UserName.ToLower().Contains(term)
                                            || u.Email.ToLower().Contains(term));
                 }
+
+                var totalActivos = await query.CountAsync(u => u.IsActive);
+                var totalInactivos = await query.CountAsync(u => !u.IsActive);
 
                 var (entities, totalItems, totalPages) = await query.ToPagedListAsync(filter.PageNumber, filter.PageSize);
 
@@ -86,7 +95,9 @@ namespace HelpDesk.Services
                     CurrentPage = filter.PageNumber,
                     PageSize = filter.PageSize,
                     TotalItems = totalItems,
-                    TotalPages = totalPages
+                    TotalPages = totalPages,
+                    TotalActivos = totalActivos,     
+                    TotalInactivos = totalInactivos  
                 };
             }
             catch (Exception ex)
@@ -100,11 +111,13 @@ namespace HelpDesk.Services
                 };
             }
         }
-        
+
         public async Task<ResponseDto<UserResponseDto>> GetByIdAsync(long id)
         {
             var user = await _context.Users
                 .Include(u => u.Roles)
+                .Include(u => u.Agency) 
+                .Include(u => u.Area)
                 .FirstOrDefaultAsync(u => u.Id == id);
 
             if (user == null)
@@ -179,14 +192,28 @@ namespace HelpDesk.Services
 
         public async Task<ResponseDto<bool>> DeleteAsync(long id)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
-                return new ResponseDto<bool> { Status = false, Data = false, Message = "Usuario no existe." };
+            try
+            {
+                var userEntity = await _context.Users.FindAsync(id);
 
-            user.IsActive = false;
-            await _context.SaveChangesAsync();
+                if (userEntity == null)
+                {
+                    return new ResponseDto<bool> { Status = false, Message = "Usuario no encontrada.", Data = false };
+                }
 
-            return new ResponseDto<bool> { Status = true, Data = true, Message = "Usuario desactivado correctamente." };
+                userEntity.IsDeleted = true;
+                userEntity.IsActive = false;
+
+                _context.Users.Update(userEntity);
+                await _context.SaveChangesAsync();
+
+                return new ResponseDto<bool> { Status = true, Message = "Usuario desactivado correctamente.", Data = true };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al desactivar usuario.");
+                return new ResponseDto<bool> { Status = false, Message = "Error al procesar la desactivacion.", Data = false };
+            }
         }
 
         // --- AUTENTICACIÓN ---

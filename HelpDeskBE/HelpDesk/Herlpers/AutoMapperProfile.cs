@@ -66,18 +66,22 @@ namespace HelpDesk.Herlpers
 
         private void MapsForUser()
         {
-
             CreateMap<UserEntity, UserResponseDto>()
+                .ForMember(dest => dest.IdRol, opt => opt.MapFrom(src => src.IdRol))
+                .ForMember(dest => dest.IdAgency, opt => opt.MapFrom(src => src.IdAgency))
+                .ForMember(dest => dest.IdArea, opt => opt.MapFrom(src => src.IdArea))
                 .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Roles != null ? src.Roles.Name : string.Empty))
                 .ForMember(dest => dest.AgencyName, opt => opt.MapFrom(src => src.Agency != null ? src.Agency.Name : string.Empty))
                 .ForMember(dest => dest.AreaName, opt => opt.MapFrom(src => src.Area != null ? src.Area.NameArea : string.Empty));
             CreateMap<UserRegisterDto, UserEntity>()
-                .ForMember(dest => dest.PasswordHash, opt => opt.Ignore()) 
+                .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
                 .ForMember(dest => dest.PasswordSalt, opt => opt.Ignore());
             CreateMap<UpdateUserDto, UserEntity>()
                 .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
                 .ForMember(dest => dest.PasswordSalt, opt => opt.Ignore())
-                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) =>
+                    srcMember != null && !(srcMember is string str && string.IsNullOrWhiteSpace(str))
+                ));
         }
 
         private void MapsForRol()

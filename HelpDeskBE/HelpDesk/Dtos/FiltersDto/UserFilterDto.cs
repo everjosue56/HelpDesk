@@ -7,6 +7,7 @@ namespace HelpDesk.Dtos.FiltersDto
         public long? IdRol { get; set; }
         public long? IdAgency { get; set; }
         public long? IdArea { get; set; }
+        public bool? IsActive { get; set; }
 
         // Búsqueda de texto abierta (Nombre, Apellido, UserName o Email)
         public string? Keyword { get; set; }

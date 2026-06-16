@@ -14,5 +14,7 @@ namespace HelpDesk.Dtos.Common
         public int TotalItems { get; set; }
         public bool HasPreviousPage => CurrentPage > 1;
         public bool HasNextPage => CurrentPage < TotalPages;
+        public int TotalActivos { get; set; }
+        public int TotalInactivos { get; set; }
     }
 }

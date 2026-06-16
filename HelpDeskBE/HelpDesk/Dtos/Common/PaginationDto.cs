@@ -12,7 +12,7 @@
             set => _pageNumber = (value < 1) ? 1 : value;
         }
 
-        public int PageSize
+        public int PageSize 
         {
             get => _pageSize;
             set => _pageSize = (value < 1) ? 5 : (value > MaxPageSize) ? MaxPageSize : value;
