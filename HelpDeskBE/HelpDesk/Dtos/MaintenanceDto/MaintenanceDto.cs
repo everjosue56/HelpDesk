@@ -9,6 +9,7 @@ namespace HelpDesk.Dtos.MaintenanceDto
         public DateTime NotificationDate { get; set; }
         public DateTime CompletionDate { get; set; }
         public decimal ExecutionTime { get; set; }
+        public DateTime CreatedDate { get; set; }
 
         // --- Información del Tipo de Mantenimiento ---
         public long IdMaintenanceType { get; set; }

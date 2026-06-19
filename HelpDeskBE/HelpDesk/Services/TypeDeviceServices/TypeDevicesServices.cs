@@ -35,7 +35,9 @@ namespace HelpDesk.Services.TypeDeviceService
         {
             try
             {
-                var query = _context.TypeDevices.AsQueryable();
+                var query = _context.TypeDevices
+                    .Where(x => !x.IsDeleted)
+                    .AsQueryable();
 
                 if (!string.IsNullOrWhiteSpace(filter.Name))
                 {
@@ -44,6 +46,7 @@ namespace HelpDesk.Services.TypeDeviceService
                 }
 
                 var (entities, totalItems, totalPages) = await query.ToPagedListAsync(filter.PageNumber, filter.PageSize);
+
 
                 var typeDevicesDto = _mapper.Map<IEnumerable<TypeDevicesDto>>(entities);
 
@@ -134,17 +137,27 @@ namespace HelpDesk.Services.TypeDeviceService
 
         public async Task<ResponseDto<bool>> DeleteAsync(long id)
         {
-            var entity = await _context.TypeDevices.FindAsync(id);
-
-            if (entity == null)
+            try
             {
-                return new ResponseDto<bool> { Status = false, StatusCode = 404, Data = false };
+                var typeDevicesDto = await _context.TypeDevices.FindAsync(id);
+
+                if (typeDevicesDto == null)
+                {
+                    return new ResponseDto<bool> { Status = false, Message = "Tipo de dispositivo no encontrada.", Data = false };
+                }
+
+                typeDevicesDto.IsDeleted = true;
+
+                _context.TypeDevices.Update(typeDevicesDto);
+                await _context.SaveChangesAsync();
+
+                return new ResponseDto<bool> { Status = true, Message = "Tipo de dispositivo desactivada correctamente.", Data = true };
             }
-
-            _context.TypeDevices.Remove(entity);
-            await _context.SaveChangesAsync();
-
-            return new ResponseDto<bool> { Status = true, StatusCode = 200, Data = true };
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al desactivar tipo de dispositivo.");
+                return new ResponseDto<bool> { Status = false, Message = "Error al procesar la desactivacion.", Data = false };
+            }
         }
     }
 }

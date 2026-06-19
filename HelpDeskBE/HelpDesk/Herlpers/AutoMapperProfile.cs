@@ -207,6 +207,9 @@ namespace HelpDesk.Herlpers
         private void MapsForDevice()
         {
             CreateMap<DeviceEntity, DeviceDto>()
+                .ForMember(dest => dest.IdUser, opt => opt.MapFrom(src => src.IdUser))
+                .ForMember(dest => dest.IdDeviceType, opt => opt.MapFrom(src => src.IdDeviceType))
+                .ForMember(dest => dest.IdArea, opt => opt.MapFrom(src => src.IdArea))
                 .ForMember(dest => dest.DeviceTypeName, opt => opt.MapFrom(src => src.TypeDevices.Name))
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.Users.UserName))
                 .ForMember(dest => dest.AreaName, opt => opt.MapFrom(src => src.Areas.NameArea));
@@ -217,6 +220,9 @@ namespace HelpDesk.Herlpers
         private void MapsForMaintenance()
         {
             CreateMap<MaintenanceEntity, MaintenanceDto>()
+                .ForMember(dest => dest.IdMaintenanceType, opt => opt.MapFrom(src => src.IdMaintenanceType))
+                .ForMember(dest => dest.IdArea, opt => opt.MapFrom(src => src.IdArea))
+                .ForMember(dest => dest.IdDevice, opt => opt.MapFrom(src => src.IdDevice))
                 .ForMember(dest => dest.MaintenanceTypeName, opt => opt.MapFrom(src => src.TypeMaintenance.Name))
                 .ForMember(dest => dest.AreaName, opt => opt.MapFrom(src => src.Area.NameArea))
                 .ForMember(dest => dest.DeviceCode, opt => opt.MapFrom(src => src.Device.Code))

@@ -1,4 +1,5 @@
 ﻿using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.TicketDto;
 using HelpDesk.Dtos.TypeMaintenanceDto;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ namespace HelpDesk.Services.TypeMaintenanceServices
 {
     public interface ITypeMaintenanceService
     {
-        Task<ResponseDto<IEnumerable<TypeMaintenanceDto>>> GetAllAsync();
+        Task<PagedResponseDto<TypeMaintenanceDto>> GetAllAsync(TypeMaintenanceFilterDto filter);
         Task<ResponseDto<TypeMaintenanceDto>> GetByIdAsync(long id);
         Task<ResponseDto<TypeMaintenanceDto>> CreateAsync(CreateTypeMaintenanceDto dto);
         Task<ResponseDto<TypeMaintenanceDto>> UpdateAsync(UpdateTypeMaintenanceDto dto, long id);

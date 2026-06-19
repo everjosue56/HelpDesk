@@ -202,17 +202,27 @@ namespace HelpDesk.Services.MaintenanceService
 
         public async Task<ResponseDto<bool>> DeleteAsync(long id)
         {
-            var entity = await _context.Maintenances.FindAsync(id);
-
-            if (entity == null)
+            try
             {
-                return new ResponseDto<bool> { Status = false, StatusCode = 404, Data = false };
+                var maintenanceEntity = await _context.Maintenances.FindAsync(id);
+
+                if (maintenanceEntity == null)
+                {
+                    return new ResponseDto<bool> { Status = false, Message = "Mantenimiento no encontrada.", Data = false };
+                }
+
+                maintenanceEntity.IsDeleted = true;
+
+                _context.Maintenances.Update(maintenanceEntity);
+                await _context.SaveChangesAsync();
+
+                return new ResponseDto<bool> { Status = true, Message = "Mantenimiento desactivado correctamente.", Data = true };
             }
-
-            _context.Maintenances.Remove(entity);
-            await _context.SaveChangesAsync();
-
-            return new ResponseDto<bool> { Status = true, StatusCode = 200, Data = true };
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al desactivar mantenimiento.");
+                return new ResponseDto<bool> { Status = false, Message = "Error al procesar la desactivacion.", Data = false };
+            }
         }
     }
 }

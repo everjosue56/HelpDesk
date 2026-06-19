@@ -1,4 +1,5 @@
 ﻿using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.TypeMaintenanceDto;
 using HelpDesk.Services.TypeMaintenanceService;
 using HelpDesk.Services.TypeMaintenanceServices;
@@ -22,9 +23,9 @@ namespace HelpDesk.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ResponseDto<IEnumerable<TypeMaintenanceDto>>>> GetAll()
+        public async Task<ActionResult<PagedResponseDto<TypeMaintenanceDto>>> GetAll([FromQuery] TypeMaintenanceFilterDto filter)
         {
-            var response = await _typeMaintenanceService.GetAllAsync();
+            var response = await _typeMaintenanceService.GetAllAsync(filter);
             return StatusCode(response.StatusCode, response);
         }
 

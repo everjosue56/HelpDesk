@@ -39,7 +39,7 @@ namespace HelpDesk.Services.DeviceService
                     .Include(d => d.TypeDevices)
                     .Include(d => d.Users)
                     .Include(d => d.Areas)
-                    .Where(d => d.IsActive);
+                    .AsQueryable();
 
                 if (filter.IdUser.HasValue)
                 {
@@ -167,17 +167,28 @@ namespace HelpDesk.Services.DeviceService
 
         public async Task<ResponseDto<bool>> DeleteAsync(long id)
         {
-            var entity = await _context.Devices.FindAsync(id);
-
-            if (entity == null)
+            try
             {
-                return new ResponseDto<bool> { Status = false, StatusCode = 404, Data = false };
+                var devicesEntity = await _context.Devices.FindAsync(id);
+
+                if (devicesEntity == null)
+                {
+                    return new ResponseDto<bool> { Status = false, Message = "Dispositivo no encontrado.", Data = false };
+                }
+
+                devicesEntity.IsDeleted = true;
+                devicesEntity.IsActive = false;
+
+                _context.Devices.Update(devicesEntity);
+                await _context.SaveChangesAsync();
+
+                return new ResponseDto<bool> { Status = true, Message = "Dispositivo desactivado correctamente.", Data = true };
             }
-
-            _context.Devices.Remove(entity);
-            await _context.SaveChangesAsync();
-
-            return new ResponseDto<bool> { Status = true, StatusCode = 200, Data = true };
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al desactivar dispositivo.");
+                return new ResponseDto<bool> { Status = false, Message = "Error al procesar la desactivacion.", Data = false };
+            }
         }
     }
 }

@@ -2,12 +2,16 @@
 using HelpDesk.Database;
 using HelpDesk.Database.Entities;
 using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.TypeMaintenanceDto;
+using HelpDesk.Helpers;
 using HelpDesk.Services.AuthService;
 using HelpDesk.Services.TypeMaintenanceServices;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace HelpDesk.Services.TypeMaintenanceService
@@ -17,24 +21,59 @@ namespace HelpDesk.Services.TypeMaintenanceService
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
         private readonly IAuthService _authService;
-        public TypeMaintenanceService(ApplicationDbContext context, IMapper mapper, IAuthService authService)
+        private readonly ILogger _logger;
+        public TypeMaintenanceService(ApplicationDbContext context, IMapper mapper, IAuthService authService, ILogger<TypeMaintenanceService> logger)
         {
             _context = context;
             _mapper = mapper;
             _authService = authService;
+            _logger = logger;
         }
 
-        public async Task<ResponseDto<IEnumerable<TypeMaintenanceDto>>> GetAllAsync()
+        public async Task<PagedResponseDto<TypeMaintenanceDto>> GetAllAsync(TypeMaintenanceFilterDto filter)
         {
-            var entities = await _context.TypeMaintenances.ToListAsync();
-            var dtos = _mapper.Map<IEnumerable<TypeMaintenanceDto>>(entities);
-
-            return new ResponseDto<IEnumerable<TypeMaintenanceDto>>
+            try
             {
-                Status = true,
-                StatusCode = 200,
-                Data = dtos
-            };
+                var query = _context.TypeMaintenances
+                    .Where(x => !x.IsDeleted)
+                    .AsQueryable();
+
+                // Filtro por nombre
+                if (!string.IsNullOrWhiteSpace(filter.Name))
+                {
+                    string searchTerm = filter.Name.Trim().ToLower();
+                    query = query.Where(tm => tm.Name.ToLower().Contains(searchTerm));
+                }
+
+                // Ejecucion de paginacion
+                var (entities, totalItems, totalPages) = await query.ToPagedListAsync(filter.PageNumber, filter.PageSize);
+
+                // Mapeo de entidades filtradas 
+                var typeMaintenanceDtos = _mapper.Map<IEnumerable<TypeMaintenanceDto>>(entities);
+
+                // Retorna la repuesta 
+                return new PagedResponseDto<TypeMaintenanceDto>
+                {
+                    Status = true,
+                    StatusCode = 200,
+                    Message = "Tipos de mantenimiento obtenidos correctamente.",
+                    Data = typeMaintenanceDtos,
+                    CurrentPage = filter.PageNumber,
+                    PageSize = filter.PageSize,
+                    TotalItems = totalItems,
+                    TotalPages = totalPages
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener los tipos de mantenimientos paginados.");
+                return new PagedResponseDto<TypeMaintenanceDto>
+                {
+                    Status = false,
+                    StatusCode = 500,
+                    Message = "Error interno del servidor al recuperar los datos."
+                };
+            }
         }
 
         public async Task<ResponseDto<TypeMaintenanceDto>> GetByIdAsync(long id)
@@ -95,17 +134,27 @@ namespace HelpDesk.Services.TypeMaintenanceService
 
         public async Task<ResponseDto<bool>> DeleteAsync(long id)
         {
-            var entity = await _context.TypeMaintenances.FindAsync(id);
-
-            if (entity == null)
+            try
             {
-                return new ResponseDto<bool> { Status = false, StatusCode = 404, Data = false };
+                var entity = await _context.TypeMaintenances.FindAsync(id);
+
+                if (entity == null)
+                {
+                    return new ResponseDto<bool> { Status = false, Message = "Tipo de mantenimiento no encontrada.", Data = false };
+                }
+
+                entity.IsDeleted = true;
+
+                _context.TypeMaintenances.Update(entity);
+                await _context.SaveChangesAsync();
+
+                return new ResponseDto<bool> { Status = true, Message = "Tipo de mantenimiento desactivada correctamente.", Data = true };
             }
-
-            _context.TypeMaintenances.Remove(entity);
-            await _context.SaveChangesAsync();
-
-            return new ResponseDto<bool> { Status = true, StatusCode = 200, Data = true };
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al desactivar tipo de mantenimiento.");
+                return new ResponseDto<bool> { Status = false, Message = "Error al procesar la desactivacion.", Data = false };
+            }
         }
     }
 }
