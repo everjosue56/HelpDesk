@@ -11,4 +11,5 @@ export interface TypeDevicesDto {
   name?: string | null;
   /** @nullable */
   description?: string | null;
+  createdDate?: string;
 }

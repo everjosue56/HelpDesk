@@ -29,7 +29,7 @@ export const CreateUserPage: React.FC = () => {
         idRol: Number(values.idRol),
         idAgency: Number(values.idAgency),
         idArea: Number(values.idArea),
-        isActive: true
+        isActive: values.isActive
       });
 
       toast.success("Usuario registrado exitosamente", {
@@ -40,7 +40,7 @@ export const CreateUserPage: React.FC = () => {
     } catch (error) {
       console.error(error);
       toast.error("No se pudo registrar el usuario", {
-        description: "Hubo un problema con el servidor al procesar el DTO. Inténtalo de nuevo.",
+        description: "Hubo un problema. Inténtalo de nuevo.",
       });
     }
   };

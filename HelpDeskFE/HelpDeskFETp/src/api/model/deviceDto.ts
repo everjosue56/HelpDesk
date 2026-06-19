@@ -15,6 +15,7 @@ export interface DeviceDto {
   /** @nullable */
   observation?: string | null;
   isActive?: boolean;
+  createdDate?: string;
   idDeviceType?: number;
   /** @nullable */
   deviceTypeName?: string | null;

@@ -1,9 +1,9 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { Sidebar } from './Sidebar';
-import { Navbar } from './Navbar';
+import { Navbar } from '../../components/Navbar';
+import { Sidebar } from './SidebarInventory';
 
-export const DashboardLayout: React.FC = () => {
+export const DashboardLayoutInventory: React.FC = () => {
   return (
   <div className="flex flex-col w-screen h-screen bg-[#f8fafc] overflow-hidden antialiased font-sans">
 

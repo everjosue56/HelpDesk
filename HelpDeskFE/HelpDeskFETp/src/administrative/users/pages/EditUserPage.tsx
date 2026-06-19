@@ -62,7 +62,7 @@ const handleSubmit = async (values: UserFormValues) => {
   } catch (error) {
     console.error(error);
     toast.error("Error al actualizar", {
-      description: "No se pudieron salvar los parámetros en el servidor central.",
+      description: "No se pudieron salvar los parámetros.",
     });
   }
 };

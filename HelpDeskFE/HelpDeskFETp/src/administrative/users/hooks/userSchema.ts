@@ -7,17 +7,21 @@ export const userSchema = z.object({
     userName: z.string().min(1, 'El nombre de usuario es obligatorio').max(20),
     email: z.string().min(1, 'El correo es obligatorio').email('Formato de correo inválido'),
     phoneNumber: z.string().max(13, 'El número no puede pasar de 13 caracteres').optional().or(z.literal('')),
-    idRol: z.coerce.number().min(1, 'Seleccione un rol institucional'),
-    idAgency: z.coerce.number().min(1, 'Seleccione una agencia'),
-    idArea: z.coerce.number().min(1, 'Seleccione un área operativa'),
+    
+    // Usamos coerce para convertir el string del select a number
+    idRol: z.coerce.number().min(0, 'Seleccione un rol'),
+    idAgency: z.coerce.number().min(0, 'Seleccione una agencia'),
+    idArea: z.coerce.number().min(0, 'Seleccione un área'),
+    
     isActive: z.boolean().default(true),
-    password: z.string().min(8).optional().or(z.literal('')),
+    password: z.string().min(8, 'Debe tener al menos 8 caracteres').optional().or(z.literal('')),
 }).superRefine((data, ctx) => {
-    if (!data.id && (!data.password || data.password.trim().length < 6)) {
+    // Lógica para validación del password solo en creación
+    if (!data.id && (!data.password || data.password.trim().length < 8)) {
         ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ['password'],
-            message: 'La contraseña es obligatoria y debe tener al menos 8 caracteres al crear un usuario',
+            message: 'La contraseña es obligatoria al crear un usuario',
         });
     }
 });

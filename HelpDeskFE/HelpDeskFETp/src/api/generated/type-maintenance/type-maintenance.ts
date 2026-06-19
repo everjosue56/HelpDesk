@@ -14,7 +14,8 @@ import type {
 import type {
   BooleanResponseDto,
   CreateTypeMaintenanceDto,
-  TypeMaintenanceDtoIEnumerableResponseDto,
+  GetApiTypeMaintenancesParams,
+  TypeMaintenanceDtoPagedResponseDto,
   TypeMaintenanceDtoResponseDto,
   UpdateTypeMaintenanceDto
 } from '../../model';
@@ -24,10 +25,12 @@ import type {
 
   export const getTypeMaintenance = (axiosInstance: AxiosInstance = axios.default) => {
 const getApiTypeMaintenances = (
-     options?: AxiosRequestConfig
- ): Promise<AxiosResponse<TypeMaintenanceDtoIEnumerableResponseDto>> => {
+    params?: GetApiTypeMaintenancesParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<TypeMaintenanceDtoPagedResponseDto>> => {
     return axiosInstance.get(
-      `/api/type-maintenances`,options
+      `/api/type-maintenances`,{
+    ...options,
+        params: {...params, ...options?.params},}
     );
   }
 const postApiTypeMaintenances = (
@@ -62,7 +65,7 @@ const deleteApiTypeMaintenancesId = (
     );
   }
 return {getApiTypeMaintenances,postApiTypeMaintenances,getApiTypeMaintenancesId,putApiTypeMaintenancesId,deleteApiTypeMaintenancesId}};
-export type GetApiTypeMaintenancesResult = AxiosResponse<TypeMaintenanceDtoIEnumerableResponseDto>
+export type GetApiTypeMaintenancesResult = AxiosResponse<TypeMaintenanceDtoPagedResponseDto>
 export type PostApiTypeMaintenancesResult = AxiosResponse<TypeMaintenanceDtoResponseDto>
 export type GetApiTypeMaintenancesIdResult = AxiosResponse<TypeMaintenanceDtoResponseDto>
 export type PutApiTypeMaintenancesIdResult = AxiosResponse<TypeMaintenanceDtoResponseDto>

@@ -41,12 +41,6 @@ export const useAudit = (
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const backendResponse = response.data as any;
 
-      console.log("=== DATOS DE PAGINACIÓN EN EL FRONT ===", {
-        dataRaiz: backendResponse,
-        totalCountProp: backendResponse?.totalCount,
-        totalRecordsProp: backendResponse?.totalRecords,
-        totalItemsProp: backendResponse?.totalItems,
-      });
       const rawData = backendResponse?.data || [];
 
       // Mapeo

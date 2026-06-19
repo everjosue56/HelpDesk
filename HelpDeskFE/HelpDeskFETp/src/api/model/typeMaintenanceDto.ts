@@ -10,4 +10,5 @@ export interface TypeMaintenanceDto {
   /** @nullable */
   name?: string | null;
   estimatedTime?: number;
+  createdDate?: string;
 }

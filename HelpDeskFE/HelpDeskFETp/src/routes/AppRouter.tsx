@@ -2,7 +2,6 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthRouter } from "../auth/routes/AuthRouter"; 
 import { DashBoardRouter } from "@/dashboard/routes/DashboardRouter";
 import { useAuth } from "@/context/AuthContext";
-import { OrganizationsRouter } from "@/administrative/organizations/routes/OrganizationsRouter";
 
 export const AppRouter = () => {
  const { isAuthenticated, isLoading } = useAuth();

@@ -22,7 +22,7 @@ const modulesData = [
   {
     title: "Inventario",
     description: "Control de equipos, mantenimiento y recursos de la organización",
-    path: "/dashboard/inventory",
+    path: "/dashboard/device",
     icon: FiPackage,
   },
   {

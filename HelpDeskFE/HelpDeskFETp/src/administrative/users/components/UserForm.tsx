@@ -107,12 +107,12 @@ export const UserForm: React.FC<UserFormProps> = ({
             </div>
 
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <form onSubmit={form.handleSubmit((data) => onSubmit(data))} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-5">
 
                         {/* Campo: Primer Nombre */}
                         <FormField<UserFormValues>
-                            control={form.control}
+                            rules={{ required: "El nombre es obligatorio" }}
                             name="firstName"
                             render={({ field }) => (
                                 <FormItem>
@@ -132,7 +132,7 @@ export const UserForm: React.FC<UserFormProps> = ({
 
                         {/* Campo: Apellido */}
                         <FormField<UserFormValues>
-                            control={form.control}
+                            rules={{ required: "El apellido es obligatorio" }}
                             name="lastName"
                             render={({ field }) => (
                                 <FormItem>
@@ -152,7 +152,7 @@ export const UserForm: React.FC<UserFormProps> = ({
 
                         {/* Campo: Nombre de Usuario */}
                         <FormField<UserFormValues>
-                            control={form.control}
+                            rules={{ required: "El nombre de usuario es obligatorio" }}
                             name="userName"
                             render={({ field }) => (
                                 <FormItem>
@@ -173,7 +173,6 @@ export const UserForm: React.FC<UserFormProps> = ({
 
                         {/* Campo: Teléfono */}
                         <FormField<UserFormValues>
-                            control={form.control}
                             name="phoneNumber"
                             render={({ field }) => (
                                 <FormItem>
@@ -193,7 +192,13 @@ export const UserForm: React.FC<UserFormProps> = ({
 
                         {/* Campo: Correo Electrónico */}
                         <FormField<UserFormValues>
-                            control={form.control}
+                            rules={{
+                                required: "El correo es obligatorio",
+                                pattern: {
+                                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                    message: "Formato de correo inválido"
+                                }
+                            }}
                             name="email"
                             render={({ field }) => (
                                 <FormItem>
@@ -214,7 +219,17 @@ export const UserForm: React.FC<UserFormProps> = ({
 
                         {/* Campo: Contraseña */}
                         <FormField<UserFormValues>
-                            control={form.control}
+                            rules={{
+                                // Validamos la longitud solo si el usuario escribió algo
+                                minLength: {
+                                    value: 8,
+                                    message: "La contraseña debe tener al menos 8 caracteres"
+                                },
+                                pattern: {
+                                    value: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/,
+                                    message: "Debe incluir al menos una letra y un número"
+                                }
+                            }}
                             name="password"
                             render={({ field }) => (
                                 <FormItem>
@@ -249,7 +264,9 @@ export const UserForm: React.FC<UserFormProps> = ({
 
                         {/* ─── SELECTOR: ROL INSTITUCIONAL CORREGIDO ─── */}
                         <FormField<UserFormValues>
-                            control={form.control}
+                            rules={{
+                                validate: (val) => Number(val) > 0 || "Debes seleccionar un rol"
+                            }}
                             name="idRol"
                             render={({ field }) => (
                                 <FormItem>
@@ -278,7 +295,9 @@ export const UserForm: React.FC<UserFormProps> = ({
 
                         {/* ─── SELECTOR: AGENCIA FINANCIERA CORREGIDA ─── */}
                         <FormField<UserFormValues>
-                            control={form.control}
+                            rules={{
+                                validate: (val) => Number(val) > 0 || "Debes seleccionar una agencia"
+                            }}
                             name="idAgency"
                             render={({ field }) => (
                                 <FormItem className="text-left">
@@ -307,7 +326,9 @@ export const UserForm: React.FC<UserFormProps> = ({
 
                         {/* ─── SELECTOR: ÁREA OPERATIVA CORREGIDA ─── */}
                         <FormField<UserFormValues>
-                            control={form.control}
+                            rules={{
+                                validate: (val) => Number(val) > 0 || "Debes seleccionar una area"
+                            }}
                             name="idArea"
                             render={({ field }) => (
                                 <FormItem className="text-left">
@@ -333,35 +354,31 @@ export const UserForm: React.FC<UserFormProps> = ({
                                 </FormItem>
                             )}
                         />
-
-                        {/* Selector: Estado */}
-                        {isEditMode && (
-                            <FormField<UserFormValues>
-                                control={form.control}
-                                name="isActive"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-sm font-bold text-slate-700">Estado de Cuenta</FormLabel>
-                                        <Select
-                                            onValueChange={(val) => field.onChange(val === 'true')}
-                                            value={field.value !== undefined && field.value !== null ? String(field.value) : "true"}
-                                        >
-                                            <FormControl>
-                                                <SelectTrigger className="rounded-xl border-gray-200 h-11 pl-5 pr-4 text-slate-700 focus:ring-[#1a558b] w-full bg-white">
-                                                    <SelectValue placeholder="Seleccionar estado" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent className="bg-white rounded-xl border border-gray-200">
-                                                <SelectItem value="true" className="cursor-pointer">Activo</SelectItem>
-                                                <SelectItem value="false" className="cursor-pointer">Inactivo</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage className="text-xs text-red-500 font-medium" />
-                                    </FormItem>
-                                )}
-                            />
-                        )}
-
+                        {/* Campo: Seleccionar Estado */}
+                        <FormField
+                            rules={{ required: "Seleccione un estado" }}
+                            name="isActive"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-sm font-bold text-slate-700">Estado</FormLabel>
+                                    <Select
+                                        onValueChange={(val) => field.onChange(val === 'true')}
+                                        value={field.value !== undefined && field.value !== null ? String(field.value) : "true"}
+                                    >
+                                        <FormControl>
+                                            <SelectTrigger className="rounded-xl border-gray-200 h-11 pl-5 pr-4 text-slate-700 focus:ring-[#1a558b] w-full bg-white">
+                                                <SelectValue placeholder="Seleccionar estado" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent className="bg-white rounded-xl border border-gray-200">
+                                            <SelectItem value="true" className="cursor-pointer">Activo</SelectItem>
+                                            <SelectItem value="false" className="cursor-pointer">Inactivo</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage className="text-xs text-red-500 font-medium" />
+                                </FormItem>
+                            )}
+                        />
                     </div>
 
                     {/* Botones de Acción */}

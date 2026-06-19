@@ -12,6 +12,7 @@ export interface MaintenanceDto {
   notificationDate?: string;
   completionDate?: string;
   executionTime?: number;
+  createdDate?: string;
   idMaintenanceType?: number;
   /** @nullable */
   maintenanceTypeName?: string | null;
