@@ -6,6 +6,7 @@ namespace HelpDesk.Dtos.TicketHistory
     {
         public long Id { get; set; }
         public DateTime CloseDate { get; set; }
+        public DateTime CreatedDate { get; set; }
 
         // --- Información del Ticket  ---
         public long IdTicket { get; set; }

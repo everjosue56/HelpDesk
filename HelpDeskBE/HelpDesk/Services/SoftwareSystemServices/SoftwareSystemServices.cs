@@ -34,7 +34,9 @@ namespace HelpDesk.Services
         {
             try
             {
-                var query = _context.SoftwareSystems.AsQueryable();
+                var query = _context.SoftwareSystems
+                    .Where(ss => !ss.IsDeleted)
+                    .AsQueryable();
 
                 if (!string.IsNullOrWhiteSpace(filter.Name))
                 {
@@ -144,28 +146,29 @@ namespace HelpDesk.Services
 
         public async Task<ResponseDto<bool>> DeleteAsync(long id)
         {
-            var entity = await _context.SoftwareSystems.FindAsync(id);
-
-            if (entity == null)
+            try
             {
-                return new ResponseDto<bool>
+                var systemEntity = await _context.SoftwareSystems.FindAsync(id);
+
+                if (systemEntity == null)
                 {
-                    Status = false,
-                    Data = false,
-                    StatusCode = 404,
-                    Message = "El sistema ya no existe."
-                };
+                    return new ResponseDto<bool> { Status = false, Message = "Sistema no encontrada.", Data = false };
+                }
+
+                systemEntity.IsDeleted = true;
+
+                _context.SoftwareSystems.Update(systemEntity);
+                await _context.SaveChangesAsync();
+
+                return new ResponseDto<bool> { Status = true, Message = "Sistema desactivado correctamente.", Data = true };
             }
-
-            _context.SoftwareSystems.Remove(entity);
-            await _context.SaveChangesAsync();
-
-            return new ResponseDto<bool>
+            catch (Exception ex)
             {
-                Status = true,
-                Data = true,
-                StatusCode = 200
-            };
+                _logger.LogError(ex, "Error al deactivar sistema.");
+                return new ResponseDto<bool> { Status = false, Message = "Error al procesar la desactivacion.", Data = false };
+
+            }
         }
+
     }
 }

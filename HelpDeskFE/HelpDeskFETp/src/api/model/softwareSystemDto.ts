@@ -9,4 +9,5 @@ export interface SoftwareSystemDto {
   id?: number;
   /** @nullable */
   name?: string | null;
+  createdDate?: string;
 }

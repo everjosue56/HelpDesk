@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMaintenanceHistory } from '../hooks/useMaintenanceHistory';
-import { useDevices } from '../../Devices/hooks/useDevices';
+import { useDevices } from '../../devices/hooks/useDevices';
 import { useUsers } from '../../../administrative/users/hooks/useUser';
 import { useTypeDevices } from '../../typeDevices/hooks/useTypeDevices';
 import { Input } from '../../../../@/components/ui/input';
@@ -248,7 +248,7 @@ export const ListMaintenanceHistoryPage: React.FC = () => {
                                             </td>
                                             <td className="p-3">
                                                 <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-md text-xs font-bold bg-blue-50 text-blue-700">
-                                                    Mantenimiento Preventivo
+                                                    {row.typeMaintenanceName}
                                                 </span>
                                             </td>
                                             <td className="p-3 font-semibold text-slate-600">

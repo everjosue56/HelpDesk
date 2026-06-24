@@ -10,9 +10,15 @@ import { AuditRouter } from "@/administrative/audit/routes/AuditRouter";
 import { TypeDeviceRouter } from "@/inventory/typeDevices/routes/TypeDeviceRouter";
 import { DashboardLayoutInventory } from "@/inventory/inventoryMenu/DashboardLayoutInventory";
 import { TypeMaintenanceRouter } from "@/inventory/typeMaintenance/routes/TypeMaintenanceRouter";
-import { DeviceRouter } from "@/inventory/Devices/routes/DevicesRouter";
+import { DeviceRouter } from "@/inventory/devices/routes/DevicesRouter";
 import { MaintenanceRouter } from "@/inventory/maintenance/routes/MaintenancesRouter";
 import { MaintenanceHistoryRouter } from "@/inventory/maintenanceHistory/routes/MaintenanceHistoryRouter";
+import { DashboardLayoutSupport } from "@/support/supportMenu/DashoardLayoutSupport";
+import { TicketRouter } from "@/support/tickets/routes/TicketRouter";
+import { SoftwareSystemsRouter } from "@/support/softwareSystem/routes/SoftwareSystemRouter";
+import { TypeErrorRouter } from "@/support/typeError/routes/TypeErrorRouter";
+import { ResolutionRouter } from "@/support/resolutions/routes/ResolutionsRouter";
+import { TicketHistoryRouter } from "@/support/ticketHistories/routes/TicketHistoryRouter";
 
 export const DashBoardRouter = () => {
     return (
@@ -36,6 +42,14 @@ export const DashBoardRouter = () => {
             <Route path="device/*" element={<DeviceRouter/>} />
             <Route path="maintenance/*" element={<MaintenanceRouter/>}  />
             <Route path="maintenancehistory/*" element={<MaintenanceHistoryRouter/>}  />
+            </Route>
+            {/* Ruta del modulo de suporte */}
+            <Route element={<DashboardLayoutSupport />}>
+            <Route path="tickets/*" element={<TicketRouter/>} />
+            <Route path="softwaresystem/*" element={<SoftwareSystemsRouter/>} />
+            <Route path="typeerror/*" element={<TypeErrorRouter/>} />
+            <Route path="resolutions/*" element={<ResolutionRouter/>} />
+            <Route path="tickethistories/*" element={<TicketHistoryRouter/>} />
             </Route>
         </Routes>
     );

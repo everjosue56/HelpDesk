@@ -21,4 +21,6 @@ export interface TypeMaintenanceDtoPagedResponseDto {
   readonly hasNextPage?: boolean;
   totalActivos?: number;
   totalInactivos?: number;
+  activeTicketsCount?: number;
+  resolvedTodayCount?: number;
 }

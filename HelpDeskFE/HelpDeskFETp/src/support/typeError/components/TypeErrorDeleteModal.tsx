@@ -1,0 +1,60 @@
+import React, { useState } from 'react';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle } from "../../../../@/components/ui/alert-dialog";
+import { Button } from "../../../../@/components/ui/button";
+import { IoCloseOutline } from "react-icons/io5";
+import { FiTrash2 } from "react-icons/fi";
+import type { TypeErrorItem } from '../hooks/useTypeErrors';
+
+interface TypeErrorDeleteModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (id: number) => Promise<void>;
+  typeError: TypeErrorItem | null; 
+}
+
+export const TypeErrorDeleteModal: React.FC<TypeErrorDeleteModalProps> = ({ isOpen, onClose, onConfirm, typeError }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  if (!typeError) return null;
+
+  const handleConfirm = async () => {
+    try {
+      setIsSubmitting(true);
+      await onConfirm(typeError.id);
+      onClose();
+    } catch (error) {
+      console.error("Error al desactivar el tipo de error:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <AlertDialogContent className="sm:max-w-125 w-[90%] rounded-3xl p-8 bg-white border-none shadow-2xl flex flex-col gap-0 select-none animate-in fade-in-50 zoom-in-95 duration-200">
+        <AlertDialogHeader className="text-center w-full flex flex-col items-center gap-0 pb-2">
+          <AlertDialogTitle className="text-xl sm:text-2xl font-bold text-neutral-600 tracking-tight text-center uppercase">Confirmación de Desactivación</AlertDialogTitle>
+        </AlertDialogHeader>
+        <div className="w-full border-t border-neutral-200/60 my-4" />
+
+        <div className="text-center flex flex-col items-center gap-4 py-2 px-1 w-full">
+          <p className="text-[14px] font-black text-red-500 tracking-wide uppercase max-w-sm leading-snug">¿Estás seguro que quieres desactivar este tipo de error?</p>
+          <p className="text-xs sm:text-sm font-bold text-neutral-500 leading-relaxed max-w-95 mx-auto">
+            Al desactivar la clasificación "{typeError.name}", los nuevos tickets levantados no podrán categorizarse bajo este concepto, alterando las métricas globales del HelpDesk.
+          </p>
+        </div>
+        <div className="w-full border-t border-neutral-200/60 my-5" />
+
+        <div className="flex flex-row items-center justify-center gap-3 w-full">
+          <Button type="button" onClick={onClose} disabled={isSubmitting} className="flex-1 sm:flex-none sm:w-36 bg-[#9ca3af] hover:bg-[#8b93a1] text-white flex items-center justify-center gap-1.5 font-bold h-10 rounded-xl text-xs transition-colors shadow-sm cursor-pointer uppercase tracking-wider border-none">
+            <IoCloseOutline className="w-6! h-6! stroke-3 shrink-0" />
+            <span>Cancelar</span>
+          </Button>
+          <Button type="button" onClick={handleConfirm} disabled={isSubmitting} className="flex-[1.5] sm:flex-none sm:w-56 bg-[#ef4444] hover:bg-[#dc2626] text-white flex items-center justify-center gap-1.5 font-bold h-10 rounded-xl text-xs transition-colors shadow-sm cursor-pointer uppercase tracking-wider whitespace-nowrap border-none">
+            <FiTrash2 className="w-6 h-6 stroke-[2.5] shrink-0" />
+            <span>{isSubmitting ? "Desactivando..." : "Sí, Desactivar Error"}</span>
+          </Button>
+        </div>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};

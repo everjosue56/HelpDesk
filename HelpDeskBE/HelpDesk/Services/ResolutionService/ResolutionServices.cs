@@ -52,12 +52,14 @@ namespace HelpDesk.Services
             try
             {
                 var query = _context.Resolutions
+                    .AsNoTracking()
                     .Include(r => r.Ticket)
                     .Include(r => r.User)
                     .Include(r => r.SolutionStatus)
                     .Include(r => r.Device)
                     .Include(r => r.Priority)
-                    .AsQueryable();
+                    .OrderByDescending(r => r.CreatedDate)
+                     .Where(t => !t.IsDeleted);
 
                 if (filter.IdTicket.HasValue)
                 {
@@ -102,7 +104,13 @@ namespace HelpDesk.Services
                     query = query.Where(r => r.ResolutionDate <= endOfDay);
                 }
 
+                // 2. Ejecutar la paginación existente
                 var (entities, totalItems, totalPages) = await query.ToPagedListAsync(filter.PageNumber, filter.PageSize);
+
+                var today = DateTime.Today;
+                var resolvedTodayCount = await _context.Resolutions
+                    .AsNoTracking()
+                    .CountAsync(r => !r.IsDeleted && r.CreatedDate >= today);
 
                 var dtos = _mapper.Map<IEnumerable<ResolutionDto>>(entities);
 
@@ -115,7 +123,9 @@ namespace HelpDesk.Services
                     CurrentPage = filter.PageNumber,
                     PageSize = filter.PageSize,
                     TotalItems = totalItems,
-                    TotalPages = totalPages
+                    TotalPages = totalPages,
+
+                    ResolvedTodayCount = resolvedTodayCount
                 };
             }
             catch (Exception ex)
@@ -288,18 +298,27 @@ namespace HelpDesk.Services
 
         public async Task<ResponseDto<bool>> DeleteAsync(long id)
         {
-            var entity = await _context.Resolutions.FindAsync(id);
-
-            if (entity == null)
+            try
             {
-                return new ResponseDto<bool> { Status = false, StatusCode = 404, Message = "Registro no encontrado." };
+                var entity = await _context.Resolutions.FindAsync(id);
+
+                if (entity == null)
+                {
+                    return new ResponseDto<bool> { Status = false, Message = "Resolucion no encontrada.", Data = false };
+                }
+
+                entity.IsDeleted = true;
+
+                _context.Resolutions.Update(entity);
+                await _context.SaveChangesAsync();
+
+                return new ResponseDto<bool> { Status = true, Message = "Resolucion eliminada correctamente.", Data = true };
             }
-      
-            _context.Resolutions.Remove(entity);
-
-            await _context.SaveChangesAsync();
-
-            return new ResponseDto<bool> { Status = true, Data = true, StatusCode = 200 };
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al eliminar resolucion.");
+                return new ResponseDto<bool> { Status = false, Message = "Error al procesar la eliminación.", Data = false };
+            }
         }
     }
 }

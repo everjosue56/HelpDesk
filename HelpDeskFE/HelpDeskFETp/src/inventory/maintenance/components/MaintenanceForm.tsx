@@ -5,7 +5,7 @@ import { Input } from '../../../../@/components/ui/input';
 import { Button } from '../../../../@/components/ui/button';
 import { Textarea } from '../../../../@/components/ui/textarea';
 import { useAreas } from '../../../administrative/areas/hooks/useAreas';
-import { useDevices } from '../../Devices/hooks/useDevices';
+import { useDevices } from '../../devices/hooks/useDevices';
 import { useTypeMaintenance } from '../../typeMaintenance/hooks/useTypeMaintenance'; 
 import {
     Form,

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMaintenances, type MaintenanceItem } from '../hooks/useMaintenances';
-import { useDevices } from '../../Devices/hooks/useDevices';
+import { useDevices } from '../../devices/hooks/useDevices';
 import { useAreas } from '../../../administrative/areas/hooks/useAreas';
 import { useTypeMaintenance } from '../../typeMaintenance/hooks/useTypeMaintenance';
 

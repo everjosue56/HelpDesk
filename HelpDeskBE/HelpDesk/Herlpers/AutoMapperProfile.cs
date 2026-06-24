@@ -239,7 +239,11 @@ namespace HelpDesk.Herlpers
                 .ForMember(dest => dest.DeviceBrand, opt => opt.MapFrom(src => src.Devices.BrandName))
                 .ForMember(dest => dest.DeviceType, opt => opt.MapFrom(src => src.DevicesType.Name))
                 .ForMember(dest => dest.TechnicalName, opt => opt.MapFrom(src => src.Users.UserName))
-                .ForMember(dest => dest.TechnicalEmail, opt => opt.MapFrom(src => src.Users.Email));
+                .ForMember(dest => dest.TechnicalEmail, opt => opt.MapFrom(src => src.Users.Email))
+                .ForMember(dest => dest.TypeMaintenanceName,
+                       opt => opt.MapFrom(src => src.Maintenances != null && src.Maintenances.TypeMaintenance != null
+                                                ? src.Maintenances.TypeMaintenance.Name
+                                                : "Sin Tipo"));
             CreateMap<CreateMaintenanceHistoryDto, MaintenanceHistoryEntity>();
             CreateMap<UpdateMaintenanceHistoryDto, MaintenanceHistoryEntity>();
         }

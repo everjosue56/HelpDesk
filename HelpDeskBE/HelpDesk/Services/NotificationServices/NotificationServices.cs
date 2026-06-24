@@ -38,6 +38,7 @@ namespace HelpDesk.Services.NotificationService
                 var query = _context.Notifications
                     .Include(n => n.Users)
                     .Include(n => n.AlertTypes)
+                    .OrderByDescending(n => n.CreatedDate)
                     .AsQueryable();
 
                 if (filter.IdUser.HasValue)

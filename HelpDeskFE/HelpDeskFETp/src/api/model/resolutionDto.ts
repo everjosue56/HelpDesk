@@ -20,6 +20,7 @@ export interface ResolutionDto {
   /** @nullable */
   secondObservation?: string | null;
   solutionTime?: number;
+  createdDate?: string;
   idUser?: number;
   /** @nullable */
   userName?: string | null;

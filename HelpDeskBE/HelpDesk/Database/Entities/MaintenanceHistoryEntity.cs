@@ -32,5 +32,6 @@ namespace HelpDesk.Database.Entities
         public virtual UserEntity Users { get; set; } = null!;
         [ForeignKey(nameof(IdTypeDevice))]
         public virtual TypeDeviceEntity DevicesType { get; set; } = null!;
+
     }
 }

@@ -22,5 +22,9 @@ namespace HelpDesk.Dtos.MaintenanceHistoryDto
         public long IdUser { get; set; }
         public string TechnicalName { get; set; } = string.Empty;
         public string TechnicalEmail { get; set; } = string.Empty;
+
+        // --- Datos de tipo de mantenimiento ---
+        public string TypeMaintenanceName { get; set; } = string.Empty;
+
     }
 }

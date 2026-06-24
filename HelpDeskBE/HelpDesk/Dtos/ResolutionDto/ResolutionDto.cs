@@ -13,6 +13,7 @@ namespace HelpDesk.Dtos.ResolutionDto
         public string Observation { get; set; } = string.Empty;
         public string SecondObservation { get; set; } = string.Empty;
         public decimal SolutionTime { get; set; }
+        public DateTime CreatedDate { get; set; }
 
         // Datos del Usuario que resolvió
         public long IdUser { get; set; }

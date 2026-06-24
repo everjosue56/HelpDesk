@@ -24,4 +24,6 @@ export interface MaintenanceHistoryDto {
   technicalName?: string | null;
   /** @nullable */
   technicalEmail?: string | null;
+  /** @nullable */
+  typeMaintenanceName?: string | null;
 }

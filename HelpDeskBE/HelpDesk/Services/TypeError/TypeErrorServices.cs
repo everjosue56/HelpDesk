@@ -34,7 +34,9 @@ namespace HelpDesk.Services
         {
             try
             {
-                var query = _context.TypeErrors.AsQueryable();
+                var query = _context.TypeErrors
+                    .Where(te => !te.IsDeleted)
+                    .AsQueryable();
 
                 if (!string.IsNullOrWhiteSpace(filter.Name))
                 {
@@ -139,28 +141,27 @@ namespace HelpDesk.Services
 
         public async Task<ResponseDto<bool>> DeleteAsync(long id)
         {
-            var entity = await _context.TypeErrors.FindAsync(id);
-
-            if (entity == null)
+            try
             {
-                return new ResponseDto<bool>
+                var entity = await _context.TypeErrors.FindAsync(id);
+
+                if (entity == null)
                 {
-                    Status = false,
-                    Data = false,
-                    StatusCode = 404,
-                    Message = "El registro ya no existe."
-                };
+                    return new ResponseDto<bool> { Status = false, Message = "Error no encontrada.", Data = false };
+                }
+
+                entity.IsDeleted = true;
+
+                _context.TypeErrors.Update(entity);
+                await _context.SaveChangesAsync();
+
+                return new ResponseDto<bool> { Status = true, Message = "Error desactivado correctamente.", Data = true };
             }
-
-            _context.TypeErrors.Remove(entity);
-            await _context.SaveChangesAsync();
-
-            return new ResponseDto<bool>
+            catch (Exception ex)
             {
-                Status = true,
-                Data = true,
-                StatusCode = 200
-            };
-        }   
+                _logger.LogError(ex, "Error al desactivar tipo de error.");
+                return new ResponseDto<bool> { Status = false, Message = "Error al procesar la desactivacion.", Data = false };
+            }
+        }
     }
 }

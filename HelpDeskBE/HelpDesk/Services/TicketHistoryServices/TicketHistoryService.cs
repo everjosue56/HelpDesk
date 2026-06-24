@@ -40,6 +40,7 @@ namespace HelpDesk.Services.TicketHistoryService
                     .Include(th => th.User)
                     .Include(th => th.Ticket)
                         .ThenInclude(t => t.SoftwareSystem)
+                    .OrderByDescending(th => th.CreatedDate)
                      .AsQueryable();
                  
 

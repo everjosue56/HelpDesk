@@ -49,15 +49,19 @@ namespace HelpDesk.Services
         {
             try
             {
+                // 1. Base query utilizando AsNoTracking para optimizar el rendimiento y la velocidad
                 var query = _context.Tickets
+                    .AsNoTracking()
                     .Include(t => t.User)
                     .Include(t => t.TypeError)
                     .Include(t => t.Area)
                     .Include(t => t.SoftwareSystem)
                     .Include(t => t.Impact)
                     .Include(t => t.Priority)
-                    .Where(t => t.IsActive); 
+                    .OrderByDescending(t => t.CreatedDate)
+                    .Where(t => t.IsActive && !t.IsDeleted);
 
+                // ─── FILTROS DINÁMICOS EXISTENTES ─── 
                 if (filter.IdUser.HasValue)
                     query = query.Where(t => t.IdUser == filter.IdUser.Value);
 
@@ -93,8 +97,16 @@ namespace HelpDesk.Services
                     query = query.Where(t => t.ReportDate <= endOfDay);
                 }
 
-
                 var (entities, totalItems, totalPages) = await query.ToPagedListAsync(filter.PageNumber, filter.PageSize);
+
+                var activeTicketsCount = await _context.Tickets
+                .AsNoTracking()
+                .CountAsync(t => t.IsActive);
+
+                var today = DateTime.Today;
+                var resolvedTodayCount = await _context.Tickets
+                    .AsNoTracking()
+                    .CountAsync(t => !t.IsActive && !t.IsDeleted && t.UpdatedDate >= today);
 
                 var ticketsDto = _mapper.Map<IEnumerable<TicketDto>>(entities);
 
@@ -107,7 +119,9 @@ namespace HelpDesk.Services
                     CurrentPage = filter.PageNumber,
                     PageSize = filter.PageSize,
                     TotalItems = totalItems,
-                    TotalPages = totalPages
+                    TotalPages = totalPages,
+                    ActiveTicketsCount = activeTicketsCount,
+                    ResolvedTodayCount = resolvedTodayCount
                 };
             }
             catch (Exception ex)
@@ -284,28 +298,28 @@ namespace HelpDesk.Services
 
         public async Task<ResponseDto<bool>> DeleteAsync(long id)
         {
-            var entity = await _context.Tickets.FindAsync(id);
-
-            if (entity == null)
+            try
             {
-                return new ResponseDto<bool>
+                var entity = await _context.Tickets.FindAsync(id);
+
+                if (entity == null)
                 {
-                    Status = false,
-                    Data = false,
-                    StatusCode = 404,
-                    Message = "El ticket ya no existe."
-                };
+                    return new ResponseDto<bool> { Status = false, Message = "Ticket no encontrado.", Data = false };
+                }
+
+                entity.IsDeleted = true;
+                entity.IsActive = false;
+
+                _context.Tickets.Update(entity);
+                await _context.SaveChangesAsync();
+
+                return new ResponseDto<bool> { Status = true, Message = "Ticket desactivado correctamente.", Data = true };
             }
-
-            _context.Tickets.Remove(entity);
-            await _context.SaveChangesAsync();
-
-            return new ResponseDto<bool>
+            catch (Exception ex)
             {
-                Status = true,
-                Data = true,
-                StatusCode = 200
-            };
+                _logger.LogError(ex, "Error al desactivar ticket.");
+                return new ResponseDto<bool> { Status = false, Message = "Error al procesar la desactivacion.", Data = false };
+            }
         }
     }
 }

@@ -8,6 +8,7 @@
 export interface TicketHistoryDto {
   id?: number;
   closeDate?: string;
+  createdDate?: string;
   idTicket?: number;
   /** @nullable */
   ticketDescription?: string | null;

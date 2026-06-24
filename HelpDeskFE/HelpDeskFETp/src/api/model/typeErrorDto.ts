@@ -10,4 +10,5 @@ export interface TypeErrorDto {
   id?: string | null;
   /** @nullable */
   name?: string | null;
+  createdDate?: string;
 }

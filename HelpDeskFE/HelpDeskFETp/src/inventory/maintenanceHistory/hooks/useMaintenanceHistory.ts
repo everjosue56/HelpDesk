@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "../../../context/AuthContext";
 import { AXIOS_INSTANCE } from "../../../api/axios-instance";
-import { getMaintenanceHistory } from "../../../api/generated/maintenance-history/maintenance-history"; // Ajusta la ruta exacta del api generado
+import { getMaintenanceHistory } from "../../../api/generated/maintenance-history/maintenance-history";
 
 export interface MaintenanceHistoryItem {
   id: number;
@@ -13,6 +13,7 @@ export interface MaintenanceHistoryItem {
   deviceCode: string;
   deviceBrand: string;
   deviceType: string;
+  typeMaintenanceName: string;
   idUser: number;
   technicalName: string;
   technicalEmail: string;
@@ -74,6 +75,7 @@ export const useMaintenanceHistory = (
             deviceCode: item.deviceCode || "N/A",
             deviceBrand: item.deviceBrand || "N/A",
             deviceType: item.deviceType || "N/A",
+            typeMaintenanceName: item.typeMaintenanceName || "N/A",
             idUser: item.idUser || 0,
             technicalName: item.technicalName || "Sin Asignar",
             technicalEmail: item.technicalEmail || "N/A",
@@ -126,6 +128,7 @@ export const useMaintenanceHistory = (
           deviceCode: item.deviceCode || "",
           deviceBrand: item.deviceBrand || "",
           deviceType: item.deviceType || "",
+          typeMaintenanceName: item.typeMaintenanceName || "",
           idUser: item.idUser || 0,
           technicalName: item.technicalName || "",
           technicalEmail: item.technicalEmail || "",
@@ -147,7 +150,6 @@ export const useMaintenanceHistory = (
     [historyService],
   );
 
-  // 4. Tu useEffect con debounce de 300ms y control de montado
   useEffect(() => {
     let isMounted = true;
 

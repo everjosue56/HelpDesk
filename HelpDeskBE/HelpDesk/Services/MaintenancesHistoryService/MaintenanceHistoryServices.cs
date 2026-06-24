@@ -37,9 +37,11 @@ namespace HelpDesk.Services.MaintenanceHistoryService
             {
                 var query = _context.MaintenanceHistories
                     .Include(mh => mh.Maintenances)
+                        .ThenInclude(m => m.TypeMaintenance)
                     .Include(mh => mh.Devices)
                     .Include(mh => mh.Users)
                     .Include(mh => mh.DevicesType)
+                    .OrderByDescending(mh => mh.CreatedDate)
                     .AsQueryable();
 
                 if (filter.IdMaintenance.HasValue)
