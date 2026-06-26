@@ -10,7 +10,7 @@ const modulesData = [
   {
     title: "General / Dashboard",
     description: "Vista general del sistema con métricas y estadísticas claves",
-    path: "/dashboard/general",
+    path: "/dashboard/sla",
     icon: FiGrid,
   },
   {

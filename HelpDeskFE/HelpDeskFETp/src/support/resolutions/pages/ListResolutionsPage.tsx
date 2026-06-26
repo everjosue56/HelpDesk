@@ -37,19 +37,23 @@ export const ListResolutionPage: React.FC = () => {
     const [page, setPage] = useState(1);
     const pageSize = 5;
 
-    const {
-        resolutions,
-        totalCount,
-        resolvedTodayCount,
-        isLoading,
-        deleteResolution
-    } = useResolutions(searchTerm, page, pageSize, {
-        idTicket: selectedTicket,
+    const memoizedFilters = React.useMemo(() => ({
+        idTicket: selectedTicket,              
         idUser: selectedUser,
+        idSolutionStatus: null,
         idDevice: selectedDevice,
         idPriority: selectedPriority,
-        dateFrom: selectedDate || null
-    });
+        dateFrom: selectedDate || null,
+        dateTo: null
+    }), [selectedTicket, selectedUser, selectedDevice, selectedPriority, selectedDate]);
+
+    const { 
+        resolutions, 
+        totalCount, 
+        isLoading, 
+        resolvedTodayCount, 
+        deleteResolution,
+    } = useResolutions(searchTerm, page, pageSize, memoizedFilters);
 
     const totalPages = Math.ceil(totalCount / pageSize) || 1;
     const navigate = useNavigate();
@@ -110,7 +114,6 @@ export const ListResolutionPage: React.FC = () => {
 
             {/* CONTENEDOR DE KPIS  */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Tickets Resueltos Hoy */}
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
                     <div className="space-y-1">
                         <p className="text-sm font-medium text-gray-500">Tickets Resueltos Hoy</p>
@@ -121,7 +124,6 @@ export const ListResolutionPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Total Resoluciones */}
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
                     <div className="space-y-1">
                         <p className="text-sm font-medium text-gray-500">Total Resoluciones</p>
@@ -220,7 +222,7 @@ export const ListResolutionPage: React.FC = () => {
                             <SelectContent className="bg-white rounded-xl border border-gray-200 select-none text-xs">
                                 {devices?.map((d) => (
                                     <SelectItem key={d.id} value={String(d.id)} className="cursor-pointer">
-                                        {d.brandName || d.brandName} {/* Ajustá según la propiedad de tu DTO */}
+                                        {d.brandName}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -231,6 +233,7 @@ export const ListResolutionPage: React.FC = () => {
                             </button>
                         )}
                     </div>
+
                     {/* 5. Filtrar por Prioridad */}
                     <div className="flex items-center gap-2 w-full">
                         <Select
@@ -243,7 +246,7 @@ export const ListResolutionPage: React.FC = () => {
                             <SelectContent className="bg-white rounded-xl border border-gray-200 select-none text-xs">
                                 {priorities?.map((p) => (
                                     <SelectItem key={p.id} value={String(p.id)} className="cursor-pointer">
-                                        {p.name || p.name}
+                                        {p.name}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -274,11 +277,11 @@ export const ListResolutionPage: React.FC = () => {
 
                 </div>
 
-                {/* TABLA DE DATOS */}
+                {/* TABLA DE DATOS SÓLIDA - ALTO CONTRASTE */}
                 <div className="overflow-x-auto rounded-xl border border-gray-100">
                     <table className="w-full text-left border-collapse text-[13px]">
                         <thead>
-                            <tr className="bg-[#eef2f5] text-slate-600 font-semibold border-b border-gray-200">
+                            <tr className="bg-[#eef2f5] text-slate-800 font-bold border-b border-gray-200">
                                 <th className="p-3.5 w-16 pl-5">No.</th>
                                 <th className="p-3.5">Usuario</th>
                                 <th className="p-3.5">Ticket</th>
@@ -288,53 +291,58 @@ export const ListResolutionPage: React.FC = () => {
                                 <th className="p-3.5 w-28 text-center">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody className={`divide-y divide-gray-100 text-slate-700 transition-opacity duration-200 ${isLoading && resolutions.length === 0 ? 'opacity-40 pointer-events-none' : 'opacity-100'
-                            }`}>
+                        <tbody className="divide-y divide-gray-100 text-slate-900 font-medium">
                             {isLoading && resolutions.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="p-8 text-center text-gray-400 animate-pulse">
+                                    <td colSpan={7} className="p-8 text-center text-slate-800 font-bold animate-pulse bg-slate-50/50">
                                         Sincronizando registros de resoluciones con el servidor central...
                                     </td>
                                 </tr>
                             ) : resolutions.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="p-8 text-center text-gray-400">
+                                    <td colSpan={7} className="p-8 text-center text-slate-500 font-bold bg-slate-50/30">
                                         No se encontraron registros de resoluciones con los criterios especificados.
                                     </td>
                                 </tr>
                             ) : (
-                                resolutions.map((item) => (
-                                    <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
-                                        <td className="p-3.5 pl-5 font-mono text-gray-400 text-xs font-semibold">
-                                            {item.id}
-                                        </td>
-                                        <td className="p-3.5 text-slate-800 font-semibold">{item.userName || 'JuanPerez01'}</td>
-                                        <td className="p-3 text-slate-700">#{item.idTicket}</td>
-                                        <td className="p-3.5 text-slate-700 truncate max-w-50">{item.deviceName || 'Dell Latitude 3420'}</td>
-                                        <td className="p-3.5">
-                                            <span className={`inline-flex items-center justify-center px-2.5 py-0.5 rounded-md text-xs font-bold ${item.priorityName === 'Urgente' ? 'bg-red-100 text-red-700 border border-red-200 animate-pulse' :
-                                                    item.priorityName === 'Alto' ? 'bg-orange-50 text-orange-700 border border-orange-100' :
-                                                        item.priorityName === 'Medio' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
-                                                            'bg-slate-50 text-slate-700 border border-slate-200/60'
+                                resolutions.map((item, index) => {
+                                    // 🚀 CORRECCIÓN 4: Cálculo dinámico indexado real para la numeración de filas
+                                    const itemNumber = (page - 1) * pageSize + index + 1;
+                                    return (
+                                        <tr key={item.id} className="hover:bg-slate-50/80 transition-colors border-b border-gray-100">
+                                            <td className="p-3.5 pl-5 font-mono text-slate-500 text-xs font-bold">
+                                                {itemNumber}
+                                            </td>
+                                            <td className="p-3.5 text-slate-900 font-medium">{item.userName || 'N/A'}</td>
+                                            <td className="p-3 text-slate-800 font-medium font-mono">#{item.idTicket}</td>
+                                            <td className="p-3.5 text-slate-800 font-medium truncate max-w-50">{item.deviceName || 'N/A'}</td>
+                                            <td className="p-3.5">
+                                                {/* 🚀 PRIORIDAD DINÁMICA DE 4 ESTADOS CON EFECTO PULSE EN URGENTE */}
+                                                <span className={`inline-flex items-center justify-center px-2.5 py-0.5 rounded-md text-xs font-bold ${
+                                                    item.priorityName === 'Urgente' ? 'bg-red-100 text-red-700 border border-red-200 animate-pulse' :
+                                                    item.priorityName === 'Alto'    ? 'bg-orange-50 text-orange-700 border border-orange-100' :
+                                                    item.priorityName === 'Medio'   ? 'bg-amber-50 text-amber-700 border border-amber-100' :
+                                                    'bg-slate-50 text-slate-700 border border-slate-200/60'
                                                 }`}>
-                                                {item.priorityName || 'N/A'}
-                                            </span>
-                                        </td>   
-                                        <td className="p-3.5 text-gray-600 font-medium whitespace-nowrap">
-                                            <div className="flex items-center gap-1.5">
-                                                <Calendar className="h-3.5 w-3.5 text-gray-300" />
-                                                {item.resolutionDate ? new Date(item.resolutionDate).toLocaleDateString('es-HN') : 'N/A'}
-                                            </div>
-                                        </td>
-                                        <td className="p-3.5">
-                                            <div className="flex items-center justify-center gap-3 text-gray-400">
-                                                <button type="button" className="hover:text-slate-600 transition-colors cursor-pointer" onClick={() => navigate(`details/${item.id}`)} title="Ver detalle"><Eye className="h-4 w-4" /></button>
-                                                <button type="button" className="hover:text-red-500 transition-colors cursor-pointer" onClick={() => openDeleteConfirm(item.id!, item.actionTaken || '')} title="Eliminar"><Trash2 className="h-4 w-4" /></button>
-                                                <button type="button" className="hover:text-[#1a558b] transition-colors cursor-pointer" onClick={() => navigate(`edit/${item.id}`)} title="Editar"><Edit className="h-4 w-4" /></button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
+                                                    {item.priorityName || 'N/A'}
+                                                </span>
+                                            </td>   
+                                            <td className="p-3.5 text-slate-800 font-medium whitespace-nowrap">
+                                                <div className="flex items-center gap-1.5">
+                                                    <Calendar className="h-3.5 w-3.5 text-slate-600" />
+                                                    {item.resolutionDate ? new Date(item.resolutionDate).toLocaleDateString('es-HN') : 'N/A'}
+                                                </div>
+                                            </td>
+                                            <td className="p-3.5">
+                                                <div className="flex items-center justify-center gap-3 text-slate-600">
+                                                    <button type="button" className="hover:text-[#1a558b] transition-colors cursor-pointer p-1 hover:bg-slate-100 rounded-md" onClick={() => navigate(`details/${item.id}`)} title="Ver detalle"><Eye className="h-4 w-4" /></button>
+                                                    <button type="button" className="hover:text-red-600 transition-colors cursor-pointer p-1 hover:bg-red-50 rounded-md" onClick={() => openDeleteConfirm(item.id!, item.actionTaken || '')} title="Eliminar"><Trash2 className="h-4 w-4" /></button>
+                                                    <button type="button" className="hover:text-[#1e5f8a] transition-colors cursor-pointer p-1 hover:bg-blue-50 rounded-md" onClick={() => navigate(`edit/${item.id}`)} title="Editar"><Edit className="h-4 w-4" /></button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
                             )}
                         </tbody>
                     </table>
@@ -344,7 +352,7 @@ export const ListResolutionPage: React.FC = () => {
                 {totalPages > 1 && (
                     <div className="pt-4 flex justify-center">
                         <Pagination>
-                            <PaginationContent className="text-xs font-bold text-neutral-500 gap-1">
+                            <PaginationContent className="text-xs font-bold text-neutral-500 gap-1 select-none">
                                 <PaginationItem>
                                     <PaginationPrevious href="#" onClick={handlePrevious} className={`rounded-lg h-8 px-2.5 text-xs font-bold transition-colors cursor-pointer ${page === 1 ? "pointer-events-none opacity-40 select-none" : "hover:bg-slate-50 text-neutral-600"}`} />
                                 </PaginationItem>

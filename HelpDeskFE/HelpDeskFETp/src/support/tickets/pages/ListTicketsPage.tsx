@@ -37,20 +37,24 @@ export const ListTicketsPage: React.FC = () => {
     const [page, setPage] = useState(1);
     const pageSize = 5;
 
+    const memoizedFilters = React.useMemo(() => ({
+        idTypeError: selectedTypeError,
+        idArea: selectedArea,
+        idSoftwareSystem: null, 
+        idImpact: selectedImpact,
+        idPriority: null,
+        idUser: selectedUser,
+        dateFrom: selectedDate || null,
+        dateTo: null
+    }), [selectedTypeError, selectedArea, selectedImpact, selectedUser, selectedDate]);
+
     const {
         tickets,
         totalCount,
-      //  activeTicketsCount,
         resolvedTodayCount,
         isLoading,
         deleteTicket
-    } = useTickets(searchTerm, page, pageSize, {
-        idTypeError: selectedTypeError,
-        idArea: selectedArea,
-        idImpact: selectedImpact,
-        idUser: selectedUser,
-        dateFrom: selectedDate || null
-    });
+    } = useTickets(searchTerm, page, pageSize, memoizedFilters);
 
     const totalPages = Math.ceil(totalCount / pageSize) || 1;
     const navigate = useNavigate();
@@ -148,7 +152,7 @@ export const ListTicketsPage: React.FC = () => {
 
             {/* CONTENEDOR DE KPIS */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
+                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
                     <div className="space-y-1">
                         <p className="text-sm font-medium text-gray-500">Tickets Resueltos Hoy</p>
                         <p className="text-3xl font-bold text-slate-800">{resolvedTodayCount ?? 0}</p>
@@ -158,7 +162,7 @@ export const ListTicketsPage: React.FC = () => {
                     </div>
                 </div>
 
-                  <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
+                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
                     <div className="space-y-1">
                         <p className="text-sm font-medium text-gray-500">Total Tickets</p>
                         <p className="text-3xl font-bold text-slate-800">{totalCount ?? 0}</p>
@@ -311,11 +315,11 @@ export const ListTicketsPage: React.FC = () => {
 
                 </div>
 
-                {/* TABLA DE DATOS */}
+                {/* TABLA DE DATOS DE ALTO CONTRASTE SÓLIDA */}
                 <div className="overflow-x-auto rounded-xl border border-gray-100">
                     <table className="w-full text-left border-collapse text-[13px]">
                         <thead>
-                            <tr className="bg-[#eef2f5] text-slate-600 font-semibold border-b border-gray-200">
+                            <tr className="bg-[#eef2f5] text-slate-800 font-bold border-b border-gray-200">
                                 <th className="p-3.5 w-16 pl-5">No.</th>
                                 <th className="p-3.5">Usuario</th>
                                 <th className="p-3.5">Área</th>
@@ -325,18 +329,17 @@ export const ListTicketsPage: React.FC = () => {
                                 <th className="p-3.5 w-28 text-center">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody className={`divide-y divide-gray-100 text-slate-700 transition-opacity duration-200 ${
-                            isLoading && tickets.length === 0 ? 'opacity-40 pointer-events-none' : 'opacity-100'
-                        }`}>
+                        {/* 🚀 CORRECCIÓN: Eliminada opacidad condicionada muerta del body. Es 100% nítido siempre */}
+                        <tbody className="divide-y divide-gray-100 text-slate-900 font-medium">
                             {isLoading && tickets.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="p-8 text-center text-gray-400 animate-pulse">
+                                    <td colSpan={7} className="p-8 text-center text-slate-800 font-bold animate-pulse bg-slate-50/50">
                                         Sincronizando reportes de soporte técnico con el servidor central...
                                     </td>
                                 </tr>
                             ) : tickets.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="p-8 text-center text-gray-400">
+                                    <td colSpan={7} className="p-8 text-center text-slate-500 font-bold bg-slate-50/30">
                                         No se encontraron registros de tickets con los criterios especificados.
                                     </td>
                                 </tr>
@@ -344,25 +347,25 @@ export const ListTicketsPage: React.FC = () => {
                                 tickets.map((item, index) => {
                                     const itemNumber = (page - 1) * pageSize + index + 1;
                                     return (
-                                        <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
-                                            <td className="p-3.5 pl-5 font-mono text-gray-400 text-xs font-semibold">{itemNumber}</td>
-                                            <td className="p-3.5 text-slate-800 font-semibold">{item.userName}</td>
-                                            <td className="p-3 text-slate-700 truncate max-w-55">{item.areaName}</td>
-                                            <td className="p-3.5 text-slate-700">{item.typeErrorName}</td>
+                                        <tr key={item.id} className="hover:bg-slate-50/80 transition-colors border-b border-gray-100">
+                                            <td className="p-3.5 pl-5 font-mono text-slate-500 text-xs font-bold">{itemNumber}</td>
+                                            <td className="p-3.5 text-slate-900 font-medium">{item.userName}</td>
+                                            <td className="p-3 text-slate-800 font-medium truncate max-w-55">{item.areaName}</td>
+                                            <td className="p-3.5 text-slate-800 font-medium">{item.typeErrorName}</td>
                                             <td className="p-3.5">
                                                 {renderImpactBadge(item.impactName, item.idImpact)}
                                             </td>
-                                            <td className="p-3.5 text-gray-400 font-medium whitespace-nowrap">
+                                            <td className="p-3.5 text-slate-800 font-medium whitespace-nowrap">
                                                 <div className="flex items-center gap-1.5">
-                                                    <Calendar className="h-3.5 w-3.5 text-gray-300" />
+                                                    <Calendar className="h-3.5 w-3.5 text-slate-600" />
                                                     {new Date(item.reportDate).toLocaleDateString('es-HN')}
                                                 </div>
                                             </td>
                                             <td className="p-3.5">
-                                                <div className="flex items-center justify-center gap-3 text-gray-400">
-                                                    <button type="button" className="hover:text-slate-600 transition-colors cursor-pointer" onClick={() => navigate(`details/${item.id}`)} title="Ver detalle"><Eye className="h-4 w-4" /></button>
-                                                    <button type="button" className="hover:text-red-500 transition-colors cursor-pointer" onClick={() => openDeleteConfirm(item.id, item.description)} title="Eliminar Ticket"><Trash2 className="h-4 w-4" /></button>
-                                                    <button type="button" className="hover:text-[#1e5f8a] transition-colors cursor-pointer" onClick={() => navigate(`edit/${item.id}`)} title="Editar"><Edit className="h-4 w-4" /></button>
+                                                <div className="flex items-center justify-center gap-3 text-slate-600">
+                                                    <button type="button" className="hover:text-[#1a558b] transition-colors cursor-pointer p-1 hover:bg-slate-100 rounded-md" onClick={() => navigate(`details/${item.id}`)} title="Ver detalle"><Eye className="h-4 w-4" /></button>
+                                                    <button type="button" className="hover:text-red-600 transition-colors cursor-pointer p-1 hover:bg-red-50 rounded-md" onClick={() => openDeleteConfirm(item.id, item.description)} title="Eliminar Ticket"><Trash2 className="h-4 w-4" /></button>
+                                                    <button type="button" className="hover:text-[#1e5f8a] transition-colors cursor-pointer p-1 hover:bg-blue-50 rounded-md" onClick={() => navigate(`edit/${item.id}`)} title="Editar"><Edit className="h-4 w-4" /></button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -377,7 +380,7 @@ export const ListTicketsPage: React.FC = () => {
                 {totalPages > 1 && (
                     <div className="pt-4 flex justify-center">
                         <Pagination>
-                            <PaginationContent className="text-xs font-bold text-neutral-500 gap-1">
+                            <PaginationContent className="text-xs font-bold text-neutral-500 gap-1 select-none">
                                 <PaginationItem>
                                     <PaginationPrevious href="#" onClick={handlePrevious} className={`rounded-lg h-8 px-2.5 text-xs font-bold transition-colors cursor-pointer ${page === 1 ? "pointer-events-none opacity-40 select-none" : "hover:bg-slate-50 text-neutral-600"}`} />
                                 </PaginationItem>

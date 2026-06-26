@@ -18,7 +18,7 @@ export const Navbar: React.FC = () => {
   const { user, getInitials, logout } = useAuth();
   const navigate = useNavigate();
   
-  const { notifications, unreadCount, markAsRead } = useNotifications();
+  const { notifications, unreadCount, markAsRead } = useNotifications(user?.id || 0);
 
   const primaryRole = user && user.roles.length > 0 ? user.roles[0] : "Usuario";
 
@@ -129,7 +129,7 @@ export const Navbar: React.FC = () => {
                   {getInitials()}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex flex-col text-left hidden sm:flex">
+              <div className="flex flex-col text-left sm:flex">
                 <span className="text-sm font-bold text-neutral-800 leading-none">
                   {primaryRole}
                 </span>

@@ -28,51 +28,64 @@ export const useResolutions = (
   const [isLoading, setIsLoading] = useState(false);
   const service = useMemo(() => getResolution(AXIOS_INSTANCE), []);
 
+  const filterTicket = filters?.idTicket;
+  const filterUser = filters?.idUser;
+  const filterStatus = filters?.idSolutionStatus;
+  const filterDevice = filters?.idDevice;
+  const filterPriority = filters?.idPriority;
+  const filterDateFrom = filters?.dateFrom;
+  const filterDateTo = filters?.dateTo;
+
   // ─── CONSULTA PAGINADA Y FILTRADA ───
-  const fetchResolutions = useCallback(async () => {
-    setIsLoading(true);
+  const fetchResolutions = useCallback(async (isMounted: boolean = true) => {
+    if (isMounted) setIsLoading(true);
     try {
       const params: GetApiResolutionsParams = {
         Keyword: keyword || undefined,
         PageNumber: page,
         PageSize: pageSize,
-        IdTicket: filters?.idTicket || undefined,
-        IdUser: filters?.idUser || undefined,
-        IdSolutionStatus: filters?.idSolutionStatus || undefined,
-        IdDevice: filters?.idDevice || undefined,
-        IdPriority: filters?.idPriority || undefined,
-        DateFrom: filters?.dateFrom || undefined,
-        DateTo: filters?.dateTo || undefined,
+        IdTicket: filterTicket || undefined,
+        IdUser: filterUser || undefined,
+        IdSolutionStatus: filterStatus || undefined,
+        IdDevice: filterDevice || undefined,
+        IdPriority: filterPriority || undefined,
+        DateFrom: filterDateFrom || undefined,
+        DateTo: filterDateTo || undefined,
       };
 
       const response = await service.getApiResolutions(params);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const backendResponse = response.data as any;
 
-      setResolutions(
-        backendResponse?.data || backendResponse?.Data || backendResponse || [],
-      );
-      setTotalCount(
-        backendResponse?.totalItems ||
-          backendResponse?.TotalItems ||
-          backendResponse?.length ||
-          0,
-      );
-      setTotalresolvedTodayCount(backendResponse?.resolvedTodayCount || 0);
+      if (isMounted) {
+        setResolutions(
+          backendResponse?.data || backendResponse?.Data || backendResponse || [],
+        );
+        setTotalCount(
+          backendResponse?.totalItems ||
+            backendResponse?.TotalItems ||
+            backendResponse?.length ||
+            0,
+        );
+        setTotalresolvedTodayCount(backendResponse?.resolvedTodayCount || 0);
+      }
     } catch (error) {
       console.error("Error al consultar las resoluciones de soporte:", error);
-      setResolutions([]);
-      setTotalresolvedTodayCount(0);
-      setTotalCount(0);
+      if (isMounted) {
+        setResolutions([]);
+        setTotalresolvedTodayCount(0);
+        setTotalCount(0);
+      }
     } finally {
-      setIsLoading(false);
+      if (isMounted) setIsLoading(false);
     }
-  }, [keyword, page, pageSize, filters, service]);
+
+  }, [keyword, page, pageSize, filterTicket, filterUser, filterStatus, filterDevice, filterPriority, filterDateFrom, filterDateTo, service]);
 
   useEffect(() => {
     let isMounted = true;
     const executeFetch = async () => {
-      if (isMounted) await fetchResolutions();
+      await fetchResolutions(isMounted);
     };
     executeFetch();
     return () => {
@@ -86,7 +99,7 @@ export const useResolutions = (
     setIsLoading(true);
     try {
       await service.postApiResolutions(data);
-      await fetchResolutions();
+      await fetchResolutions(true);
     } finally {
       setIsLoading(false);
     }
@@ -96,7 +109,7 @@ export const useResolutions = (
     setIsLoading(true);
     try {
       await service.putApiResolutionsId(id, data);
-      await fetchResolutions();
+      await fetchResolutions(true);
     } finally {
       setIsLoading(false);
     }
@@ -106,7 +119,7 @@ export const useResolutions = (
     setIsLoading(true);
     try {
       await service.deleteApiResolutionsId(id);
-      await fetchResolutions();
+      await fetchResolutions(true);
     } finally {
       setIsLoading(false);
     }
@@ -125,7 +138,7 @@ export const useResolutions = (
     totalCount,
     isLoading,
     resolvedTodayCount,
-    refresh: fetchResolutions,
+    refresh: () => fetchResolutions(true),
     createResolution,
     updateResolution,
     deleteResolution,

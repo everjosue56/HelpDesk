@@ -11,6 +11,12 @@ import type {
   AxiosResponse
 } from 'axios';
 
+import type {
+  GetApiDashboardCargaAgenciasParams,
+  GetApiDashboardCargaAreasParams,
+  GetApiDashboardRendimientoTecnicosParams
+} from '../../model';
+
 
 
 
@@ -22,29 +28,35 @@ const getApiDashboardSlaMensualYear = (
       `/api/dashboard/sla-mensual/${year}`,options
     );
   }
-const getApiDashboardCargaAgenciasYear = (
-    year: number, options?: AxiosRequestConfig
+const getApiDashboardCargaAgencias = (
+    params?: GetApiDashboardCargaAgenciasParams, options?: AxiosRequestConfig
  ): Promise<AxiosResponse<void>> => {
     return axiosInstance.get(
-      `/api/dashboard/carga-agencias/${year}`,options
+      `/api/dashboard/carga-agencias`,{
+    ...options,
+        params: {...params, ...options?.params},}
     );
   }
-const getApiDashboardCargaAreasYear = (
-    year: number, options?: AxiosRequestConfig
+const getApiDashboardCargaAreas = (
+    params?: GetApiDashboardCargaAreasParams, options?: AxiosRequestConfig
  ): Promise<AxiosResponse<void>> => {
     return axiosInstance.get(
-      `/api/dashboard/carga-areas/${year}`,options
+      `/api/dashboard/carga-areas`,{
+    ...options,
+        params: {...params, ...options?.params},}
     );
   }
-const getApiDashboardRendimientoTecnicosYear = (
-    year: number, options?: AxiosRequestConfig
+const getApiDashboardRendimientoTecnicos = (
+    params?: GetApiDashboardRendimientoTecnicosParams, options?: AxiosRequestConfig
  ): Promise<AxiosResponse<void>> => {
     return axiosInstance.get(
-      `/api/dashboard/rendimiento-tecnicos/${year}`,options
+      `/api/dashboard/rendimiento-tecnicos`,{
+    ...options,
+        params: {...params, ...options?.params},}
     );
   }
-return {getApiDashboardSlaMensualYear,getApiDashboardCargaAgenciasYear,getApiDashboardCargaAreasYear,getApiDashboardRendimientoTecnicosYear}};
+return {getApiDashboardSlaMensualYear,getApiDashboardCargaAgencias,getApiDashboardCargaAreas,getApiDashboardRendimientoTecnicos}};
 export type GetApiDashboardSlaMensualYearResult = AxiosResponse<void>
-export type GetApiDashboardCargaAgenciasYearResult = AxiosResponse<void>
-export type GetApiDashboardCargaAreasYearResult = AxiosResponse<void>
-export type GetApiDashboardRendimientoTecnicosYearResult = AxiosResponse<void>
+export type GetApiDashboardCargaAgenciasResult = AxiosResponse<void>
+export type GetApiDashboardCargaAreasResult = AxiosResponse<void>
+export type GetApiDashboardRendimientoTecnicosResult = AxiosResponse<void>

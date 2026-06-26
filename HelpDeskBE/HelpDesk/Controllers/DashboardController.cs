@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace HelpDesk.Controllers
 {
-    [Authorize] 
+    [Authorize]
     [ApiController]
     [Route("api/dashboard")]
     public class DashboardController : ControllerBase
@@ -17,7 +17,6 @@ namespace HelpDesk.Controllers
             _dashboardService = dashboardService;
         }
 
-        // 1. Reporte de Disponibilidad Mensual 
         [HttpGet("sla-mensual/{year}")]
         public async Task<IActionResult> GetSlaMensual(int year)
         {
@@ -25,27 +24,24 @@ namespace HelpDesk.Controllers
             return Ok(data);
         }
 
-        // 2. Carga operativa por Agencias/Sucursales
-        [HttpGet("carga-agencias/{year}")]
-        public async Task<IActionResult> GetCargaAgencias(int year)
+        [HttpGet("carga-agencias")]
+        public async Task<IActionResult> GetCargaAgencias([FromQuery] int year, [FromQuery] int? month)
         {
-            var data = await _dashboardService.GetTicketsByAgencyAsync(year);
+            var data = await _dashboardService.GetTicketsByAgencyAsync(year, month);
             return Ok(data);
         }
 
-        // 3. Carga operativa por Áreas/Departamentos del Hospital
-        [HttpGet("carga-areas/{year}")]
-        public async Task<IActionResult> GetCargaAreas(int year)
+        [HttpGet("carga-areas")]
+        public async Task<IActionResult> GetCargaAreas([FromQuery] int year, [FromQuery] int? month)
         {
-            var data = await _dashboardService.GetTicketsByAreaAsync(year);
+            var data = await _dashboardService.GetTicketsByAreaAsync(year, month);
             return Ok(data);
         }
 
-        // 4. Rendimiento y productividad del equipo técnico
-        [HttpGet("rendimiento-tecnicos/{year}")]
-        public async Task<IActionResult> GetRendimientoTecnicos(int year)
+        [HttpGet("rendimiento-tecnicos")]
+        public async Task<IActionResult> GetRendimientoTecnicos([FromQuery] int year, [FromQuery] int? month, [FromQuery] int? userId)
         {
-            var data = await _dashboardService.GetTechnicianPerformanceAsync(year);
+            var data = await _dashboardService.GetTechnicianPerformanceAsync(year, month, userId);
             return Ok(data);
         }
     }

@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthRouter } from "../auth/routes/AuthRouter"; 
-import { DashBoardRouter } from "@/dashboard/routes/DashboardRouter";
+import { DashBoardRouter } from "@/home/routes/DashboardRouter";
 import { useAuth } from "@/context/AuthContext";
 
 export const AppRouter = () => {
