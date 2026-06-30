@@ -54,6 +54,7 @@ namespace HelpDesk.Services.AlertConfigurationService
                 var query = _context.AlertConfigurations
                     .Include(ac => ac.Areas)
                     .Include(ac => ac.Agencys)
+                    .OrderByDescending(ac => ac.CreatedDate)
                     .AsQueryable(); 
 
                 if (!string.IsNullOrWhiteSpace(filter.SearchTerm))

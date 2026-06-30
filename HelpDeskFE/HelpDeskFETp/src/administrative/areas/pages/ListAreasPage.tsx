@@ -237,7 +237,7 @@ export const ListAreasPage: React.FC = () => {
                                                 <div className="flex items-center justify-center gap-3 text-gray-400">
                                                     <button
                                                         className="hover:text-slate-600 transition-colors cursor-pointer"
-                                                        onClick={() => {
+                                                          onClick={() => {
                                                             setSelectedArea(area);
                                                             setIsDetailsModalOpen(true);
                                                         }}

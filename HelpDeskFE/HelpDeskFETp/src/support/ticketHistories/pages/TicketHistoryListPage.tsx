@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {    
+import {
     RefreshCw,
     Calendar,
     Search,
@@ -261,25 +261,25 @@ export const TicketHistoryListPage: React.FC = () => {
                                                 <User className="h-4 w-4 text-slate-400" /> {row.userName}
                                             </td>
                                             <td className="p-3">
-                                                <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-blue-50 text-blue-700 font-mono">
+                                                <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md text-[12px] font-bold bg-blue-50 text-blue-700 ">
                                                     <Tag className="h-2.5 w-2.5 mr-1 text-blue-400" /> #{row.idTicket}
                                                 </span>
                                             </td>
                                             <td className="p-3">
-                                                <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-purple-50 text-purple-700 font-mono">
+                                                <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md text-[12px] font-bold bg-purple-50 text-purple-700">
                                                     <FileText className="h-2.5 w-2.5 mr-1 text-purple-400" /> #{row.idResolution}
                                                 </span>
                                             </td>
-                                            <td className="p-3.5 text-slate-700 font-medium whitespace-nowrap">
+                                            <td className="p-3.5 text-slate-500 font-medium whitespace-nowrap">
                                                 <div className="flex items-center gap-1.5">
-                                                    <Calendar className="h-3.5 w-3.5 text-slate-600" />
+                                                    <Calendar className="h-3.5 w-3.5 text-slate-500" />
                                                     {formatFecha(row.closeDate)}
                                                 </div>
                                             </td>
                                             <td className="p-3.5 text-center">
                                                 <button
                                                     onClick={() => navigate(`details/${row.id}`)}
-                                                    className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 hover:text-[#1a558b] cursor-pointer transition-colors inline-block bg-transparent border-none"
+                                                    className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-[#1a558b] cursor-pointer transition-colors inline-block bg-transparent border-none"
                                                     title="Ver Ficha Técnica"
                                                 >
                                                     <Eye className="h-4 w-4" />
@@ -295,9 +295,11 @@ export const TicketHistoryListPage: React.FC = () => {
 
                 {/* ─── PAGINACIÓN ─── */}
                 {totalPages > 1 && (
-                    <div className="pt-4 flex justify-center">
+                    <div className="pt-4 flex justify-center select-none">
                         <Pagination>
-                            <PaginationContent className="text-xs font-bold text-neutral-500 gap-1 select-none">
+                            <PaginationContent className="text-xs font-bold text-neutral-500 gap-1">
+
+                                {/* Botón Anterior */}
                                 <PaginationItem>
                                     <PaginationPrevious
                                         href="#"
@@ -309,25 +311,76 @@ export const TicketHistoryListPage: React.FC = () => {
                                     />
                                 </PaginationItem>
 
-                                {Array.from({ length: totalPages }, (_, index) => {
-                                    const pageNumber = index + 1;
-                                    return (
-                                        <PaginationItem key={pageNumber}>
-                                            <PaginationLink
-                                                href="#"
-                                                onClick={(e) => handlePageClick(e, pageNumber)}
-                                                isActive={page === pageNumber}
-                                                className={`rounded-lg w-8 h-8 text-xs font-bold transition-all flex items-center justify-center cursor-pointer ${page === pageNumber
-                                                    ? "bg-[#1a558b] text-white hover:bg-[#1a558b] hover:text-white"
-                                                    : "hover:bg-slate-50 text-neutral-600"
-                                                    }`}
-                                            >
-                                                {pageNumber}
-                                            </PaginationLink>
-                                        </PaginationItem>
-                                    );
-                                })}
+                                {/* LÓGICA DE FILTRADO DE PÁGINAS VISIBLES */}
+                                {(() => {
+                                    const pages: (number | string)[] = [];
 
+                                    if (totalPages <= 5) {
+                                        // Si son poquitas páginas, las metemos todas directas
+                                        for (let i = 1; i <= totalPages; i++) pages.push(i);
+                                    } else {
+                                        // Siempre metemos la página 1 y 2
+                                        pages.push(1);
+                                        pages.push(2);
+
+                                        // Si la página actual está más adelante, metemos los puntos suspensivos
+                                        if (page > 4) {
+                                            pages.push("...");
+                                        }
+
+                                        // Renderizamos las páginas cercanas a la actual
+                                        for (let i = Math.max(3, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
+                                            if (!pages.includes(i)) {
+                                                pages.push(i);
+                                            }
+                                        }
+
+                                        // Si falta mucho para llegar al final, otra elipsis
+                                        if (page < totalPages - 2) {
+                                            if (!pages.includes("...")) {
+                                                pages.push("...");
+                                            }
+                                        }
+
+                                        // Siempre cerramos con la última página fija al final
+                                        if (!pages.includes(totalPages)) {
+                                            pages.push(totalPages);
+                                        }
+                                    }
+
+                                    return pages.map((pageItem, index) => {
+                                        // Si es una elipsis, pintamos texto estático plano
+                                        if (pageItem === "...") {
+                                            return (
+                                                <PaginationItem key={`ellipsis-${index}`}>
+                                                    <span className="w-8 h-8 flex items-center justify-center text-xs text-neutral-400 font-medium select-none">
+                                                        ...
+                                                    </span>
+                                                </PaginationItem>
+                                            );
+                                        }
+
+                                        // Si es un número, pintamos el botón interactivo normal
+                                        const pageNum = pageItem as number;
+                                        return (
+                                            <PaginationItem key={pageNum}>
+                                                <PaginationLink
+                                                    href="#"
+                                                    onClick={(e) => handlePageClick(e, pageNum)}
+                                                    isActive={page === pageNum}
+                                                    className={`rounded-lg w-8 h-8 text-xs font-bold transition-all flex items-center justify-center cursor-pointer ${page === pageNum
+                                                        ? "bg-[#1a558b] text-white hover:bg-[#1a558b] hover:text-white"
+                                                        : "hover:bg-slate-50 text-neutral-600"
+                                                        }`}
+                                                >
+                                                    {pageNum}
+                                                </PaginationLink>
+                                            </PaginationItem>
+                                        );
+                                    });
+                                })()}
+
+                                {/* Botón Siguiente */}
                                 <PaginationItem>
                                     <PaginationNext
                                         href="#"
@@ -338,6 +391,7 @@ export const TicketHistoryListPage: React.FC = () => {
                                             }`}
                                     />
                                 </PaginationItem>
+
                             </PaginationContent>
                         </Pagination>
                     </div>

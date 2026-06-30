@@ -29,7 +29,6 @@ export const useNotifications = (userId: number) => {
             if (isMounted) setIsLoading(true);
             const response = await service.getApiNotificationsUnreadUserUserId(userId);
             
-            // Desenvolvemos la respuesta del DTO genérico de tu .NET (NotificationDtoIEnumerableResponseDto)
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const backendResponse = response.data as any;
             const data = backendResponse?.data || backendResponse?.Data || backendResponse || [];
@@ -45,12 +44,9 @@ export const useNotifications = (userId: number) => {
         }
     }, [userId, service]);
 
-    // 🚀 2. Marcar una notificación como leída (Optimistic Update para velocidad)
     const markAsRead = useCallback(async (notificationId: number) => {
-        // Guardamos el estado anterior por si la API falla de forma inesperada (Rollback)
         const previousNotifications = [...notifications];
         
-        // Actualización optimista: removemos de la lista local de "no leídas" inmediatamente
         setNotifications(prev => prev.filter(n => n.id !== notificationId));
 
         try {
@@ -58,7 +54,6 @@ export const useNotifications = (userId: number) => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const backendResponse = response.data as any;
             
-            // Validamos si tu BooleanResponseDto retornó true o success
             const isSuccess = backendResponse?.data ?? backendResponse?.Data ?? backendResponse ?? false;
 
             if (!isSuccess) {
@@ -72,14 +67,13 @@ export const useNotifications = (userId: number) => {
         }
     }, [notifications, service]);
 
-    // 🚀 3. Marcar TODAS como leídas (Útil para un botón de limpieza en la UI)
+    //  3. Marcar TODAS como leídas 
     const markAllAsRead = useCallback(async () => {
         if (notifications.length === 0) return;
         const previousNotifications = [...notifications];
-        setNotifications([]); // Limpieza total optimista
+        setNotifications([]);
 
         try {
-            // Recorremos las activas disparando la lectura en paralelo
             await Promise.all(notifications.map(n => service.putApiNotificationsIdMarkAsRead(n.id)));
             toast.success("Notificaciones limpiadas");
         } catch (error) {
@@ -88,7 +82,6 @@ export const useNotifications = (userId: number) => {
         }
     }, [notifications, service]);
 
-    // Hook de efecto para inicializar la carga
    useEffect(() => {
         let isMounted = true;
 
@@ -102,8 +95,6 @@ export const useNotifications = (userId: number) => {
             isMounted = false; 
         };
     }, [userId, fetchUnreadNotifications]);
-
-    // Conteo dinámico para el globito rojo del Navbar
     const unreadCount = useMemo(() => notifications.length, [notifications]);
 
     return {

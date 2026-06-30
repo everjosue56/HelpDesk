@@ -61,7 +61,6 @@ export const DetailsAgencyPage: React.FC = () => {
     );
   }
 
-  // En caso de que el ID no devuelva nada de PostgreSQL
   if (!agency) {
     return (
       <div className="p-6 text-center space-y-4 animate-fadeIn">

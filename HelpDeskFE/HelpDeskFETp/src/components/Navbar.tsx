@@ -98,18 +98,19 @@ export const Navbar: React.FC = () => {
                         </p>
                         <span className="text-[10px] text-neutral-400 font-medium mt-1">
                           {notif.sentAt ? new Date(notif.sentAt).toLocaleDateString() : "Reciente"}
+
                         </span>
                       </div>
                     </DropdownMenuItem>
                   ))
                 )}
-              </div>
+              </div>      
 
               <DropdownMenuSeparator className="my-1 bg-neutral-100" />
               
               <div className="p-1">
                 <Button 
-                  onClick={() => navigate('/dashboard/notifications')}
+                  onClick={() => navigate(`/dashboard/notifications`)}
                   variant="ghost" 
                   className="w-full text-center text-xs font-bold text-[#1a558b] hover:text-[#154673] hover:bg-blue-50/50 py-1.5 h-8 rounded-lg"
                 >
@@ -146,7 +147,7 @@ export const Navbar: React.FC = () => {
               <DropdownMenuSeparator className="my-1 bg-neutral-100" />
               
               <DropdownMenuItem 
-                onClick={() => navigate('/dashboard/profile')}
+                onClick={() => navigate(`/dashboard/users/details/${user?.id}`)}
                 className="flex items-center gap-2.5 px-2 py-2 text-sm text-neutral-700 rounded-lg hover:bg-neutral-50 cursor-pointer focus:bg-neutral-50 focus:outline-none"
               >
                 <FiUser className="w-4 h-4 text-neutral-400" />

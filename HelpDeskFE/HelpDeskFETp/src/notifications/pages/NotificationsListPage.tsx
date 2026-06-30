@@ -1,8 +1,8 @@
+import React, { useState } from 'react';
 import { useNotificationsTable } from '../hooks/useNotificationsTable';
 import {
     Search,
     Eye,
-    Trash2,
     X,
     Bell,
     RefreshCw
@@ -10,21 +10,22 @@ import {
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '../../../@/components/ui/pagination';
 import { useNavigate } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../@/components/ui/select';
+//import { NotificationDeleteModal } from '../components/NotificationDeleteModal';
+//import type { NotificationItem } from '../hooks/useNotifications';
 
 export const NotificationsListPage: React.FC = () => {
-    const pageSize = 5; // Manteniendo el tamaño de filas de tu diseño original
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isReadFilter, setIsReadFilter] = useState<boolean | undefined>(undefined);
+    const [page, setPage] = useState(1);
+    const pageSize = 5;
+
     const {
         notifications,
         totalCount,
         isLoading,
-        page,
-        setPage,
-        keyword,
-        setKeyword,
-        setIsReadFilter,
-        toggleReadStatus,
+        markAsRead,
         refresh
-    } = useNotificationsTable(pageSize);
+    } = useNotificationsTable(searchTerm, isReadFilter, page, pageSize);
 
     const totalPages = Math.ceil(totalCount / pageSize) || 1;
     const navigate = useNavigate();
@@ -48,6 +49,19 @@ export const NotificationsListPage: React.FC = () => {
         setPage(pageNumber);
     };
 
+   /*  const [selectedNotification, setSelectedNotification] = useState<NotificationItem | null>(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+    const handleConfirmDelete = async (id: number) => {
+        try {
+            await deleteAgency(id);
+            toast.success("Agencia desactivada correctamente");
+        } catch (error) {
+            toast.error("Error al intentar desactivar la agencia");
+            console.error(error);
+        }
+    }; */
+
     return (
         <div className="p-6 space-y-6 bg-[#f8f9fa] min-h-screen font-sans animate-fadeIn text-left">
 
@@ -68,7 +82,7 @@ export const NotificationsListPage: React.FC = () => {
                 </h1>
             </div>
 
-            {/* ─── CONTENEDOR DE KPIS (ANTIPARPADEO CLONADO) ─── */}
+            {/* ─── CONTENEDOR DE KPIS ─── */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
                     <div className="space-y-1">
@@ -83,10 +97,9 @@ export const NotificationsListPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* ─── CONTENEDOR PRINCIPAL DEL LISTADO TIPO TABLA ─── */}
+            {/* ─── CONTENEDOR PRINCIPAL DEL LISTADO ─── */}
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4">
 
-                {/* Fila del Título y Botón de Sincronización */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                         <h2 className="text-lg font-bold text-slate-800">Lista de Notificaciones</h2>
@@ -110,13 +123,13 @@ export const NotificationsListPage: React.FC = () => {
                         <input
                             type="text"
                             placeholder="Buscar por descripción..."
-                            value={keyword}
-                            onChange={(e) => { setKeyword(e.target.value); setPage(1); }}
+                            value={searchTerm}
+                            onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
                             className="w-full pl-9 pr-9 py-2 bg-white border border-gray-200 rounded-xl text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1e5f8a]/20 focus:border-[#1e5f8a] transition-all"
                         />
-                        {keyword && (
+                        {searchTerm && (
                             <button
-                                onClick={() => setKeyword('')}
+                                onClick={() => setSearchTerm('')}
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
                             >
                                 <X className="h-4 w-4" />
@@ -133,6 +146,7 @@ export const NotificationsListPage: React.FC = () => {
                                 else setIsReadFilter(undefined);
                                 setPage(1);
                             }}
+                            value={isReadFilter === undefined ? "all" : String(isReadFilter)}
                         >
                             <SelectTrigger className="rounded-xl border-gray-200 h-9.5 pl-4 pr-3 text-sm text-slate-700 focus:ring-[#1e5f8a]/20 focus:border-[#1e5f8a] w-full bg-white select-none shadow-none">
                                 <SelectValue placeholder="Filtrar por Lectura" />
@@ -153,7 +167,7 @@ export const NotificationsListPage: React.FC = () => {
                         <thead>
                             <tr className="bg-[#eef2f5] text-slate-600 font-semibold border-b border-gray-200 select-none">
                                 <th className="p-3 w-16">No.</th>
-                                <th className="p-3 w-40">Emisor</th>
+                                <th className="p-3 w-40">Receptor</th>
                                 <th className="p-3 w-40">Tipo de Alerta</th>
                                 <th className="p-3">Mensaje</th>
                                 <th className="p-3 w-40 text-center">Estado / Leer</th>
@@ -180,9 +194,9 @@ export const NotificationsListPage: React.FC = () => {
                                     return (
                                         <tr key={notif.id} className="hover:bg-slate-50/70 transition-colors">
                                             <td className="p-3 font-mono text-gray-400 text-xs font-semibold">
-                                                {String(itemNumber).padStart(3, '0')}
+                                                {itemNumber}
                                             </td>
-                                            <td className="p-3 font-bold text-slate-800">
+                                            <td className="p-3 font-semibold text-slate-800">
                                                 {notif.userName || 'Sistema'}
                                             </td>
                                             <td className="p-3 text-gray-500">
@@ -192,25 +206,32 @@ export const NotificationsListPage: React.FC = () => {
                                                 {notif.textMessage}
                                             </td>
                                             <td className="p-3 text-center">
-                                                {/* Toggle Switch formal de Shadcn / Tailwind */}
-                                                <label className="relative inline-flex items-center cursor-pointer select-none mx-auto">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={notif.isRead}
-                                                        onChange={() => toggleReadStatus(notif.id, notif.isRead)}
-                                                        className="sr-only peer"
-                                                    />
-                                                    <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#1e5f8a]"></div>
-                                                </label>
+                                                <div className="flex items-center justify-center">
+                                                    <label className="relative inline-flex items-center cursor-pointer select-none">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={notif.isRead}
+                                                            disabled={notif.isRead} 
+                                                            onChange={() => markAsRead(notif.id)}
+                                                            className="sr-only peer"
+                                                        />
+                                                        <div className={`relative w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#2ecc71] ${notif.isRead ? "opacity-70 cursor-not-allowed" : ""
+                                                            }`}></div>
+                                                    </label>
+                                                </div>
                                             </td>
                                             <td className="p-3">
                                                 <div className="flex items-center justify-center gap-3 text-gray-400">
-                                                    <button className="hover:text-slate-600 transition-colors cursor-pointer" title="Ver detalle">
+                                                    <button
+                                                        className="hover:text-slate-600 transition-colors cursor-pointer"
+                                                        title="Ver detalle"
+                                                        onClick={() => navigate(`details/${notif.id}`)}
+                                                    >
                                                         <Eye className="h-4 w-4" />
                                                     </button>
-                                                    <button className="hover:text-red-500 transition-colors cursor-pointer" title="Eliminar">
-                                                        <Trash2 className="h-4 w-4" />  
-                                                    </button>
+                                                   {/*  <button className="hover:text-red-500 transition-colors cursor-pointer" title="Eliminar">
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button> */}
                                                 </div>
                                             </td>
                                         </tr>
@@ -221,55 +242,80 @@ export const NotificationsListPage: React.FC = () => {
                     </table>
                 </div>
 
-                {/* ─── PAGINACIÓN INDEXADA REUTILIZADA ─── */}
-                <div className="pt-4 flex justify-center select-none">
-                    <Pagination>
-                        <PaginationContent className="text-xs font-bold text-neutral-500 gap-1">
-                            <PaginationItem>
-                                <PaginationPrevious
-                                    href="#"
-                                    onClick={handlePrevious}
-                                    className={`rounded-lg h-8 px-2.5 text-xs font-bold transition-colors cursor-pointer ${page === 1
-                                        ? "pointer-events-none opacity-40 select-none"
-                                        : "hover:bg-slate-50 text-neutral-600"
-                                        }`}
-                                />
-                            </PaginationItem>
+                {/* ─── PAGINACIÓN ─── */}
+                {totalPages > 1 && (
+                    <div className="pt-4 flex justify-center select-none">
+                        <Pagination>
+                            <PaginationContent className="text-xs font-bold text-neutral-500 gap-1">
+                                <PaginationItem>
+                                    <PaginationPrevious
+                                        href="#"
+                                        onClick={handlePrevious}
+                                        className={`rounded-lg h-8 px-2.5 text-xs font-bold transition-colors cursor-pointer ${page === 1 ? "pointer-events-none opacity-40" : "hover:bg-slate-50 text-neutral-600"}`}
+                                    />
+                                </PaginationItem>
 
-                            {Array.from({ length: totalPages }, (_, index) => {
-                                const pageNumber = index + 1;
-                                return (
-                                    <PaginationItem key={pageNumber}>
-                                        <PaginationLink
-                                            href="#"
-                                            onClick={(e) => handlePageClick(e, pageNumber)}
-                                            isActive={page === pageNumber}
-                                            className={`rounded-lg w-8 h-8 text-xs font-bold transition-all flex items-all justify-center cursor-pointer ${page === pageNumber
-                                                ? "bg-[#1a558b] text-white hover:bg-[#1a558b] hover:text-white"
-                                                : "hover:bg-slate-50 text-neutral-600"
-                                                }`}
-                                        >
-                                            {pageNumber}
-                                        </PaginationLink>
-                                    </PaginationItem>
-                                );
-                            })}
+                                {(() => {
+                                    const pages: (number | string)[] = [];
+                                    if (totalPages <= 5) {
+                                        for (let i = 1; i <= totalPages; i++) pages.push(i);
+                                    } else {
+                                        pages.push(1);
+                                        pages.push(2);
+                                        if (page > 4) pages.push("...");
+                                        for (let i = Math.max(3, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
+                                            if (!pages.includes(i)) pages.push(i);
+                                        }
+                                        if (page < totalPages - 2 && !pages.includes("...")) pages.push("...");
+                                        if (!pages.includes(totalPages)) pages.push(totalPages);
+                                    }
 
-                            <PaginationItem>
-                                <PaginationNext
-                                    href="#"
-                                    onClick={handleNext}
-                                    className={`rounded-lg h-8 px-2.5 text-xs font-bold transition-colors cursor-pointer ${page === totalPages
-                                        ? "pointer-events-none opacity-40 select-none"
-                                        : "hover:bg-slate-50 text-neutral-600"
-                                        }`}
-                                />
-                            </PaginationItem>
-                        </PaginationContent>
-                    </Pagination>
-                </div>
+                                    return pages.map((pageItem, index) => {
+                                        if (pageItem === "...") {
+                                            return (
+                                                <PaginationItem key={`ellipsis-${index}`}>
+                                                    <span className="w-8 h-8 flex items-center justify-center text-xs text-neutral-400 font-medium">...</span>
+                                                </PaginationItem>
+                                            );
+                                        }
+                                        const pageNum = pageItem as number;
+                                        return (
+                                            <PaginationItem key={pageNum}>
+                                                <PaginationLink
+                                                    href="#"
+                                                    onClick={(e) => handlePageClick(e, pageNum)}
+                                                    isActive={page === pageNum}
+                                                    className={`rounded-lg w-8 h-8 text-xs font-bold transition-all flex items-center justify-center cursor-pointer ${page === pageNum ? "bg-[#1a558b] text-white" : "hover:bg-slate-50 text-neutral-600"}`}
+                                                >
+                                                    {pageNum}
+                                                </PaginationLink>
+                                            </PaginationItem>
+                                        );
+                                    });
+                                })()}
+
+                                <PaginationItem>
+                                    <PaginationNext
+                                        href="#"
+                                        onClick={handleNext}
+                                        className={`rounded-lg h-8 px-2.5 text-xs font-bold transition-colors cursor-pointer ${page === totalPages ? "pointer-events-none opacity-40" : "hover:bg-slate-50 text-neutral-600"}`}
+                                    />
+                                </PaginationItem>
+                            </PaginationContent>
+                        </Pagination>
+                    </div>
+                )}
 
             </div>
+          {/*   <NotificationDeleteModal
+             isOpen={isDeleteModalOpen}
+                onClose={() => {
+                    setIsDeleteModalOpen(false);
+                    setSelectedAgency(null);
+                }}
+                onConfirm={handleConfirmDelete}
+                agency={selectedAgency}
+            /> */}
         </div>
     );
 };

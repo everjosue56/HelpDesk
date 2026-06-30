@@ -2,8 +2,9 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../@/components/ui/card';
 import { Button } from '../../../@/components/ui/button';
-import { FiGrid, FiSettings, FiPackage, FiSliders, FiBell, FiChevronRight } from 'react-icons/fi';
+import { FiGrid, FiSettings, FiPackage, FiSliders, FiBell, FiChevronRight, FiMonitor, FiActivity, FiCheckCircle } from 'react-icons/fi';
 import { Navbar } from '@/components/Navbar';
+import { useHomeKPIs } from '../hooks/useHomeKPIs';
 
 
 const modulesData = [
@@ -40,7 +41,9 @@ const modulesData = [
 ];
 
 export const HomePage: React.FC = () => {
-  const navigate = useNavigate();
+
+  const { kpis } = useHomeKPIs();
+  const navigate = useNavigate();   
   
 
   return (
@@ -62,50 +65,43 @@ export const HomePage: React.FC = () => {
         </div>
 
         {/* SECCIÓN DE MÉTRICAS */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 select-none">
 
-          {/* Tarjeta 1 */}
+          {/* Tarjeta 1: Tickets Resueltos Hoy */}
           <Card className="bg-white border-neutral-200/60 shadow-sm rounded-2xl p-6">
             <div className="flex flex-row items-center gap-4 w-full">
-              {/* Contenedor del Icono */}
-              <div className="w-14 h-14 bg-[#eef2f6] text-[#1a558b] rounded-2xl flex items-center justify-center shrink-0">
-                <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+              <div className="w-14 h-14 bg-gray-50 text-gray-700 rounded-2xl flex items-center justify-center shrink-0 border border-blue-100/40">
+                <FiCheckCircle className="w-7 h-7" />
               </div>
               <div className="flex flex-col text-left">
-                <p className="text-sm font-medium text-neutral-500 leading-tight">Tickets resueltos hoy</p>
-                <p className="text-3xl font-black text-neutral-800 mt-1">5</p>
+                <p className="text-sm font-bold text-neutral-500 leading-tight">Tickets resueltos hoy</p>
+                <p className="text-3xl font-black text-neutral-800 mt-1">{kpis.resolvedToday} </p>
               </div>
             </div>
           </Card>
 
-          {/* Tarjeta 2 */}
+          {/* Tarjeta 2: Tickets Activos */}
           <Card className="bg-white border-neutral-200/60 shadow-sm rounded-2xl p-6">
             <div className="flex flex-row items-center gap-4 w-full">
-              <div className="w-14 h-14 bg-[#eef2f6] text-[#1a558b] rounded-2xl flex items-center justify-center shrink-0">
-                <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+              <div className="w-14 h-14 bg-blue-50 text-[#1a558b] rounded-2xl flex items-center justify-center shrink-0 border border-blue-100/40">
+                <FiActivity className="w-7 h-7" />
               </div>
               <div className="flex flex-col text-left">
-                <p className="text-sm font-medium text-neutral-500 leading-tight">Tiempo promedio repuesta</p>
-                <p className="text-3xl font-black text-neutral-800 mt-1">1.6h</p>
+                <p className="text-sm font-bold text-neutral-500 leading-tight">Total Tickets Activos </p>
+                <p className="text-3xl font-black text-neutral-800 mt-1">{kpis.activeTickets}</p>
               </div>
             </div>
           </Card>
 
-          {/* Tarjeta 3 */}
+          {/* Tarjeta 3: Dispositivos */}
           <Card className="bg-white border-neutral-200/60 shadow-sm rounded-2xl p-6">
             <div className="flex flex-row items-center gap-4 w-full">
-              <div className="w-14 h-14 bg-[#eef2f6] text-[#1a558b] rounded-2xl flex items-center justify-center shrink-0">
-                <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+              <div className="w-14 h-14 bg-slate-50 text-slate-600 rounded-2xl flex items-center justify-center shrink-0 border border-slate-200/60">
+                <FiMonitor className="w-7 h-7" />
               </div>
               <div className="flex flex-col text-left">
-                <p className="text-sm font-medium text-neutral-500 leading-tight">Tickets resueltos este mes</p>
-                <p className="text-3xl font-black text-neutral-800 mt-1">23</p>
+                <p className="text-sm font-bold text-neutral-500 leading-tight">Total Dispositivos</p>
+                <p className="text-3xl font-black text-neutral-800 mt-1">{kpis.totalDevices} </p>
               </div>
             </div>
           </Card>
@@ -122,10 +118,10 @@ export const HomePage: React.FC = () => {
                 </span>
                 <CardHeader className="flex flex-row gap-4 items-start pt-6 px-6">
                   <div className="bg-[#154673] text-white p-3.5 rounded-[16px] shadow-sm">
-                    <IconComponent className="w-6 h-6" />
+                    <IconComponent className="w-6 h-6"    onClick={() => navigate(mod.path)} />
                   </div>
                   <div className="flex flex-col gap-1 max-w-[80%]">
-                    <CardTitle className="text-xl font-bold text-neutral-800 text-left">{mod.title}</CardTitle>
+                    <CardTitle className="text-xl font-bold text-neutral-800 text-left" onClick={() => navigate(mod.path)}>{mod.title}</CardTitle>
                     <CardDescription className="text-base text-neutral-400 text-left leading-snug">{mod.description}</CardDescription>
                   </div>
                 </CardHeader>
@@ -155,10 +151,10 @@ export const HomePage: React.FC = () => {
                 </span>
                 <CardHeader className="flex flex-row gap-4 items-start pt-6 px-6">
                   <div className="bg-[#2B3A42] text-white p-3.5 rounded-[16px] shadow-sm">
-                    <IconComponent className="w-6 h-6" />
+                    <IconComponent className="w-6 h-6"  onClick={() => navigate(mod.path)} />
                   </div>
                   <div className="flex flex-col gap-1 max-w-[80%]">
-                    <CardTitle className="text-xl font-bold text-neutral-800 text-left">{mod.title}</CardTitle>
+                    <CardTitle className="text-xl font-bold text-neutral-800 text-left"  onClick={() => navigate(mod.path)}>{mod.title}</CardTitle>
                     <CardDescription className="text-base text-neutral-400 text-left leading-snug">{mod.description}</CardDescription>
                   </div>
                 </CardHeader>

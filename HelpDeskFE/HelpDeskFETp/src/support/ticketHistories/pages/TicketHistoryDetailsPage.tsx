@@ -34,7 +34,7 @@ export const TicketHistoryDetailsPage: React.FC = () => {
                 const response = await service.getApiTicketHistoriesId(Number(id));
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const backendResponse = response.data as any;
-                
+
                 if (isMounted) {
                     const data = backendResponse?.data || backendResponse?.Data || backendResponse;
                     setRecord(data);
@@ -98,9 +98,11 @@ export const TicketHistoryDetailsPage: React.FC = () => {
         );
     }
 
+
+
     return (
         <div className="p-6 space-y-6 bg-[#f8f9fa] min-h-screen font-sans text-left select-none">
-            
+
             {/* ─── HISTORIAL SUPERIOR (BREADCRUMBS) ─── */}
             <div className="flex flex-col gap-0.5">
                 <div className="text-[13px] font-semibold text-neutral-400 flex items-center gap-1.5 tracking-wide">
@@ -118,95 +120,101 @@ export const TicketHistoryDetailsPage: React.FC = () => {
             </div>
 
             {/* ─── CONTENEDOR DE LA FICHA TÉCNICA  ─── */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 relative space-y-6 max-w-5xl">
-                
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 space-y-8 relative">
+
                 {/* Cabecera interna con el Botón Copiar */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-100 pb-4">
-                    <div className="space-y-0.5">
-                        <h2 className="text-lg font-bold text-slate-800">Detalles de Ticket</h2>
-                        <p className="text-xs text-gray-400">Detalles del ticket seleccionado</p>
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 border-b border-gray-100 pb-6">
+                    <div>
+                        <h2 className="text-xl font-bold text-slate-800">Detalles de Ticket</h2>
+                        <p className="text-sm text-gray-400 mt-0.5">Detalles de Ticket Seleccionado</p>
                     </div>
-                    <Button
-                        onClick={handleCopyData}
-                        className="inline-flex items-center justify-center gap-2 bg-[#1e5f8a] hover:bg-[#154666] text-white font-semibold text-xs px-4 h-10 rounded-xl transition-colors shadow-none cursor-pointer border-none"
-                    >
-                        <Copy className="h-3.5 w-3.5" />
-                        Copiar Datos
-                    </Button>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 pt-2">
+                    <div className="flex items-center gap-3">
+                        {/* Botón Copiar Datos */}
+                        <button
+                            onClick={handleCopyData}
+                            className="inline-flex items-center justify-center gap-2 bg-[#1e5f8a] hover:bg-[#154666] text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors shadow-sm"
+                        >
+                            <Copy className="h-3.5 w-3.5" />
+                            Copiar Datos
+                        </button>
+                    </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 pt-2">
+
+                {/* Bloque Izquierdo */}
+                <div className="space-y-6">
+                    <div className="space-y-1">
+                        <label className="text-sm font-bold text-slate-600">Numero de Ticket</label>
+                        <p className="text-sm text-gray-500 font-medium">
+                            {record.id}
+                        </p>
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="text-sm font-bold text-slate-600">Descripcion de Ticket</label>
+                        <p className="text-sm text-gray-500 font-medium">
+                            {record.ticketDescription || 'Sin descripción original registrada.'}
+                        </p>
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="text-sm font-bold text-slate-600">Fecha de Cierre</label>
+                        <p className="text-sm text-gray-500 font-medium">
+                            {record.closeDate ? record.closeDate.replace('T', ' ') : 'N/A'}
+                        </p>
+                    </div>
                     
-                    {/* Bloque Izquierdo */}
-                    <div className="space-y-6">
-                        <div className="space-y-1">
-                            <label className="text-sm font-extrabold text-slate-800 tracking-tight">Numero de Ticket</label>
-                            <p className="text-sm font-medium text-slate-600 font-mono">
-                                {record.id}
-                            </p>
-                        </div>
-
-                        <div className="space-y-1">
-                            <label className="text-sm font-extrabold text-slate-800 tracking-tight">Descripcion de Ticket</label>
-                            <p className="text-sm font-medium text-slate-600 leading-relaxed select-text">
-                                {record.ticketDescription || 'Sin descripción original registrada.'}
-                            </p>
-                        </div>
-
-                        <div className="space-y-1">
-                            <label className="text-sm font-extrabold text-slate-800 tracking-tight">Fecha de Cierre</label>
-                            <p className="text-sm font-medium text-slate-600 font-mono">
-                                {record.closeDate ? record.closeDate.replace('T', ' ') : 'N/A'}
-                            </p>
-                        </div>
+                    <div className="space-y-1">
+                        <label className="text-sm font-bold text-slate-600">Usuario Asignado</label>
+                        <p className="text-sm text-gray-500 font-medium font-mono">
+                            @{record.userName}
+                        </p>
                     </div>
-
-                    {/* Bloque Derecho */}
-                    <div className="space-y-6">
-                        <div className="space-y-1">
-                            <label className="text-sm font-extrabold text-slate-800 tracking-tight">Nombre de Sistema Afectado</label>
-                            <p className="text-sm font-medium text-slate-600">
-                                {record.softwareSystemName}
-                            </p>
-                        </div>
-
-                        <div className="space-y-1">
-                            <label className="text-sm font-extrabold text-slate-800 tracking-tight">Numero de Resolucion</label>
-                            <p className="text-sm font-medium text-slate-600 font-mono">
-                                {record.idResolution}
-                            </p>
-                        </div>
-
-                        <div className="space-y-1">
-                            <label className="text-sm font-extrabold text-slate-800 tracking-tight">Accion Tomada</label>
-                            <p className="text-sm font-medium text-slate-600 leading-relaxed select-text">
-                                {record.actionTaken}
-                            </p>
-                        </div>
-
-                        <div className="space-y-1">
-                            <label className="text-sm font-extrabold text-slate-800 tracking-tight">Tiempo Tardado</label>
-                            <p className="text-sm font-bold text-slate-700">
-                                {record.solutionTime} H
-                            </p>
-                        </div>
-
-                        <div className="space-y-1">
-                            <label className="text-sm font-extrabold text-slate-800 tracking-tight">Usuario</label>
-                            <p className="text-sm font-semibold text-slate-600">
-                                {record.userName}
-                            </p>
-                        </div>
-                    </div>
-
                 </div>
 
-                {/* Footer */}
-                <div className="pt-6 border-t border-gray-100 text-[11px] font-bold text-slate-400/80 font-mono tracking-wide">
-                    Id:{record.id} Creado: {formatFecha(record.createdDate)}
+                {/* Bloque Derecho */}
+                <div className="space-y-6">
+                    <div className="space-y-1">
+                        <label className="text-sm font-bold text-slate-600">Numero de Resolucion</label>
+                        <p className="text-sm text-gray-500 font-medium">
+                            {record.idResolution}
+                        </p>
+                    </div>
+                    <div className="space-y-1">
+                        <label className="text-sm font-bold text-slate-600">Nombre de Sistema Afectado</label>
+                        <p className="text-sm text-gray-500 font-medium">
+                            {record.softwareSystemName}
+                        </p>
+                    </div>
+
+                    
+
+                    <div className="space-y-1">
+                        <label className="text-sm font-bold text-slate-600">Accion Tomada</label>
+                        <p className="text-sm text-gray-500 font-medium">
+                            {record.actionTaken}
+                        </p>
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="text-sm font-bold text-slate-600">Tiempo Tardado</label>
+                        <p className="text-sm text-gray-500 font-medium">
+                            {record.solutionTime} Minutos
+                        </p>
+                    </div>
+
                 </div>
 
             </div>
+
+            {/* Footer */}
+            <div className="pt-6 border-t border-gray-100 text-[11px] font-bold text-slate-400/80 font-mono tracking-wide">
+                Id:{record.id} Creado: {formatFecha(record.createdDate)}
+            </div>
+
         </div>
+        </div >
     );
 };

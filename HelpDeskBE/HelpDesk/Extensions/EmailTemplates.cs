@@ -106,7 +106,7 @@ namespace HelpDesk.Helpers
                         <p style='margin: 4px 0;'><strong>Fecha de Emisión:</strong> {DateTime.Now:dd/MM/yyyy hh:mm tt}</p>
                     </div>
 
-                    <p style='color: #4b5563; line-height: 1.6; margin-top: 25px;'>Por favor, tome las medidas necesarias correspondientes a su área de trabajo en Financier Codimersa.</p>
+                    <p style='color: #4b5563; line-height: 1.6; margin-top: 25px;'>Por favor, tome las medidas necesarias correspondientes a su área de trabajo en Financiera Codimersa.</p>
                 </div>
                 <div style='background-color: #f9fafb; padding: 15px; text-align: center; border-top: 1px solid #e5e7eb;'>
                     <p style='color: #9ca3af; font-size: 12px; margin: 0;'>Este es un aviso automatizado del departamento de TI.</p>

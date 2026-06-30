@@ -12,7 +12,7 @@ import {
     Trash2,
     Edit,
     X,
-    Settings 
+    Settings
 } from 'lucide-react';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '../../../../@/components/ui/pagination';
 import { toast } from 'sonner';
@@ -25,7 +25,7 @@ export const ListMaintenancePage: React.FC = () => {
     const [selectedDevice, setSelectedDevice] = useState<number | undefined>(undefined);
     const [selectedArea, setSelectedArea] = useState<number | undefined>(undefined);
     const [selectedType, setSelectedType] = useState<number | undefined>(undefined);
-    const [filterDate, setFilterDate] = useState<string>(''); 
+    const [filterDate, setFilterDate] = useState<string>('');
 
     const [page, setPage] = useState(1);
     const pageSize = 5;
@@ -40,7 +40,7 @@ export const ListMaintenancePage: React.FC = () => {
     // ─── CONSUMO DE HOOKS RELACIONALES PARA FILTROS ───
     const { devices } = useDevices('', 1, 100);
     const { areas } = useAreas('', '', 1, 100);
-    const { typeMaintenance } = useTypeMaintenance('', 1, 100); 
+    const { typeMaintenance } = useTypeMaintenance('', 1, 100);
 
     const totalPages = Math.ceil(totalCount / pageSize) || 1;
     const navigate = useNavigate();
@@ -102,7 +102,7 @@ export const ListMaintenancePage: React.FC = () => {
             </div>
 
             {/* CONTENEDOR DE KPIS  ) */}
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
                     <div className="space-y-1">
                         <p className="text-sm font-medium text-gray-500">Total Mantenimientos</p>
@@ -294,23 +294,103 @@ export const ListMaintenancePage: React.FC = () => {
 
                 {/* PAGINACIÓN INDEXADA */}
                 {totalPages > 1 && (
-                    <div className="pt-4 flex justify-center">
+                    <div className="pt-4 flex justify-center select-none">
                         <Pagination>
                             <PaginationContent className="text-xs font-bold text-neutral-500 gap-1">
+
+                                {/* Botón Anterior */}
                                 <PaginationItem>
-                                    <PaginationPrevious href="#" onClick={handlePrevious} className={`rounded-lg h-8 px-2.5 text-xs font-bold transition-colors cursor-pointer ${page === 1 ? "pointer-events-none opacity-40 select-none" : "hover:bg-slate-50 text-neutral-600"}`} />
+                                    <PaginationPrevious
+                                        href="#"
+                                        onClick={handlePrevious}
+                                        className={`rounded-lg h-8 px-2.5 text-xs font-bold transition-colors cursor-pointer ${page === 1
+                                            ? "pointer-events-none opacity-40 select-none"
+                                            : "hover:bg-slate-50 text-neutral-600"
+                                            }`}
+                                    />
                                 </PaginationItem>
-                                {Array.from({ length: totalPages }, (_, index) => {
-                                    const pageNumber = index + 1;
-                                    return (
-                                        <PaginationItem key={pageNumber}>
-                                            <PaginationLink href="#" onClick={(e) => handlePageClick(e, pageNumber)} isActive={page === pageNumber} className={`rounded-lg w-8 h-8 text-xs font-bold transition-all flex items-center justify-center cursor-pointer ${page === pageNumber ? "bg-[#1a558b] text-white hover:bg-[#1a558b]" : "hover:bg-slate-50 text-neutral-600"}`}>{pageNumber}</PaginationLink>
-                                        </PaginationItem>
-                                    );
-                                })}
+
+                                {/* LÓGICA DE FILTRADO DE PÁGINAS VISIBLES */}
+                                {(() => {
+                                    const pages: (number | string)[] = [];
+
+                                    if (totalPages <= 5) {
+                                        // Si son poquitas páginas, las metemos todas directas
+                                        for (let i = 1; i <= totalPages; i++) pages.push(i);
+                                    } else {
+                                        // Siempre metemos la página 1 y 2
+                                        pages.push(1);
+                                        pages.push(2);
+
+                                        // Si la página actual está más adelante, metemos los puntos suspensivos
+                                        if (page > 4) {
+                                            pages.push("...");
+                                        }
+
+                                        // Renderizamos las páginas cercanas a la actual
+                                        for (let i = Math.max(3, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
+                                            if (!pages.includes(i)) {
+                                                pages.push(i);
+                                            }
+                                        }
+
+                                        // Si falta mucho para llegar al final, otra elipsis
+                                        if (page < totalPages - 2) {
+                                            if (!pages.includes("...")) {
+                                                pages.push("...");
+                                            }
+                                        }
+
+                                        // Siempre cerramos con la última página fija al final
+                                        if (!pages.includes(totalPages)) {
+                                            pages.push(totalPages);
+                                        }
+                                    }
+
+                                    return pages.map((pageItem, index) => {
+                                        // Si es una elipsis, pintamos texto estático plano
+                                        if (pageItem === "...") {
+                                            return (
+                                                <PaginationItem key={`ellipsis-${index}`}>
+                                                    <span className="w-8 h-8 flex items-center justify-center text-xs text-neutral-400 font-medium select-none">
+                                                        ...
+                                                    </span>
+                                                </PaginationItem>
+                                            );
+                                        }
+
+                                        // Si es un número, pintamos el botón interactivo normal
+                                        const pageNum = pageItem as number;
+                                        return (
+                                            <PaginationItem key={pageNum}>
+                                                <PaginationLink
+                                                    href="#"
+                                                    onClick={(e) => handlePageClick(e, pageNum)}
+                                                    isActive={page === pageNum}
+                                                    className={`rounded-lg w-8 h-8 text-xs font-bold transition-all flex items-center justify-center cursor-pointer ${page === pageNum
+                                                        ? "bg-[#1a558b] text-white hover:bg-[#1a558b] hover:text-white"
+                                                        : "hover:bg-slate-50 text-neutral-600"
+                                                        }`}
+                                                >
+                                                    {pageNum}
+                                                </PaginationLink>
+                                            </PaginationItem>
+                                        );
+                                    });
+                                })()}
+
+                                {/* Botón Siguiente */}
                                 <PaginationItem>
-                                    <PaginationNext href="#" onClick={handleNext} className={`rounded-lg h-8 px-2.5 text-xs font-bold transition-colors cursor-pointer ${page === totalPages ? "pointer-events-none opacity-40 select-none" : "hover:bg-slate-50 text-neutral-600"}`} />
+                                    <PaginationNext
+                                        href="#"
+                                        onClick={handleNext}
+                                        className={`rounded-lg h-8 px-2.5 text-xs font-bold transition-colors cursor-pointer ${page === totalPages
+                                            ? "pointer-events-none opacity-40 select-none"
+                                            : "hover:bg-slate-50 text-neutral-600"
+                                            }`}
+                                    />
                                 </PaginationItem>
+
                             </PaginationContent>
                         </Pagination>
                     </div>
@@ -318,7 +398,7 @@ export const ListMaintenancePage: React.FC = () => {
 
             </div>
             <MaintenanceDeleteModal
-                 isOpen={isDeleteModalOpen}
+                isOpen={isDeleteModalOpen}
                 onClose={() => {
                     setIsDeleteModalOpen(false);
                     setSelectedMaintenance(null);

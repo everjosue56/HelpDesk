@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTickets } from '../hooks/useTickets';
 import { useUsers } from '../../../administrative/users/hooks/useUser';
 import { useAreas } from '../../../administrative/areas/hooks/useAreas';
-import { useSupportCatalogs } from '../hooks/useSupportCatalogs'; 
+import { useSupportCatalogs } from '../hooks/useSupportCatalogs';
 import { useTypeErrors } from '../../typeError/hooks/useTypeErrors';
 import {
     Plus,
@@ -40,7 +40,7 @@ export const ListTicketsPage: React.FC = () => {
     const memoizedFilters = React.useMemo(() => ({
         idTypeError: selectedTypeError,
         idArea: selectedArea,
-        idSoftwareSystem: null, 
+        idSoftwareSystem: null,
         idImpact: selectedImpact,
         idPriority: null,
         idUser: selectedUser,
@@ -329,7 +329,6 @@ export const ListTicketsPage: React.FC = () => {
                                 <th className="p-3.5 w-28 text-center">Acciones</th>
                             </tr>
                         </thead>
-                        {/* 🚀 CORRECCIÓN: Eliminada opacidad condicionada muerta del body. Es 100% nítido siempre */}
                         <tbody className="divide-y divide-gray-100 text-slate-900 font-medium">
                             {isLoading && tickets.length === 0 ? (
                                 <tr>
@@ -350,22 +349,22 @@ export const ListTicketsPage: React.FC = () => {
                                         <tr key={item.id} className="hover:bg-slate-50/80 transition-colors border-b border-gray-100">
                                             <td className="p-3.5 pl-5 font-mono text-slate-500 text-xs font-bold">{itemNumber}</td>
                                             <td className="p-3.5 text-slate-900 font-medium">{item.userName}</td>
-                                            <td className="p-3 text-slate-800 font-medium truncate max-w-55">{item.areaName}</td>
-                                            <td className="p-3.5 text-slate-800 font-medium">{item.typeErrorName}</td>
+                                            <td className="p-3 text-slate-500 font-medium truncate max-w-55">{item.areaName}</td>
+                                            <td className="p-3.5 text-slate-500 font-medium">{item.typeErrorName}</td>
                                             <td className="p-3.5">
                                                 {renderImpactBadge(item.impactName, item.idImpact)}
                                             </td>
-                                            <td className="p-3.5 text-slate-800 font-medium whitespace-nowrap">
+                                            <td className="p-3.5 text-slate-500 font-medium whitespace-nowrap">
                                                 <div className="flex items-center gap-1.5">
-                                                    <Calendar className="h-3.5 w-3.5 text-slate-600" />
+                                                    <Calendar className="h-3.5 w-3.5 text-slate-500" />
                                                     {new Date(item.reportDate).toLocaleDateString('es-HN')}
                                                 </div>
                                             </td>
-                                            <td className="p-3.5">
-                                                <div className="flex items-center justify-center gap-3 text-slate-600">
-                                                    <button type="button" className="hover:text-[#1a558b] transition-colors cursor-pointer p-1 hover:bg-slate-100 rounded-md" onClick={() => navigate(`details/${item.id}`)} title="Ver detalle"><Eye className="h-4 w-4" /></button>
-                                                    <button type="button" className="hover:text-red-600 transition-colors cursor-pointer p-1 hover:bg-red-50 rounded-md" onClick={() => openDeleteConfirm(item.id, item.description)} title="Eliminar Ticket"><Trash2 className="h-4 w-4" /></button>
-                                                    <button type="button" className="hover:text-[#1e5f8a] transition-colors cursor-pointer p-1 hover:bg-blue-50 rounded-md" onClick={() => navigate(`edit/${item.id}`)} title="Editar"><Edit className="h-4 w-4" /></button>
+                                            <td className="p-3">
+                                                <div className="flex items-center justify-center gap-3 text-gray-400">
+                                                    <button type="button" className="hover:text-[#1a558b] transition-colors cursor-pointer hover:bg-slate-100 rounded-md" onClick={() => navigate(`details/${item.id}`)} title="Ver detalle"><Eye className="h-4 w-4" /></button>
+                                                    <button type="button" className="hover:text-red-600 transition-colors cursor-pointer  hover:bg-red-50 rounded-md" onClick={() => openDeleteConfirm(item.id, item.description)} title="Eliminar Ticket"><Trash2 className="h-4 w-4" /></button>
+                                                    <button type="button" className="hover:text-[#1e5f8a] transition-colors cursor-pointer hover:bg-blue-50 rounded-md" onClick={() => navigate(`edit/${item.id}`)} title="Editar"><Edit className="h-4 w-4" /></button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -378,23 +377,103 @@ export const ListTicketsPage: React.FC = () => {
 
                 {/* PAGINACIÓN */}
                 {totalPages > 1 && (
-                    <div className="pt-4 flex justify-center">
+                    <div className="pt-4 flex justify-center select-none">
                         <Pagination>
-                            <PaginationContent className="text-xs font-bold text-neutral-500 gap-1 select-none">
+                            <PaginationContent className="text-xs font-bold text-neutral-500 gap-1">
+
+                                {/* Botón Anterior */}
                                 <PaginationItem>
-                                    <PaginationPrevious href="#" onClick={handlePrevious} className={`rounded-lg h-8 px-2.5 text-xs font-bold transition-colors cursor-pointer ${page === 1 ? "pointer-events-none opacity-40 select-none" : "hover:bg-slate-50 text-neutral-600"}`} />
+                                    <PaginationPrevious
+                                        href="#"
+                                        onClick={handlePrevious}
+                                        className={`rounded-lg h-8 px-2.5 text-xs font-bold transition-colors cursor-pointer ${page === 1
+                                            ? "pointer-events-none opacity-40 select-none"
+                                            : "hover:bg-slate-50 text-neutral-600"
+                                            }`}
+                                    />
                                 </PaginationItem>
-                                {Array.from({ length: totalPages }, (_, index) => {
-                                    const pageNumber = index + 1;
-                                    return (
-                                        <PaginationItem key={pageNumber}>
-                                            <PaginationLink href="#" onClick={(e) => handlePageClick(e, pageNumber)} isActive={page === pageNumber} className={`rounded-lg w-8 h-8 text-xs font-bold transition-all flex items-center justify-center cursor-pointer ${page === pageNumber ? "bg-[#1a558b] text-white hover:bg-[#1a558b]" : "hover:bg-slate-50 text-neutral-600"}`}>{pageNumber}</PaginationLink>
-                                        </PaginationItem>
-                                    );
-                                })}
+
+                                {/* LÓGICA DE FILTRADO DE PÁGINAS VISIBLES */}
+                                {(() => {
+                                    const pages: (number | string)[] = [];
+
+                                    if (totalPages <= 5) {
+                                        // Si son poquitas páginas, las metemos todas directas
+                                        for (let i = 1; i <= totalPages; i++) pages.push(i);
+                                    } else {
+                                        // Siempre metemos la página 1 y 2
+                                        pages.push(1);
+                                        pages.push(2);
+
+                                        // Si la página actual está más adelante, metemos los puntos suspensivos
+                                        if (page > 4) {
+                                            pages.push("...");
+                                        }
+
+                                        // Renderizamos las páginas cercanas a la actual
+                                        for (let i = Math.max(3, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
+                                            if (!pages.includes(i)) {
+                                                pages.push(i);
+                                            }
+                                        }
+
+                                        // Si falta mucho para llegar al final, otra elipsis
+                                        if (page < totalPages - 2) {
+                                            if (!pages.includes("...")) {
+                                                pages.push("...");
+                                            }
+                                        }
+
+                                        // Siempre cerramos con la última página fija al final
+                                        if (!pages.includes(totalPages)) {
+                                            pages.push(totalPages);
+                                        }
+                                    }
+
+                                    return pages.map((pageItem, index) => {
+                                        // Si es una elipsis, pintamos texto estático plano
+                                        if (pageItem === "...") {
+                                            return (
+                                                <PaginationItem key={`ellipsis-${index}`}>
+                                                    <span className="w-8 h-8 flex items-center justify-center text-xs text-neutral-400 font-medium select-none">
+                                                        ...
+                                                    </span>
+                                                </PaginationItem>
+                                            );
+                                        }
+
+                                        // Si es un número, pintamos el botón interactivo normal
+                                        const pageNum = pageItem as number;
+                                        return (
+                                            <PaginationItem key={pageNum}>
+                                                <PaginationLink
+                                                    href="#"
+                                                    onClick={(e) => handlePageClick(e, pageNum)}
+                                                    isActive={page === pageNum}
+                                                    className={`rounded-lg w-8 h-8 text-xs font-bold transition-all flex items-center justify-center cursor-pointer ${page === pageNum
+                                                        ? "bg-[#1a558b] text-white hover:bg-[#1a558b] hover:text-white"
+                                                        : "hover:bg-slate-50 text-neutral-600"
+                                                        }`}
+                                                >
+                                                    {pageNum}
+                                                </PaginationLink>
+                                            </PaginationItem>
+                                        );
+                                    });
+                                })()}
+
+                                {/* Botón Siguiente */}
                                 <PaginationItem>
-                                    <PaginationNext href="#" onClick={handleNext} className={`rounded-lg h-8 px-2.5 text-xs font-bold transition-colors cursor-pointer ${page === totalPages ? "pointer-events-none opacity-40 select-none" : "hover:bg-slate-50 text-neutral-600"}`} />
+                                    <PaginationNext
+                                        href="#"
+                                        onClick={handleNext}
+                                        className={`rounded-lg h-8 px-2.5 text-xs font-bold transition-colors cursor-pointer ${page === totalPages
+                                            ? "pointer-events-none opacity-40 select-none"
+                                            : "hover:bg-slate-50 text-neutral-600"
+                                            }`}
+                                    />
                                 </PaginationItem>
+
                             </PaginationContent>
                         </Pagination>
                     </div>
@@ -403,7 +482,7 @@ export const ListTicketsPage: React.FC = () => {
             </div>
 
             {/* MODAL DE DESACTIVACIÓN */}
-            <TicketDeleteModal 
+            <TicketDeleteModal
                 isOpen={isDeleteModalOpen}
                 onClose={() => { setIsDeleteModalOpen(false); setTicketToDelete(null); }}
                 onConfirm={handleConfirmDelete}

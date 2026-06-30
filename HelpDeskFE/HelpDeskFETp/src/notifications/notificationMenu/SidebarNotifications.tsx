@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FiHome, FiBell, FiAlertCircle } from 'react-icons/fi';
-import { SlidersHorizontal, History } from 'lucide-react'; 
+import { SlidersHorizontal } from 'lucide-react'; 
 
 export const SidebarNotifications: React.FC = () => {
   const navigate = useNavigate();
@@ -28,19 +28,14 @@ export const SidebarNotifications: React.FC = () => {
         },
         {
           name: "Configuracion Alertas",
-          path: "/dashboard/notification-settings",
+          path: "/dashboard/alertconfiguration",
           icon: SlidersHorizontal 
         },
         {
           name: "Tipo Alerta",
-          path: "/dashboard/alert-types",
+          path: "/dashboard/alerttypes",
           icon: FiAlertCircle
-        },
-        {
-          name: "Historial Notificaciones",
-          path: "/dashboard/notification-history",
-          icon: History 
-        },
+        }
       ]
     }
   ];
@@ -52,12 +47,12 @@ export const SidebarNotifications: React.FC = () => {
       <nav className="flex-1 overflow-y-auto p-4 space-y-6 clean-scrollbar">
         {menuGroups.map((group, gIdx) => (
           <div key={gIdx} className="space-y-1.5">
-            {/* Texto de cabecera de grupo adaptado */}
+            {/* Texto de cabecera de grupo */}
             <span className="text-[11px] font-bold text-neutral-400 tracking-wide px-3 block">
               {group.title}
             </span>
             <div className="space-y-0.5">
-              {/* 🚀 SOLUCIÓN: Mapeamos únicamente los ítems correspondientes al grupo actual */}
+            
               {group.items.map((item, iIdx) => {
                 const Icon = item.icon;
                 const isActive =
@@ -83,7 +78,6 @@ export const SidebarNotifications: React.FC = () => {
           </div>
         ))}
       </nav>
-
       {/* Pie de página*/}
       <div className="p-5 border-t border-neutral-100 bg-slate-50/50 mt-auto text-center flex flex-col gap-0.5">
         <span className="text-[10px] font-bold text-neutral-500 tracking-wide">

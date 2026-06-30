@@ -25,12 +25,16 @@ import { AgencyDashboardRouter } from "@/dashboard/agencyDashboard/routes/Agency
 import { AreaDashboardRouter } from "@/dashboard/areaDashboard/routes/AreaDashboardRouter";
 import { TechnicialDashboardRouter } from "@/dashboard/PerfomanceDashboard/routes/TechnicianDashboardRouter";
 import { DashboardLayoutNotifications } from "@/notifications/notificationMenu/DashboardLayoutNotifications";
-import { NotificationsListPage } from "@/notifications/pages/NotificationsListPage";
+import { NotificationRouter } from "@/notifications/routes/NotificationsRouter";
+import { AlertConfigurationRouter } from "@/notifications/alertConfiguration/routes/AlertConfigurationRoute";
+import { AlertTypeRouter } from "@/notifications/alertType/routes/AlertTypeRoute";
+import FAQPage from "../pages/FAQPage";
 
 export const DashBoardRouter = () => {
     return (
         <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="faq" element={<FAQPage />} />
 
             <Route path="*" element={<Navigate to="" replace />} />
             <Route element={<DashboardLayout />}>
@@ -65,8 +69,10 @@ export const DashBoardRouter = () => {
                 <Route path="areaskpi/*" element={<AreaDashboardRouter />} />
                 <Route path="technicialkpi/*" element={<TechnicialDashboardRouter />} />
             </Route>
-            <Route element={<DashboardLayoutNotifications/>} >
-            <Route path="notifications/*" element={<NotificationsListPage/>} />
+            <Route element={<DashboardLayoutNotifications />} >
+                <Route path="notifications/*" element={<NotificationRouter />} />
+                <Route path="alertconfiguration/*" element={<AlertConfigurationRouter />} />
+                <Route path="alerttypes/*" element={<AlertTypeRouter />} />
             </Route>
         </Routes>
     );

@@ -1,10 +1,12 @@
-import React from 'react';
-import { FiHeadphones } from 'react-icons/fi';
+import React, { useState } from 'react';
+import { FiHeadphones, FiMail, FiLock } from 'react-icons/fi';
 import { InputField } from '../components/InputField';
 import { useLoginForm } from '../hooks/useLoginForm';
+import { ForgotPasswordModal } from '../components/ForgotPasswordModal';
 
 export const LoginPage: React.FC = () => {
   const { formData, isLoading, errorMessage, handleInputChange, handleSubmit } = useLoginForm();
+  const [isForgotOpen, setIsForgotOpen] = useState(false);
 
   return (
     <div className="w-full min-h-screen grid grid-cols-1 lg:grid-cols-2">
@@ -50,11 +52,7 @@ export const LoginPage: React.FC = () => {
             placeholder="Example@gmail.com"
             value={formData.email || ''}
             onChange={handleInputChange}
-            icon={
-              <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                <path stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" d="m3.5 5.5 7.893 6.036a1 1 0 0 0 1.214 0L20.5 5.5M4 19h16a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1Z" />
-              </svg>
-            }
+            icon={<FiMail className="w-5 h-5 text-gray-400" />}
           />
 
           <InputField
@@ -64,16 +62,16 @@ export const LoginPage: React.FC = () => {
             placeholder="********"
             value={formData.password || ''}
             onChange={handleInputChange}
-            icon={
-              <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 14v3m-3-6V7a3 3 0 1 1 6 0v4m-8 0h10a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1Z" />
-              </svg>
-            }
+            icon={<FiLock className="w-5 h-5 text-gray-400" />}
           />
 
-          <a href="#" className="text-sm font-medium text-[#004791] hover:underline self-start">
+          <button 
+            type="button"
+            onClick={() => setIsForgotOpen(true)}
+            className="text-sm font-medium text-[#004791] hover:underline self-start cursor-pointer transition-colors bg-transparent border-none p-0"
+          >
             ¿Olvidaste tu contraseña?
-          </a>
+          </button>
 
           <button
             type="submit"
@@ -85,7 +83,7 @@ export const LoginPage: React.FC = () => {
         </form>
 
         {/* Footer */}
-        <div className="mt-8 lg:mt-12 text-center flex flex-col gap-2">
+        <div className="mt-8 lg:mt-12 text-center flex flex-col gap-2 select-none">
           <p className="text-sm font-normal text-neutral-600">
             ¿Aún no tienes cuenta?{' '}
             <a href="#" className="font-semibold text-[#004791] hover:underline">
@@ -97,6 +95,12 @@ export const LoginPage: React.FC = () => {
           </p>
         </div>
       </div>
+
+      {/* Modal de recuperación */}
+      <ForgotPasswordModal 
+        isOpen={isForgotOpen} 
+        onClose={() => setIsForgotOpen(false)} 
+      />
     </div>
   );
 };
