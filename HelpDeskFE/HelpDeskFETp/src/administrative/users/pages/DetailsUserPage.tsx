@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useUsers } from '../hooks/useUser'; // Ajusta la ruta a tu hook de usuarios
+import { useUsers } from '../hooks/useUser';  
 import { Copy, Edit3, ArrowLeft, Loader2, User } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -51,7 +51,7 @@ export const DetailsUserPage: React.FC = () => {
         }).format(fecha);
     };
 
-    // ─── ESTADO DE CARGA (LOADING ) ───
+    // ─── ESTADO DE CARGA  ───
     if (isFetching) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3 text-slate-500 animate-fadeIn text-left">
@@ -61,7 +61,7 @@ export const DetailsUserPage: React.FC = () => {
         );
     }
 
-    // ─── MANEJO DE REGISTRO NO ENCONTRADO (FALLBACK) ───
+    // ─── MANEJO DE REGISTRO NO ENCONTRADO  ) ───
     if (!user) {
         return (
             <div className="p-6 text-center space-y-4 animate-fadeIn">
@@ -79,7 +79,7 @@ export const DetailsUserPage: React.FC = () => {
     return (
         <div className="p-6 space-y-6 bg-[#f8f9fa] min-h-screen font-sans animate-fadeIn text-left">
 
-            {/* Historial superior (Breadcrumbs) replicando tu estilo */}
+            {/* Historial superior   */}
             <div className="flex flex-col gap-0.5">
                 <div className="text-[13px] font-semibold text-neutral-400 flex items-center gap-1.5 tracking-wide select-none">
                     <span
@@ -137,7 +137,7 @@ export const DetailsUserPage: React.FC = () => {
 
                         {/* Botón Editar Usuario */}
                         <button
-                            onClick={() => navigate(`/administrative/users/edit/${id}`)}
+                            onClick={() => navigate(`/dashboard/users/edit/${id}`)}
                             className="inline-flex items-center justify-center gap-2 bg-[#1a558b] hover:bg-[#133f67] text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer"
                         >
                             <Edit3 className="h-3.5 w-3.5" />

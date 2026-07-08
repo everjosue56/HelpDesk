@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAlertTypes, type AlertTypeItem } from '../hooks/useAlertTypes'; 
+import { useAlertTypes, type AlertTypeItem } from '../hooks/useAlertTypes';
 import { Search, Trash2, X, Plus, Edit, AlertCircle } from 'lucide-react';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '../../../../@/components/ui/pagination';
 import { useNavigate } from 'react-router-dom';
@@ -37,23 +37,23 @@ export const AlertTypesListPage: React.FC = () => {
     setPage(pageNumber);
   };
 
-      const [selectedTypeAlert, setSelectedTypeAlert    ] = useState<AlertTypeItem | null>(null);
-      const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [selectedTypeAlert, setSelectedTypeAlert] = useState<AlertTypeItem | null>(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-    const handleDelete = async (id: number) => {
-        try {
-            await deleteAlertType(id);
-            toast.success("Tipo de alerta desactivado correctamente");
-            refresh();
-        } catch (error) {
-            toast.error("Error al procesar la desactivación");
-            console.error(error);
-        }
-    };
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteAlertType(id);
+      toast.success("Tipo de alerta desactivado correctamente");
+      refresh();
+    } catch (error) {
+      toast.error("Error al procesar la desactivación");
+      console.error(error);
+    }
+  };
 
   return (
     <div className="p-6 space-y-6 bg-[#f8f9fa] min-h-screen font-sans animate-fadeIn text-left">
-      
+
       {/* Breadcrumbs */}
       <div className="flex flex-col gap-0.5 select-none">
         <div className="text-[13px] font-semibold text-neutral-400 flex items-center gap-1.5 tracking-wide">
@@ -68,28 +68,28 @@ export const AlertTypesListPage: React.FC = () => {
           <span className="text-neutral-400 font-semibold">Tipos de Alerta</span>
         </div>
         <h1 className="text-2xl font-black text-neutral-800 tracking-tight mt-1">
-          Tipos de Alerta 
+          Tipos de Alerta
         </h1>
       </div>
 
-   {/* ─── CONTENEDOR DE KPIS (ANTIPARPADEO) ─── */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* KPI Total Agencias */}
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
-                    <div className="space-y-1">
-                        <p className="text-sm font-medium text-gray-500">Total Agencias</p>
-                        <p className="text-3xl font-bold text-slate-800">
-                            {totalCount ?? 0}
-                        </p>
-                    </div>
-                    <div className="p-3 bg-slate-50 border border-gray-100 rounded-xl">
-                        <AlertCircle className="h-6 w-6 text-slate-600" />
-                    </div>
-                </div>
-            </div>
+      {/* ─── CONTENEDOR DE KPI  ─── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* KPI Total Agencias */}
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-gray-500">Total Agencias</p>
+            <p className="text-3xl font-bold text-slate-800">
+              {totalCount ?? 0}
+            </p>
+          </div>
+          <div className="p-3 bg-slate-50 border border-gray-100 rounded-xl">
+            <AlertCircle className="h-6 w-6 text-slate-600" />
+          </div>
+        </div>
+      </div>
       {/* Contenedor Principal */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4">
-        
+
         {/* Encabezado de la Tabla */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -134,9 +134,8 @@ export const AlertTypesListPage: React.FC = () => {
                 <th className="p-3 w-32 text-center">Acciones</th>
               </tr>
             </thead>
-            <tbody className={`divide-y divide-gray-100 text-slate-700 transition-opacity duration-200 ${
-              isLoading ? 'opacity-40 pointer-events-none' : 'opacity-100'
-            }`}>
+            <tbody className={`divide-y divide-gray-100 text-slate-700 transition-opacity duration-200 ${isLoading ? 'opacity-40 pointer-events-none' : 'opacity-100'
+              }`}>
               {isLoading && alertTypes.length === 0 ? (
                 <tr>
                   <td colSpan={3} className="p-8 text-center text-gray-400 animate-pulse">
@@ -252,7 +251,7 @@ export const AlertTypesListPage: React.FC = () => {
 
       </div>
       <AlertTypeDeleteModal
-      isOpen={isDeleteOpen} onClose={() => { setIsDeleteOpen(false); setSelectedTypeAlert(null); }} onConfirm={handleDelete} alertType={selectedTypeAlert}
+        isOpen={isDeleteOpen} onClose={() => { setIsDeleteOpen(false); setSelectedTypeAlert(null); }} onConfirm={handleDelete} alertType={selectedTypeAlert}
       />
     </div>
   );

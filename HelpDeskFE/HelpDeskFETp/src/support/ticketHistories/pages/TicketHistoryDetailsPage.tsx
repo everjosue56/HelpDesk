@@ -16,14 +16,16 @@ export const TicketHistoryDetailsPage: React.FC = () => {
 
     const service = useMemo(() => getTicketHistory(AXIOS_INSTANCE), []);
 
-    const formatFecha = (fechaStr?: string) => {
-        if (!fechaStr) return 'N/A';
-        return new Date(fechaStr).toLocaleDateString('es-HN', {
+     const formatDateTime = (dateStr?: string) => {
+        if (!dateStr || dateStr.startsWith('0001-01-01')) return 'N/A';
+        const date = new Date(dateStr);
+        return new Intl.DateTimeFormat('es-HN', {
             day: '2-digit',
             month: '2-digit',
-            year: 'numeric'
-        });
+            year: 'numeric',
+        }).format(date);
     };
+
     useEffect(() => {
         let isMounted = true;
 
@@ -66,7 +68,7 @@ export const TicketHistoryDetailsPage: React.FC = () => {
             Número de Resolución: ${String(record.idResolution).padStart(3, '0')}
             Acción Tomada: ${record.actionTaken}
             Causa Raíz: ${record.rootCause}
-            Tiempo Tardado: ${record.solutionTime} H
+            Tiempo Tardado: ${record.solutionTime} M
             Técnico Asignado: ${record.userName}
         `.replace(/^[ \t]+/mg, '');
 
@@ -162,7 +164,10 @@ export const TicketHistoryDetailsPage: React.FC = () => {
                     <div className="space-y-1">
                         <label className="text-sm font-bold text-slate-600">Fecha de Cierre</label>
                         <p className="text-sm text-gray-500 font-medium">
-                            {record.closeDate ? record.closeDate.replace('T', ' ') : 'N/A'}
+                              {record.createdDate && record.createdDate !== 'N/A'
+                                                    ? new Date(record.createdDate.endsWith('Z') ? record.createdDate : `${record.createdDate}Z`).toLocaleString()
+                                                    : 'Reciente'
+                                                }
                         </p>
                     </div>
                     
@@ -201,7 +206,7 @@ export const TicketHistoryDetailsPage: React.FC = () => {
                     <div className="space-y-1">
                         <label className="text-sm font-bold text-slate-600">Tiempo Tardado</label>
                         <p className="text-sm text-gray-500 font-medium">
-                            {record.solutionTime} Minutos
+                            {record.solutionTime} Hora
                         </p>
                     </div>
 
@@ -211,7 +216,7 @@ export const TicketHistoryDetailsPage: React.FC = () => {
 
             {/* Footer */}
             <div className="pt-6 border-t border-gray-100 text-[11px] font-bold text-slate-400/80 font-mono tracking-wide">
-                Id:{record.id} Creado: {formatFecha(record.createdDate)}
+                Id:{record.id} Creado: {formatDateTime(record.createdDate)}
             </div>
 
         </div>

@@ -89,7 +89,7 @@ export const ListAgenciesPage: React.FC = () => {
                 </h1>
             </div>
 
-            {/* ─── CONTENEDOR DE KPIS (ANTIPARPADEO) ─── */}
+            {/* ─── CONTENEDOR DE KPIS  ─── */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* KPI Total Agencias */}
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
@@ -187,9 +187,8 @@ export const ListAgenciesPage: React.FC = () => {
                                 <th className="p-3 w-28 text-center">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody className={`divide-y divide-gray-100 text-slate-700 transition-opacity duration-200 ${
-                            isLoading ? 'opacity-40 pointer-events-none' : 'opacity-100'
-                        }`}>
+                        <tbody className={`divide-y divide-gray-100 text-slate-700 transition-opacity duration-200 ${isLoading ? 'opacity-40 pointer-events-none' : 'opacity-100'
+                            }`}>
                             {isLoading && agencies.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="p-8 text-center text-gray-400 animate-pulse">

@@ -38,6 +38,7 @@ namespace HelpDesk.Services.MaintenanceService
                     .Include(m => m.TypeMaintenance)
                     .Include(m => m.Area)
                     .Include(m => m.Device)
+                    .OrderByDescending(m => m.CreatedDate)
                     .AsQueryable();
 
                 if (filter.IdMaintenanceType.HasValue)

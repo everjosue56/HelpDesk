@@ -262,7 +262,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                             )}
                         />
 
-                        {/* ─── SELECTOR: ROL INSTITUCIONAL CORREGIDO ─── */}
+                        {/* ─── SELECTOR: ROL INSTITUCIONAL ─── */}
                         <FormField<UserFormValues>
                             rules={{
                                 validate: (val) => Number(val) > 0 || "Debes seleccionar un rol"
@@ -293,7 +293,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                             )}
                         />
 
-                        {/* ─── SELECTOR: AGENCIA FINANCIERA CORREGIDA ─── */}
+                        {/* ─── SELECTOR: AGENCIA  ─── */}
                         <FormField<UserFormValues>
                             rules={{
                                 validate: (val) => Number(val) > 0 || "Debes seleccionar una agencia"
@@ -324,7 +324,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                             )}
                         />
 
-                        {/* ─── SELECTOR: ÁREA OPERATIVA CORREGIDA ─── */}
+                        {/* ─── SELECTOR: ÁREA/DEPARTAMENTO ─── */}
                         <FormField<UserFormValues>
                             rules={{
                                 validate: (val) => Number(val) > 0 || "Debes seleccionar una area"
@@ -356,7 +356,6 @@ export const UserForm: React.FC<UserFormProps> = ({
                         />
                         {/* Campo: Seleccionar Estado */}
                         <FormField
-                            rules={{ required: "Seleccione un estado" }}
                             name="isActive"
                             render={({ field }) => (
                                 <FormItem>

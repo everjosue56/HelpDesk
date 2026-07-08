@@ -31,7 +31,7 @@ namespace HelpDesk.Services.TicketHistoryService
             _logger = logger;
         }
 
-        public async Task<PagedResponseDto<TicketHistoryDto>> GetAllAsync(TicketHistoryFilterDto filter)
+        public async Task<PagedResponseDto<TicketHistoryDto>> GetAllAsync(TicketHistoryFilterDto filter, int currentUserId, bool isCliente)
         {
             try
             {
@@ -41,8 +41,20 @@ namespace HelpDesk.Services.TicketHistoryService
                     .Include(th => th.Ticket)
                         .ThenInclude(t => t.SoftwareSystem)
                     .OrderByDescending(th => th.CreatedDate)
-                     .AsQueryable();
-                 
+                    .AsQueryable();
+
+                if (isCliente)
+                {
+                    query = query.Where(th => th.Ticket.IdUser == currentUserId);
+                }
+                else
+                {
+                   
+                    if (filter.IdUser.HasValue)
+                    {
+                        query = query.Where(th => th.IdUser == filter.IdUser.Value);
+                    }
+                }
 
                 if (filter.IdTicket.HasValue)
                 {
@@ -54,10 +66,6 @@ namespace HelpDesk.Services.TicketHistoryService
                     query = query.Where(th => th.IdResolution == filter.IdResolution.Value);
                 }
 
-                if (filter.IdUser.HasValue)
-                {
-                    query = query.Where(th => th.IdUser == filter.IdUser.Value);
-                }
                 if (filter.DateFrom.HasValue)
                 {
                     query = query.Where(th => th.CloseDate >= filter.DateFrom.Value);

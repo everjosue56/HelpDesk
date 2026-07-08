@@ -172,6 +172,10 @@ namespace HelpDesk.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("is_global");
 
+                    b.Property<DateTime?>("LastTriggeredDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("last_triggerd_date");
+
                     b.Property<DateTime?>("ScheduledDate")
                         .HasColumnType("datetime2")
                         .HasColumnName("scheduled_date");
@@ -1190,7 +1194,7 @@ namespace HelpDesk.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("created_date");
 
-                    b.Property<long>("IdDevice")
+                    b.Property<long?>("IdDevice")
                         .HasColumnType("bigint")
                         .HasColumnName("device_id");
 
@@ -1214,7 +1218,6 @@ namespace HelpDesk.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Observation")
-                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("observation");
@@ -1236,7 +1239,6 @@ namespace HelpDesk.Migrations
                         .HasColumnName("root_cause");
 
                     b.Property<string>("SecondObservation")
-                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("second_observation");
@@ -1372,6 +1374,31 @@ namespace HelpDesk.Migrations
                             IsDeleted = false,
                             Name = "Cliente"
                         });
+                });
+
+            modelBuilder.Entity("HelpDesk.Database.Entities.SlaGoalEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<double>("GoalValue")
+                        .HasColumnType("float");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SlaGoals");
                 });
 
             modelBuilder.Entity("HelpDesk.Database.Entities.SoftwareSystemEntity", b =>
@@ -2302,8 +2329,7 @@ namespace HelpDesk.Migrations
                     b.HasOne("HelpDesk.Database.Entities.DeviceEntity", "Device")
                         .WithMany()
                         .HasForeignKey("IdDevice")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("HelpDesk.Database.Entities.PriorityEntity", "Priority")
                         .WithMany()

@@ -27,14 +27,14 @@ namespace HelpDesk.Dtos.ResolutionDto
         public string Observation { get; set; } = string.Empty;
 
         [StringLength(500, ErrorMessage = "La segunda observación no puede exceder los 500 caracteres.")]
-        public string SecondObservation { get; set; } = string.Empty;
+        public string? SecondObservation { get; set; }
 
         [Required(ErrorMessage = "La prioridad final es obligatoria.")]
         [Range(1, long.MaxValue, ErrorMessage = "Debe seleccionar una prioridad válida.")]
         public long IdPriority { get; set; }
 
-        [Range(1, long.MaxValue, ErrorMessage = "Debe seleccionar un dispositivo válido.")]
-        public long IdDevice { get; set; }
+      //  [Range(1, long.MaxValue, ErrorMessage = "Debe seleccionar un dispositivo válido.")]
+        public long? IdDevice { get; set; }
 
         [Required(ErrorMessage = "El tiempo invertido en la solución es obligatorio.")]
         [Range(0.1, 999.99, ErrorMessage = "El tiempo de solución debe ser un valor mayor a cero.")]

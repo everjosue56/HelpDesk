@@ -113,7 +113,7 @@ export const AgenciesDashboardPage: React.FC = () => {
                     <span className="text-neutral-400 font-semibold">Agencias</span>
                 </div>
                 <h1 className="text-2xl font-black text-neutral-800 tracking-tight mt-1">
-                    Agencias    
+                    Agencias
                 </h1>
             </div>
 
@@ -150,8 +150,8 @@ export const AgenciesDashboardPage: React.FC = () => {
                         {/* Selector de Mes */}
                         <div className="flex items-center gap-2 w-full sm:max-w-xs">
                             <label className="text-sm font-bold text-slate-500 whitespace-nowrap">Filtrar por mes:</label>
-                            <Select 
-                                onValueChange={(val) => setMonth(val ? Number(val) : undefined)} 
+                            <Select
+                                onValueChange={(val) => setMonth(val ? Number(val) : undefined)}
                                 value={month ? String(month) : ""}
                             >
                                 <SelectTrigger className="rounded-xl border-gray-200 h-9.5 pl-4 pr-3 text-sm text-slate-700 focus:ring-[#1e5f8a]/20 focus:border-[#1e5f8a] w-full sm:w-36 bg-white select-none shadow-none">

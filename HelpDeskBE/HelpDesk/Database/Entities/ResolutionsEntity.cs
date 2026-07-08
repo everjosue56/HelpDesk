@@ -39,18 +39,18 @@ namespace HelpDesk.Database.Entities
 
         [Column("observation")]
         [MaxLength(500)]
-        public string Observation { get; set; } = string.Empty;
+        public string? Observation { get; set; } 
 
         [Column("second_observation")]
         [MaxLength(500)]
-        public string SecondObservation { get; set; } = string.Empty;
+        public string? SecondObservation { get; set; }  
 
         [Column("user_id")]
         [Required]
         public long IdUser { get; set; }
 
         [Column("device_id")]
-        public long IdDevice { get; set; } 
+        public long? IdDevice { get; set; } 
 
         [Column("solution_time")]
         public decimal SolutionTime { get; set; }
@@ -70,6 +70,6 @@ namespace HelpDesk.Database.Entities
         public virtual UserEntity User { get; set; } = null!;
 
         [ForeignKey(nameof(IdDevice))]
-        public virtual DeviceEntity Device { get; set; } = null!;
+        public virtual DeviceEntity? Device { get; set; }
     }
 }

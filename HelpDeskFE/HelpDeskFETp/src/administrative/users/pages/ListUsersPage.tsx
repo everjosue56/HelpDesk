@@ -72,7 +72,7 @@ export const ListUsersPage: React.FC = () => {
     return (
         <div className="p-6 space-y-6 bg-[#f8f9fa] min-h-screen font-sans animate-fadeIn text-left">
 
-            {/* Historial superior (Breadcrumbs) */}
+            {/* Historial superior  */}
             <div className="flex flex-col gap-0.5">
                 <div className="text-[13px] font-semibold text-neutral-400 flex items-center gap-1.5 tracking-wide select-none">
                     <span
@@ -96,7 +96,7 @@ export const ListUsersPage: React.FC = () => {
                 </h1>
             </div>
 
-            {/* ─── CONTENEDOR DE KPIS (DOBLE PANEL SUPERIOR ANTIPARPADEO) ─── */}
+            {/* ─── CONTENEDOR DE KPIS  ─── */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* KPI: Usuarios Activos */}
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
@@ -263,9 +263,8 @@ export const ListUsersPage: React.FC = () => {
                                 <th className="p-3 w-28 text-center">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody className={`divide-y divide-gray-100 text-slate-700 transition-opacity duration-200 ${
-                            isLoading ? 'opacity-40 pointer-events-none' : 'opacity-100'
-                        }`}>
+                        <tbody className={`divide-y divide-gray-100 text-slate-700 transition-opacity duration-200 ${isLoading ? 'opacity-40 pointer-events-none' : 'opacity-100'
+                            }`}>
                             {isLoading && users.length === 0 ? (
                                 <tr>
                                     <td colSpan={7} className="p-8 text-center text-gray-400 animate-pulse">
@@ -339,7 +338,7 @@ export const ListUsersPage: React.FC = () => {
                     </table>
                 </div>
 
-                {/* ─── SECCIÓN DE PAGINACIÓN INDEXADA ─── */}
+                {/* ─── SECCIÓN DE PAGINACIÓN  ─── */}
                 {totalPages > 1 && (
                     <div className="pt-4 flex justify-center">
                         <Pagination>

@@ -11,7 +11,7 @@ namespace HelpDesk.Dtos.ResolutionDto
         public string RootCause { get; set; } = string.Empty;
         public string PreventiveMeasures { get; set; } = string.Empty;
         public string Observation { get; set; } = string.Empty;
-        public string SecondObservation { get; set; } = string.Empty;
+        public string? SecondObservation { get; set; } 
         public decimal SolutionTime { get; set; }
         public DateTime CreatedDate { get; set; }
 
@@ -24,7 +24,7 @@ namespace HelpDesk.Dtos.ResolutionDto
         public string SolutionStatusName { get; set; } = string.Empty;
 
         // Datos del Dispositivo
-        public long IdDevice { get; set; }
+        public long? IdDevice { get; set; }
         public string DeviceName { get; set; } = string.Empty;
 
         // Prioridad final (por si cambió durante la resolución)

@@ -50,7 +50,7 @@ export const TypeDeviceDetailModal: React.FC<TypeDeviceDetailModalProps> = ({
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="sm:max-w-md w-[90%] rounded-2xl p-6 bg-white border border-gray-100 shadow-2xl gap-0 select-none animate-in fade-in-50 zoom-in-95 duration-200">
 
-                {/* ─── ENCABEZADO CON ICONO DE MONITORES ─── */}
+                {/* ─── ENCABEZADO ─── */}
                 <DialogHeader className="text-left flex flex-row items-center gap-4 pb-4 border-b border-gray-100">
                     <div className="p-3 bg-slate-50 border border-gray-100 rounded-xl text-slate-700">
                         <FiMonitor className="h-6 w-6 text-[#1a558b]" />

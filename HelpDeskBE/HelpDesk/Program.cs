@@ -29,6 +29,7 @@ using HelpDesk.Services.Organizations;
 using HelpDesk.Services.PriorityServices;
 using HelpDesk.Services.ResolutionService;
 using HelpDesk.Services.RolServices;
+using HelpDesk.Services.SlaService;
 using HelpDesk.Services.SoftwareSystemServices;
 using HelpDesk.Services.SolutionStateServices;
 using HelpDesk.Services.TicketHistoryService;
@@ -95,6 +96,7 @@ builder.Services.AddHostedService<AlertSchedulerWorker>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<ISlaGoalService, SlaGoalService>();
 // Inyeccion de email 
 // Mapear la sección del appsettings.json a la clase EmailSettings
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));

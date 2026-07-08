@@ -45,10 +45,16 @@ namespace HelpDesk.Services
             _emailService = emailService;
         }
 
-        public async Task<PagedResponseDto<TicketDto>> GetAllAsync(TicketFilterDto filter)
+        public async Task<PagedResponseDto<TicketDto>> GetAllAsync(TicketFilterDto filter, bool isCliente, int currentUserId)
         {
             try
             {
+ 
+                if (isCliente)
+                {
+                    filter.IdUser = currentUserId;  
+                }
+
                 // 1. Base query utilizando AsNoTracking para optimizar el rendimiento y la velocidad
                 var query = _context.Tickets
                     .AsNoTracking()
@@ -99,29 +105,49 @@ namespace HelpDesk.Services
 
                 var (entities, totalItems, totalPages) = await query.ToPagedListAsync(filter.PageNumber, filter.PageSize);
 
-                var activeTicketsCount = await _context.Tickets
-                .AsNoTracking()
-                .CountAsync(t => t.IsActive);
-
                 var today = DateTime.Today;
-                var resolvedTodayCount = await _context.Tickets
-                    .AsNoTracking()
-                    .CountAsync(t => !t.IsActive && !t.IsDeleted && t.UpdatedDate >= today);
+                int finalActiveCount = 0;
+                int finalResolvedCount = 0;
 
-                var ticketsDto = _mapper.Map<IEnumerable<TicketDto>>(entities);
+                if (isCliente)
+                {
+
+                    finalActiveCount = await _context.Tickets
+                        .AsNoTracking()
+                        .CountAsync(t => t.IdUser == currentUserId && t.IsActive && !t.IsDeleted);
+
+                    finalResolvedCount = await _context.Tickets
+                        .AsNoTracking()
+                        .CountAsync(t => t.IdUser == currentUserId && !t.IsDeleted);
+                }
+                else
+                {
+             
+                    finalActiveCount = await _context.Tickets
+                        .AsNoTracking()
+                        .CountAsync(t => t.IsActive && !t.IsDeleted);
+
+                    finalResolvedCount = await _context.Tickets
+                        .AsNoTracking()
+                        .CountAsync(t => !t.IsActive && !t.IsDeleted && t.UpdatedDate >= today);
+                }
+
+                var notificationsDto = _mapper.Map<IEnumerable<TicketDto>>(entities);
 
                 return new PagedResponseDto<TicketDto>
                 {
                     Status = true,
                     StatusCode = 200,
                     Message = "Listado de tickets obtenido correctamente.",
-                    Data = ticketsDto,
+                    Data = notificationsDto,
                     CurrentPage = filter.PageNumber,
                     PageSize = filter.PageSize,
                     TotalItems = totalItems,
                     TotalPages = totalPages,
-                    ActiveTicketsCount = activeTicketsCount,
-                    ResolvedTodayCount = resolvedTodayCount
+
+                    
+                    ActiveTicketsCount = finalActiveCount,
+                    ResolvedTodayCount = finalResolvedCount
                 };
             }
             catch (Exception ex)

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAgencies } from '../hooks/useAgencies'; // Ajusta la ruta a tu hook
+import { useAgencies } from '../hooks/useAgencies';
 import { Copy, Edit3, ArrowLeft, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -10,7 +10,7 @@ export const DetailsAgencyPage: React.FC = () => {
   const agencyId = Number(id);
 
   // Consumimos el hook inyectando 
-  const { agency, isFetching, getAgencyById } = useAgencies('','', 1, 1);
+  const { agency, isFetching, getAgencyById } = useAgencies('', '', 1, 1);
 
   // Cargar la información de la agencia al montar el componente o cambiar de ID
   useEffect(() => {
@@ -51,7 +51,7 @@ export const DetailsAgencyPage: React.FC = () => {
     }).format(fecha);
   };
 
-  // Estado de carga (Loading) limpio sin parpadeos vacíos
+  // Estado de carga 
   if (isFetching) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3 text-slate-500 animate-fadeIn">

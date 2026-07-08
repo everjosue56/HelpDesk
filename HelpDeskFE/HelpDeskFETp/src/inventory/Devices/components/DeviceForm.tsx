@@ -62,8 +62,8 @@ export const DeviceForm: React.FC<DeviceFormProps> = ({
         },
     });
 
-   useEffect(() => {
- 
+    useEffect(() => {
+
         if (initialData && users?.length && areas?.length && typeDevices?.length) {
             form.reset({
                 quantity: initialData.quantity ?? 1,
@@ -76,7 +76,7 @@ export const DeviceForm: React.FC<DeviceFormProps> = ({
                 isActive: initialData.isActive ?? true,
             });
         }
-    }, [initialData, form, users, areas, typeDevices]);   
+    }, [initialData, form, users, areas, typeDevices]);
 
     console.log("DEBUG CRUD - Estado actual:", {
         initialDataIdUser: initialData?.idUser,
@@ -164,7 +164,7 @@ export const DeviceForm: React.FC<DeviceFormProps> = ({
                                 <FormItem>
                                     <FormLabel className="text-sm font-bold text-slate-700">Tipo de Dispositivo</FormLabel>
                                     <Select
-                                        onValueChange={field.onChange} 
+                                        onValueChange={field.onChange}
                                         value={field.value ? String(field.value) : ""}
                                     >
                                         <FormControl>
@@ -194,7 +194,7 @@ export const DeviceForm: React.FC<DeviceFormProps> = ({
                                 <FormItem>
                                     <FormLabel className="text-sm font-bold text-slate-700">Usuario Asignado</FormLabel>
                                     <Select
-                                        onValueChange={field.onChange} 
+                                        onValueChange={field.onChange}
                                         value={field.value ? String(field.value) : ""}
                                     >
                                         <FormControl>
@@ -224,7 +224,7 @@ export const DeviceForm: React.FC<DeviceFormProps> = ({
                                 <FormItem>
                                     <FormLabel className="text-sm font-bold text-slate-700">Área Operativa</FormLabel>
                                     <Select
-                                        onValueChange={field.onChange} 
+                                        onValueChange={field.onChange}
                                         value={field.value ? String(field.value) : ""}
                                     >
                                         <FormControl>

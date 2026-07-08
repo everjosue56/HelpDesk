@@ -82,7 +82,7 @@ export const OrganizationsPage: React.FC = () => {
                 </h1>
             </div>
 
-            {/* ─── CONTENEDOR DE KPIS (ANTIPARPADEO) ─── */}
+            {/* ─── CONTENEDOR DE KPIS  ─── */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
                     <div className="space-y-1">
@@ -97,7 +97,7 @@ export const OrganizationsPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* ─── CONTENEDOR PRINCIPAL DEL LISTADO ─── */}
+            {/* ─── CONTENEDOR PRINCIPAL ─── */}
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4">
 
                 {/* Fila del Título de la sección y Botón Agregar */}
@@ -147,10 +147,8 @@ export const OrganizationsPage: React.FC = () => {
                                 <th className="p-3 w-28 text-center">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className={`divide-y divide-gray-100 text-slate-700 transition-opacity duration-200 ${
-                            isLoading ? 'opacity-40 pointer-events-none' : 'opacity-100'
-                        }`}>
-                            {/* Solo si la lista viene completamente vacía de fábrica y está cargando mostramos el pulse */}
+                        <tbody className={`divide-y divide-gray-100 text-slate-700 transition-opacity duration-200 ${isLoading ? 'opacity-40 pointer-events-none' : 'opacity-100'
+                            }`}>
                             {isLoading && organizations.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="p-8 text-center text-gray-400 animate-pulse">
@@ -224,7 +222,7 @@ export const OrganizationsPage: React.FC = () => {
                                         className={`rounded-lg h-8 px-2.5 text-xs font-bold transition-colors cursor-pointer ${currentPage === 1
                                             ? "pointer-events-none opacity-40 select-none"
                                             : "hover:bg-slate-50 text-neutral-600"
-                                        }`}
+                                            }`}
                                     />
                                 </PaginationItem>
 
@@ -239,7 +237,7 @@ export const OrganizationsPage: React.FC = () => {
                                                 className={`rounded-lg w-8 h-8 text-xs font-bold transition-all flex items-center justify-center cursor-pointer ${currentPage === pageNumber
                                                     ? "bg-[#1a558b] text-white hover:bg-[#1a558b] hover:text-white"
                                                     : "hover:bg-slate-50 text-neutral-600"
-                                                }`}
+                                                    }`}
                                             >
                                                 {pageNumber}
                                             </PaginationLink>
@@ -254,7 +252,7 @@ export const OrganizationsPage: React.FC = () => {
                                         className={`rounded-lg h-8 px-2.5 text-xs font-bold transition-colors cursor-pointer ${currentPage === totalPages
                                             ? "pointer-events-none opacity-40 select-none"
                                             : "hover:bg-slate-50 text-neutral-600"
-                                        }`}
+                                            }`}
                                     />
                                 </PaginationItem>
                             </PaginationContent>

@@ -73,7 +73,7 @@ export const AuditLogsPage: React.FC = () => {
                 </h1>
             </div>
 
-            {/* ─── CONTENEDOR DE KPIS (ANTIPARPADEO) ─── */}
+            {/* ─── CONTENEDOR DE KPIS  ─── */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
                     <div className="space-y-1">
@@ -130,7 +130,7 @@ export const AuditLogsPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* ─── TABLA DE DATOS CON TRANSIÓN DE OPACIDAD FLUIDA ─── */}
+                {/* ─── TABLA DE DATOS  ─── */}
                 <div className="overflow-x-auto rounded-xl border border-gray-100">
                     <table className="w-full text-left border-collapse text-sm">
                         <thead>
@@ -197,7 +197,7 @@ export const AuditLogsPage: React.FC = () => {
                     </table>
                 </div>
 
-                {/* ─── PAGINACIÓN INDEXADA COMPLETA ─── */}
+                {/* ─── PAGINACIÓN ─── */}
                 {totalPages > 1 && (
                     <div className="pt-4 flex justify-center select-none">
                         <Pagination>

@@ -6,6 +6,7 @@ using HelpDesk.Services.NotificationServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace HelpDesk.Api.Controllers
@@ -23,10 +24,15 @@ namespace HelpDesk.Api.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Administrador,TI")] // Solo auditoría o TI ven el historial global
+        [Authorize(Roles = "Administrador,TI,Cliente")]
         public async Task<IActionResult> GetAll([FromQuery] NotificationFilterDto filter)
         {
-            var response = await _notificationService.GetAllAsync(filter);
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            int currentUserId = int.TryParse(userIdClaim, out var id) ? id : 0;
+
+            bool isCliente = User.IsInRole("Cliente");
+
+            var response = await _notificationService.GetAllAsync(filter, isCliente, currentUserId);
             return StatusCode(response.StatusCode, response);
         }
 

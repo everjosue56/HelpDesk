@@ -1,22 +1,22 @@
-import axios, { type AxiosRequestConfig, type AxiosResponse } from 'axios';
+import axios, { type AxiosRequestConfig, type AxiosResponse } from "axios";
 
 // Creamos la instancia base que apunta a tu API
 export const AXIOS_INSTANCE = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL, 
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
 AXIOS_INSTANCE.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token'); 
+    const token = localStorage.getItem("token");
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 let isRefreshing = false;
@@ -36,12 +36,11 @@ const processQueue = (error: any, token: string | null = null) => {
 };
 
 AXIOS_INSTANCE.interceptors.response.use(
-  (response) => response, 
+  (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
-
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -57,38 +56,41 @@ AXIOS_INSTANCE.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const currentToken = localStorage.getItem('token');
-        const refreshToken = localStorage.getItem('refreshToken'); 
+        const currentToken = localStorage.getItem("token");
+        const refreshToken = localStorage.getItem("refreshToken");
 
-        const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/auth/refresh`, {
-          accessToken: currentToken,
-          refreshToken: refreshToken
-        });
+        const response = await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/api/auth/refresh`,
+          {
+            accessToken: currentToken,
+            refreshToken: refreshToken,
+          },
+        );
 
-        const { token: newAccessToken, refreshToken: newRefreshToken } = response.data;
+        const { token: newAccessToken, refreshToken: newRefreshToken } =
+          response.data;
 
-        // Guardamos la nueva sesión fresca en el navegador
-        localStorage.setItem('token', newAccessToken);
+        localStorage.setItem("token", newAccessToken);
         if (newRefreshToken) {
-          localStorage.setItem('refreshToken', newRefreshToken);
+          localStorage.setItem("refreshToken", newRefreshToken);
         }
 
         // Reconfiguramos la petición original que había fallado con el nuevo token
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        
+
         // Desbloqueamos todas las peticiones que se quedaron esperando en la cola
         processQueue(null, newAccessToken);
-        
+
         // Reejecutamos la petición original automáticamente
         return AXIOS_INSTANCE(originalRequest);
       } catch (refreshError) {
         //  EL REFRESH TOKEN TAMBIÉN MURIÓ O ES INVÁLIDO: Expulsión inmediata
         processQueue(refreshError, null);
-        
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
-  
-        window.location.href = '/auth/login'; 
+
+        localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+
+        window.location.href = "/auth/login";
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
@@ -96,11 +98,13 @@ AXIOS_INSTANCE.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 // Este es el "mutador" que Orval exige para personalizar y envolver las peticiones autogeneradas
-export const customInstance = <T>(config: AxiosRequestConfig): Promise<AxiosResponse<T>> => {
+export const customInstance = <T>(
+  config: AxiosRequestConfig,
+): Promise<AxiosResponse<T>> => {
   return AXIOS_INSTANCE(config);
 };
 

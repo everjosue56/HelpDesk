@@ -9,7 +9,7 @@ namespace HelpDesk.Services.TicketService
 {
     public interface ITicketService
     {
-        Task<PagedResponseDto<TicketDto>> GetAllAsync(TicketFilterDto filter);
+        Task<PagedResponseDto<TicketDto>> GetAllAsync(TicketFilterDto filter, bool isCliente, int currentUserId);
         Task<ResponseDto<TicketDto>> GetByIdAsync(long id);
         Task<ResponseDto<TicketDto>> CreateAsync(CreateTicketDto dto);
         Task<ResponseDto<TicketDto>> UpdateAsync(UpdateTicketDto dto, long id);

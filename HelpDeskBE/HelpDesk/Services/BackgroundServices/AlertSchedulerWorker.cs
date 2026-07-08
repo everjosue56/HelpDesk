@@ -36,11 +36,11 @@ namespace HelpDesk.BackgroundServices
                         // Buscamos alertas programadas cuya fecha ya llegó o pasó, estén activas y NO hayan sido ejecutadas aún
                         // Para saber si ya se ejecutó, verificamos si NO existe en la tabla de históricos de alertas
                         var pendingAlerts = await context.AlertConfigurations
-                            .Where(ac => ac.IsActive
-                                         && ac.ScheduledDate.HasValue
-                                         && ac.ScheduledDate.Value <= now
-                                         && !context.AlertHistories.Any(ah => ah.IdAlertConfiguration == ac.Id)) 
-                                        .ToListAsync(stoppingToken);
+                         .Where(ac => ac.IsActive
+                            && ac.ScheduledDate.HasValue
+                            && ac.ScheduledDate.Value <= now
+                            && (ac.LastTriggeredDate == null || ac.ScheduledDate.Value > ac.LastTriggeredDate.Value))
+                         .ToListAsync(stoppingToken);
 
                         foreach (var alert in pendingAlerts)
                         {

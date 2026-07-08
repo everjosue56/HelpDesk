@@ -27,53 +27,53 @@ export const EditUserPage: React.FC = () => {
     }
   }, [userId, getUserById]);
 
-const handleSubmit = async (values: UserFormValues) => {
-  try {
-    console.log("Valores que vienen del formulario:", values);
+  const handleSubmit = async (values: UserFormValues) => {
+    try {
+      console.log("Valores que vienen del formulario:", values);
 
-    // 1. Preparamos el objeto base
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const payload: any = {
-      firstName: values.firstName,
-      lastName: values.lastName,
-      userName: values.userName,
-      email: values.email,
-      phoneNumber: values.phoneNumber || undefined,
-      idRol: Number(values.idRol),
-      idAgency: Number(values.idAgency),
-      idArea: Number(values.idArea),
-      isActive: values.isActive,
-      password: values.password // Inicialmente lo incluimos
-    };
+      // 1. Preparamos el objeto base
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const payload: any = {
+        firstName: values.firstName,
+        lastName: values.lastName,
+        userName: values.userName,
+        email: values.email,
+        phoneNumber: values.phoneNumber || undefined,
+        idRol: Number(values.idRol),
+        idAgency: Number(values.idAgency),
+        idArea: Number(values.idArea),
+        isActive: values.isActive,
+        password: values.password  
+      };
 
-    // 2. Si la contraseña viene vacía, la eliminamos del objeto antes de enviar
-    if (!payload.password || payload.password.trim() === "") {
-      delete payload.password;
+      // 2. Si la contraseña viene vacía, la eliminamos del objeto antes de enviar
+      if (!payload.password || payload.password.trim() === "") {
+        delete payload.password;
+      }
+
+      // 3. Enviamos el payload limpio
+      await updateUser(userId, payload);
+
+      toast.success("Usuario actualizado exitosamente", {
+        description: `Los cambios para "${values.firstName} ${values.lastName}" fueron guardados.`,
+      });
+
+      navigate('/dashboard/users');
+    } catch (error) {
+      console.error(error);
+      toast.error("Error al actualizar", {
+        description: "No se pudieron salvar los parámetros.",
+      });
     }
-
-    // 3. Enviamos el payload limpio
-    await updateUser(userId, payload);
-
-    toast.success("Usuario actualizado exitosamente", {
-      description: `Los cambios para "${values.firstName} ${values.lastName}" fueron guardados.`,
-    });
-
-    navigate('/dashboard/users');
-  } catch (error) {
-    console.error(error);
-    toast.error("Error al actualizar", {
-      description: "No se pudieron salvar los parámetros.",
-    });
-  }
-};
+  };
 
   if (isFetching || !user) {
-  return (
-    <div className="flex items-center justify-center h-96">
-      <p className="text-slate-500 font-medium animate-pulse">Cargando parámetros del usuario...</p>
-    </div>
-  );
-}
+    return (
+      <div className="flex items-center justify-center h-96">
+        <p className="text-slate-500 font-medium animate-pulse">Cargando parámetros del usuario...</p>
+      </div>
+    );
+  }
 
   if (isFetching) {
     return (
@@ -134,28 +134,28 @@ const handleSubmit = async (values: UserFormValues) => {
 
       {/* Formulario Conectado */}
       <UserForm
-    initialData={{
-      ...user,
-      id: user.id,
-      idRol: user.idRol,
-      idAgency: user.idAgency,
-      idArea: user.idArea,
-      roleId: user.idRol,
-      agencyId: user.idAgency,
-      areaId: user.idArea,
-      password: ""
-    }}
-    roles={roles}
-    agencies={agencies}
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    areas={areas.map((item: any) => ({
-      id: item.id,
-      name: item.nameArea
-    }))}
-    onSubmit={handleSubmit}
-    onCancel={() => navigate('/dashboard/users')}
-    isSubmitting={isLoading}
-  />
+        initialData={{
+          ...user,
+          id: user.id,
+          idRol: user.idRol,
+          idAgency: user.idAgency,
+          idArea: user.idArea,
+          roleId: user.idRol,
+          agencyId: user.idAgency,
+          areaId: user.idArea,
+          password: ""
+        }}
+        roles={roles}
+        agencies={agencies}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        areas={areas.map((item: any) => ({
+          id: item.id,
+          name: item.nameArea
+        }))}
+        onSubmit={handleSubmit}
+        onCancel={() => navigate('/dashboard/users')}
+        isSubmitting={isLoading}
+      />
     </div>
   );
 };

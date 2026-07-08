@@ -119,7 +119,6 @@ export const ResetPasswordPage: React.FC = () => {
                             onChange={(e) => setValue('email', e.target.value)}
                             icon={<FiMail className="w-5 h-5 text-gray-400" />}
                         />
-                        {/* Registro invisible para vincular las reglas nativas a tu InputField */}
                         <input type="hidden" {...register('email', { required: true })} />
                     </div>
 

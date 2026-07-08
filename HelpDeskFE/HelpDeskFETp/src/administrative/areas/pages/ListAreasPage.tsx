@@ -196,9 +196,8 @@ export const ListAreasPage: React.FC = () => {
                                 <th className="p-3 w-28 text-center">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody className={`divide-y divide-gray-100 text-slate-700 transition-opacity duration-200 ${
-                            isLoading ? 'opacity-40 pointer-events-none' : 'opacity-100'
-                        }`}>
+                        <tbody className={`divide-y divide-gray-100 text-slate-700 transition-opacity duration-200 ${isLoading ? 'opacity-40 pointer-events-none' : 'opacity-100'
+                            }`}>
                             {isLoading && areas.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="p-8 text-center text-gray-400 animate-pulse">
@@ -237,7 +236,7 @@ export const ListAreasPage: React.FC = () => {
                                                 <div className="flex items-center justify-center gap-3 text-gray-400">
                                                     <button
                                                         className="hover:text-slate-600 transition-colors cursor-pointer"
-                                                          onClick={() => {
+                                                        onClick={() => {
                                                             setSelectedArea(area);
                                                             setIsDetailsModalOpen(true);
                                                         }}

@@ -12,7 +12,7 @@ import {
 } from "../../../../@/components/ui/form";
 import { Input } from "../../../../@/components/ui/input";
 import { Button } from "../../../../@/components/ui/button";
-import { X, Save, Building2 } from 'lucide-react'; 
+import { X, Save, Building2 } from 'lucide-react';
 import type { OrganizationItem } from '../hooks/useOrganizations';
 
 
@@ -41,7 +41,7 @@ export const OrganizationForm: React.FC<OrganizationFormProps> = ({
 }) => {
     const isEditMode = !!initialData;
 
-    
+
     const form = useForm<OrganizationFormValues>({
         resolver: zodResolver(organizationSchema),
         defaultValues: {
@@ -53,7 +53,7 @@ export const OrganizationForm: React.FC<OrganizationFormProps> = ({
         },
     });
 
-    // Resetear valores dinámicamente al cargar la data (útil para edición/modales)
+    // Resetear valores dinámicamente al cargar la data
     useEffect(() => {
         if (initialData) {
             form.reset({
@@ -68,7 +68,7 @@ export const OrganizationForm: React.FC<OrganizationFormProps> = ({
 
     return (
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 space-y-6 animate-fadeIn w-full">
-            
+
             {/* Encabezado Interno */}
             <div className="flex items-center gap-4 border-b border-gray-100 pb-5">
                 <div className="p-3 bg-slate-50 border border-gray-100 rounded-xl text-slate-700">
@@ -79,8 +79,8 @@ export const OrganizationForm: React.FC<OrganizationFormProps> = ({
                         {isEditMode ? "Editar Organización" : "Nueva Organización"}
                     </h2>
                     <p className="text-sm text-gray-400 mt-0.5">
-                        {isEditMode 
-                            ? "Modifica los campos necesarios para actualizar la organización" 
+                        {isEditMode
+                            ? "Modifica los campos necesarios para actualizar la organización"
                             : "Completa el formulario para registrar una nueva organización en el sistema"}
                     </p>
                 </div>
@@ -90,7 +90,7 @@ export const OrganizationForm: React.FC<OrganizationFormProps> = ({
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 text-left">
                     {/* Grid de Inputs de Dos Columnas */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-5 w-full">
-                        
+
                         {/* Campo: Nombre de la Organización */}
                         <FormField
                             control={form.control}
@@ -99,9 +99,9 @@ export const OrganizationForm: React.FC<OrganizationFormProps> = ({
                                 <FormItem>
                                     <FormLabel className="text-sm font-bold text-slate-700">Nombre de la Organización</FormLabel>
                                     <FormControl>
-                                        <Input 
-                                            placeholder="Ej. Organización Empresarial" 
-                                            {...field} 
+                                        <Input
+                                            placeholder="Ej. Organización Empresarial"
+                                            {...field}
                                             className="rounded-xl border-gray-200 h-11 pl-4 text-slate-700 placeholder:text-slate-400/70"
                                         />
                                     </FormControl>
@@ -118,9 +118,9 @@ export const OrganizationForm: React.FC<OrganizationFormProps> = ({
                                 <FormItem>
                                     <FormLabel className="text-sm font-bold text-slate-700">Contacto / Teléfono</FormLabel>
                                     <FormControl>
-                                        <Input 
-                                            placeholder="Ej. 9578-2532" 
-                                            {...field} 
+                                        <Input
+                                            placeholder="Ej. 9578-2532"
+                                            {...field}
                                             className="rounded-xl border-gray-200 h-11 pl-4 text-slate-700 placeholder:text-slate-400/70"
                                         />
                                     </FormControl>
@@ -137,9 +137,9 @@ export const OrganizationForm: React.FC<OrganizationFormProps> = ({
                                 <FormItem>
                                     <FormLabel className="text-sm font-bold text-slate-700">Dirección</FormLabel>
                                     <FormControl>
-                                        <Input 
-                                            placeholder="Ej. Torre Innovation, Piso 15" 
-                                            {...field} 
+                                        <Input
+                                            placeholder="Ej. Torre Innovation, Piso 15"
+                                            {...field}
                                             className="rounded-xl border-gray-200 h-11 pl-4 text-slate-700 placeholder:text-slate-400/70"
                                         />
                                     </FormControl>
@@ -156,9 +156,9 @@ export const OrganizationForm: React.FC<OrganizationFormProps> = ({
                                 <FormItem>
                                     <FormLabel className="text-sm font-bold text-slate-700">URL del Logo</FormLabel>
                                     <FormControl>
-                                        <Input 
-                                            placeholder="Ej. https://example.com/logo.png" 
-                                            {...field} 
+                                        <Input
+                                            placeholder="Ej. https://example.com/logo.png"
+                                            {...field}
                                             className="rounded-xl border-gray-200 h-11 pl-4 text-slate-700 placeholder:text-slate-400/70"
                                         />
                                     </FormControl>
@@ -167,7 +167,7 @@ export const OrganizationForm: React.FC<OrganizationFormProps> = ({
                             )}
                         />
 
-                        {/* Campo: Descripción (Ancho completo ocupando las dos columnas) */}
+                        {/* Campo: Descripción */}
                         <FormField
                             control={form.control}
                             name="description"
@@ -175,9 +175,9 @@ export const OrganizationForm: React.FC<OrganizationFormProps> = ({
                                 <FormItem className="md:col-span-2">
                                     <FormLabel className="text-sm font-bold text-slate-700">Descripción</FormLabel>
                                     <FormControl>
-                                        <textarea 
-                                            placeholder="Escribe una breve descripción sobre la organización..." 
-                                            {...field} 
+                                        <textarea
+                                            placeholder="Escribe una breve descripción sobre la organización..."
+                                            {...field}
                                             rows={3}
                                             className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-slate-700 placeholder:text-slate-400/70 focus:outline-none focus:border-gray-300 focus:ring-0 resize-none font-sans transition-all"
                                         />

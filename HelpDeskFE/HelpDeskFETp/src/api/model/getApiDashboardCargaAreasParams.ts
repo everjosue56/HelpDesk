@@ -8,4 +8,5 @@
 export type GetApiDashboardCargaAreasParams = {
 year?: number;
 month?: number;
+agency?: number;
 };

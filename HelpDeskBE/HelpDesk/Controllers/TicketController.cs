@@ -5,6 +5,7 @@ using HelpDesk.Services.TicketService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace HelpDesk.Api.Controllers
@@ -20,11 +21,19 @@ namespace HelpDesk.Api.Controllers
         {
             _ticketService = ticketService;
         }
-
         [HttpGet]
+        [Authorize(Roles = "Administrador,TI,Cliente")]
         public async Task<IActionResult> GetAll([FromQuery] TicketFilterDto filter)
         {
-            var response = await _ticketService.GetAllAsync(filter);
+            // Extraemos ID del usuario del Token y convertimos a entero
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int currentUserId = int.TryParse(userIdClaim, out var id) ? id : 0;
+
+            // Evaluamos el rol del cliente
+            bool isCliente = User.IsInRole("Cliente");
+
+            // Inyectamos las nuevas variables al servicio
+            var response = await _ticketService.GetAllAsync(filter, isCliente, currentUserId );
             return StatusCode(response.StatusCode, response);
         }
 
@@ -50,7 +59,7 @@ namespace HelpDesk.Api.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Administrador,TI")] // Solo personal autorizado puede borrar registros
+        [Authorize(Roles = "Administrador,TI,Cliente")] 
         public async Task<ActionResult<ResponseDto<bool>>> Delete(long id)
         {
             var response = await _ticketService.DeleteAsync(id);

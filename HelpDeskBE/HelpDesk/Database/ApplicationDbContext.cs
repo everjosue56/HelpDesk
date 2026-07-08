@@ -92,7 +92,7 @@ namespace HelpDesk.Database
                 }
                 else if (entry.State == EntityState.Modified)
                 {
-                    // 🕵️‍♂️ INTERCEPCIÓN DE BORRADO LÓGICO:
+                    // INTERCEPCIÓN DE BORRADO LÓGICO:
                     // Buscamos si la entidad modificada tiene las columnas típicas de desactivación
                     var statusProperty = entry.Properties.FirstOrDefault(p =>
                         p.Metadata.Name == "IsDeleted" ||
@@ -178,6 +178,9 @@ namespace HelpDesk.Database
 
         // --- Auditoria ---
         public DbSet<AuditLog> AuditLogs { get; set; }
+
+        // --- Dashboard ---
+        public DbSet<SlaGoalEntity> SlaGoals { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

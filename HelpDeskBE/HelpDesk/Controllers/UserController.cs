@@ -3,6 +3,7 @@ using HelpDesk.Dtos.UsersDto;
 using HelpDesk.Services.UserServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace HelpDesk.Controllers
@@ -39,9 +40,16 @@ namespace HelpDesk.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = "Administrador, TI")]
+        [Authorize(Roles = "Administrador,TI,Cliente")]
         public async Task<ActionResult> GetById(long id)
         {
+          
+            if (User.IsInRole("Cliente"))
+            {
+                var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                if (id != currentUserId) return Forbid();
+            }
+
             var response = await _userService.GetByIdAsync(id);
             if (!response.Status)
             {

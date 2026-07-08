@@ -74,7 +74,7 @@ export const ListMaintenanceHistoryPage: React.FC = () => {
     return (
         <div className="p-6 space-y-6 bg-[#f8f9fa] min-h-screen font-sans animate-fadeIn text-left select-none">
 
-            {/* ─── HISTORIAL SUPERIOR (BREADCRUMBS) ─── */}
+            {/* ─── HISTORIAL SUPERIOR  ─── */}
             <div className="flex flex-col gap-0.5">
                 <div className="text-[13px] font-semibold text-neutral-400 flex items-center gap-1.5 tracking-wide select-none">
                     <span onClick={() => navigate('/dashboard')} className="hover:text-[#1a558b] hover:underline cursor-pointer transition-colors">Inicio</span>
@@ -128,7 +128,7 @@ export const ListMaintenanceHistoryPage: React.FC = () => {
                     </Button>
                 </div>
 
-                {/* ─── FILTROS INTERACTIVOS CORREGIDOS ─── */}
+                {/* ─── FILTROS INTERACTIVOS  ─── */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 w-full">
 
                     {/* 1. Input Buscar por detalle */}
@@ -215,7 +215,7 @@ export const ListMaintenanceHistoryPage: React.FC = () => {
                                 <th className="p-3 w-16">No.</th>
                                 <th className="p-3">Dispositivo</th>
                                 <th className="p-3">Mantenimiento</th>
-                                <th className="p-3">Usuario</th>
+                                <th className="p-3">Usuario/Tecnico</th>
                                 <th className="p-3">Tipo Dispo...</th>
                                 <th className="p-3">Detalles</th>
                                 <th className="p-3 text-center w-24">Acciones</th>
@@ -277,7 +277,7 @@ export const ListMaintenanceHistoryPage: React.FC = () => {
                     </table>
                 </div>
 
-                {/* ─── PAGINACIÓN INDEXADA COMPLETA ─── */}
+                {/* ─── PAGINACIÓN ─── */}
                 {totalPages > 1 && (
                     <div className="pt-4 flex justify-center select-none">
                         <Pagination>

@@ -1,47 +1,315 @@
-# 🛠️ HelpDesk BE — Sistema de Gestión de Incidencias y Mantenimiento
+# 🎫 HelpDesk
 
-¡Bienvenido al repositorio del Backend de **HelpDesk BE**! Esta es una API Web robusta, escalable y de alto rendimiento desarrollada en **.NET 10** utilizando **Entity Framework Core**. El sistema ha sido diseñado específicamente para centralizar, automatizar y optimizar la gestión de soportes técnicos, control de infraestructura tecnológica (dispositivos y software) y bitácoras de mantenimiento en entornos institucionales complejos.
+> Plataforma integral para la gestión de soporte técnico, inventario tecnológico y monitoreo de indicadores de TI.
 
----
+HelpDesk es una solución Full Stack diseñada para centralizar la operación de mesas de ayuda en organizaciones e instituciones. La plataforma permite administrar el ciclo completo de las incidencias, controlar el inventario de activos tecnológicos, gestionar usuarios y visualizar métricas operativas desde una interfaz moderna y una API robusta.
 
-## 🚀 Solución Tecnológica y Valor Agregado
+El proyecto está dividido en dos componentes principales:
 
-En organizaciones de gran escala, el tiempo de inactividad de los sistemas o equipos puede comprometer la continuidad de operaciones críticas. **HelpDesk** resuelve esta problemática transformando el soporte técnico reactivo en una operación fluida, auditable y basada en datos mediante las siguientes soluciones:
-
-### 1. Gestión Integral del Ciclo de Vida del Ticket
-* **Centralización del Reporte:** Permite registrar incidencias detallando el área afectada, el sistema de software comprometido, el tipo de error y el usuario solicitante.
-* **Priorización Inteligente:** Clasifica de forma automática o administrativa la urgencia de los casos mediante matrices de **Impacto** y **Prioridad** (*Baja, Media, Alta, Crítica*), garantizando que los ingenieros de soporte atiendan primero los incidentes de mayor criticidad operativa.
-* **Flujo de Resolución Transaccional:** Controla el proceso de cierre registrando diagnósticos técnicos, tiempos exactos de solución, costos asociados y estados intermedios.
-
-### 2. Control de Inventario y Mantenimiento de Equipos
-* **Hoja de Vida del Dispositivo:** Vincula directamente los tickets y mantenimientos a un inventario de hardware catalogado por tipo de dispositivo (*Laptops, Servidores, Switches, Impresoras*).
-* **Mantenimiento Preventivo y Correctivo:** Administra las bitácoras e historiales de mantenimiento técnico programado, permitiendo auditar cuántas veces ha fallado un equipo específico para decisiones de reemplazo tecnológico.
-
-### 3. Motor de Notificaciones y Auditoría Profunda
-* **Bandeja de Entrada en Tiempo Real:** Cuenta con un módulo de notificaciones optimizado para alimentar la campana de alertas en la interfaz de usuario de React (clasificando estados leídos y no leídos).
-* **Bitácoras Irreversibles (Logs):** Registra históricos profundos en cadena mediante la inclusión relacional de EF Core, asegurando trazabilidad forense sobre quién, cuándo y cómo modificó o cerró una alerta o ticket.
+- **HelpDesk FE** → Aplicación web desarrollada con **React**, **TypeScript** y **Tailwind CSS**.
+- **HelpDesk BE** → API REST desarrollada con **ASP.NET Core (.NET 10)** y **Entity Framework Core**.
 
 ---
 
-## 🏗️ Arquitectura del Software
+# 🚀 Características
 
-El proyecto implementa las mejores prácticas de diseño de software y patrones de arquitectura empresarial en .NET:
+- 🎫 Gestión completa del ciclo de vida de tickets.
+- 📊 Dashboard con métricas e indicadores (SLA, MTTR, KPIs).
+- 💻 Administración del inventario tecnológico.
+- 🔧 Historiales de mantenimiento preventivo y correctivo.
+- 👥 Gestión de usuarios, roles y permisos.
+- 🔔 Sistema de notificaciones en tiempo real.
+- 📈 Reportes mediante gráficos interactivos.
+- 🔍 Auditoría y trazabilidad mediante registros (Logs).
+- ⚡ Arquitectura escalable basada en buenas prácticas modernas.
 
-* **Repository / Service Pattern:** Desacopla la lógica de acceso a datos de los controladores, facilitando el mantenimiento del código y las pruebas unitarias.
-* **Mapeo Seguro de Datos (Data Transfer Objects):** Uso estricto de **AutoMapper** para transformar entidades físicas de la base de datos a DTOs planos de salida. Protege la integridad de la base de datos y optimiza los payloads JSON que viajan hacia React.
-* **Validación Robusta (Data Annotations):** Los DTOs de entrada y creación están fuertemente tipados y validados en el ciclo de vida de la solicitud HTTP (utilizando anotaciones como `[Required]`, `[StringLength]`, `[EmailAddress]`, y expresiones regulares `[RegularExpression]`), devolviendo errores automáticos de esquema (`400 Bad Request`) si los datos de entrada son corruptos.
-* **Estandarización de Respuestas:** Todas las peticiones al servidor responden bajo envoltorios genéricos unificados (`ResponseDto<T>` y `PagedResponseDto<T>`), asegurando consistencia en propiedades clave para el Frontend: `Status`, `StatusCode`, `Message`, `Data` y los metadatos de paginación (`CurrentPage`, `TotalItems`, `TotalPages`).
+---
+
+# 🏗️ Arquitectura del Proyecto
+
+El repositorio se organiza en dos aplicaciones independientes.
+
+```text
+HelpDesk/
+│
+├── HelpDesk.FE/          # Aplicación React
+│
+├── HelpDesk.BE/          # API ASP.NET Core
+│
+└── README.md
+```
+
+## Frontend (HelpDesk FE)
+
+Aplicación web responsable de la experiencia de usuario.
+
+### Tecnologías
+
+- React 18/19
+- TypeScript
+- Tailwind CSS
+- React Hook Form
+- Axios
+- Chart.js
+- react-chartjs-2
+- Lucide React
+- React Icons
+- Sonner
+- Vite
+
+### Funcionalidades
+
+- Dashboard analítico.
+- Gestión de tickets.
+- Administración de inventario.
+- Gestión de usuarios.
+- Notificaciones.
+- Consumo centralizado de API.
+- Paginación del lado del servidor.
 
 ---
 
-## 🛠️ Stack Tecnológico
+## Backend (HelpDesk BE)
 
-* **Framework Principal:** .NET 10 (ASP.NET Core Web API)
-* **ORM / Acceso a Datos:** Entity Framework Core (Code First / DbContext)
-* **Base de Datos:** SQL Server / PostgreSQL (Consultas optimizadas relacionales)
-* **Librerías de Utilidad:** AutoMapper (Mapeo de objetos), MailKit (Preparado para la infraestructura de correo SMTP)
-* **Herramientas de Desarrollo:** Swagger (UI de documentación de API integrada), Git
+API REST responsable de la lógica de negocio y persistencia de datos.
 
+### Tecnologías
+
+- .NET 10
+- ASP.NET Core Web API
+- Entity Framework Core
+- SQL Server / PostgreSQL
+- AutoMapper
+- MailKit
+- Swagger
+
+### Funcionalidades
+
+- Gestión de tickets.
+- Administración de inventario.
+- Historiales de mantenimiento.
+- Gestión de usuarios.
+- Sistema de notificaciones.
+- Auditoría mediante Logs.
+- Validación de DTOs.
+- Respuestas estandarizadas.
+- Paginación de datos.
 
 ---
-*Desarrollado con pasión y excelencia técnica para la automatización operativa de TI.*
+
+# 📦 Módulos del Sistema
+
+## 📊 Dashboard
+
+Centro de monitoreo para indicadores operativos.
+
+- Cumplimiento de SLA.
+- KPIs en tiempo real.
+- MTTR.
+- Gráficos estadísticos.
+- Configuración de objetivos mensuales.
+
+---
+
+## 🎫 Soporte
+
+Gestión del ciclo de vida de incidencias.
+
+- Registro de tickets.
+- Priorización por impacto y criticidad.
+- Seguimiento.
+- Resolución.
+- Historial completo.
+
+---
+
+## 💻 Inventario
+
+Administración de infraestructura tecnológica.
+
+- Servidores.
+- Laptops.
+- Switches.
+- Impresoras.
+- Historial de activos.
+- Mantenimientos.
+- Relación entre activos e incidencias.
+
+---
+
+## 👥 Administración
+
+Configuración general del sistema.
+
+- Usuarios.
+- Roles.
+- Permisos.
+- Configuración.
+- Auditoría.
+
+---
+
+## 🔔 Notificaciones
+
+Sistema centralizado de alertas.
+
+- Bandeja de notificaciones.
+- Alertas en tiempo real.
+- Estados leídas/no leídas.
+- Feedback inmediato al usuario.
+
+---
+
+# 🏛️ Arquitectura de Software
+
+El proyecto sigue principios modernos de desarrollo tanto en Frontend como Backend.
+
+## Frontend
+
+- Arquitectura basada en características (*Feature-Based*).
+- Componentes reutilizables.
+- TypeScript con tipado estricto.
+- Formularios mediante React Hook Form.
+- Axios con interceptores.
+- Consumo desacoplado de API.
+
+## Backend
+
+- Repository Pattern.
+- Service Pattern.
+- DTOs para transferencia de datos.
+- AutoMapper.
+- Entity Framework Core.
+- Validaciones mediante Data Annotations.
+- Respuestas estandarizadas (`ResponseDto<T>` y `PagedResponseDto<T>`).
+
+---
+
+# 🛠️ Stack Tecnológico
+
+## Frontend
+
+| Tecnología | Uso |
+|------------|-----|
+| React | UI |
+| TypeScript | Tipado |
+| Tailwind CSS | Estilos |
+| Vite | Bundler |
+| React Hook Form | Formularios |
+| Axios | Cliente HTTP |
+| Chart.js | Gráficos |
+| Sonner | Notificaciones |
+| Orval | Genera Clientes |
+
+## Backend
+
+| Tecnología | Uso |
+|------------|-----|
+| .NET 10 | Framework |
+| ASP.NET Core | API REST |
+| Entity Framework Core | ORM |
+| SQL Server / PostgreSQL | Base de datos |
+| AutoMapper | Mapeo |
+| MailKit | Correo |
+| Swagger | Documentación |
+
+---
+
+# 🚀 Inicio Rápido
+
+## Clonar el repositorio
+
+```bash
+git clone https://github.com/everjosue56/HelpDesk.git
+```
+
+---
+
+## Backend
+
+```bash
+cd HelpDesk.BE
+
+dotnet restore
+
+dotnet run
+```
+
+La API quedará disponible en la URL configurada para el entorno de desarrollo.
+
+---
+
+## Frontend
+
+```bash
+cd HelpDesk.FE
+
+npm install
+
+npm run dev
+```
+
+Una vez iniciado Vite, abra el navegador en:
+
+```
+http://localhost:5173
+```
+
+---
+
+# 🎯 Objetivos del Proyecto
+
+- Centralizar la gestión del soporte técnico.
+- Optimizar los tiempos de respuesta.
+- Mejorar la trazabilidad de incidencias.
+- Gestionar el ciclo de vida del inventario tecnológico.
+- Automatizar procesos administrativos.
+- Facilitar la toma de decisiones mediante indicadores.
+- Proporcionar una arquitectura mantenible y escalable.
+
+---
+
+# 📈 Principales Características Técnicas
+
+- Arquitectura modular.
+- API REST desacoplada.
+- Consumo mediante Axios.
+- DTOs tipados.
+- Paginación del lado del servidor.
+- Validaciones automáticas.
+- Componentes reutilizables.
+- Dashboard analítico.
+- Auditoría completa.
+- Notificaciones en tiempo real.
+
+---
+
+# 📄 Documentación
+
+Cada proyecto cuenta con su propia documentación técnica:
+
+- 📁 `HelpDesk.FE/README.md`
+- 📁 `HelpDesk.BE/README.md`
+
+---
+
+# 👨‍💻 Desarrollo
+
+HelpDesk fue desarrollado siguiendo principios de ingeniería de software moderna, priorizando:
+
+- Escalabilidad.
+- Mantenibilidad.
+- Rendimiento.
+- Seguridad.
+- Accesibilidad.
+- Experiencia de usuario.
+- Código limpio.
+- Separación de responsabilidades.
+
+---
+
+## 📄 Licencia
+
+© 2026 Ever Josue Garcia Leonor. Todos los derechos reservados.
+
+Este software es propiedad intelectual del autor. Queda prohibida su reproducción, distribución, modificación o utilización total o parcial sin autorización previa y por escrito, salvo que se indique lo contrario.

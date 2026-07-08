@@ -72,7 +72,7 @@ export const useNotificationsTable = (
     }
   }, [isAuthenticated, searchTerm, isReadFilter, page, pageSize, notificationService]);
 
-  // 2. Obtener un registro individual por ID (Para tu Modal de Detalles)
+  // 2. Obtener un registro individual por ID
   const getNotificationById = useCallback(async (id: number): Promise<NotificationItem | null> => {
     try {
       setIsFetching(true);

@@ -47,7 +47,7 @@ export const AreaForm: React.FC<AreaFormProps> = ({
         },
     });
 
-    // Resetear valores en modo edición mapeando los datos de PostgreSQL
+    // Resetear valores en modo edición mapeando los datos 
     useEffect(() => {
         if (initialData) {
             form.reset({

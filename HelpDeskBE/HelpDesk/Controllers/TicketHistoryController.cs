@@ -6,13 +6,14 @@ using HelpDesk.Services.TicketHistoryServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace HelpDesk.Api.Controllers
 {
     [Route("api/ticket-histories")]
     [ApiController]
-    [Authorize(Roles = "Administrador,TI")] 
+    [Authorize(Roles = "Administrador,TI,Cliente")] 
     public class TicketHistoryController : ControllerBase
     {
         private readonly ITicketHistoryService _historyService;
@@ -23,9 +24,16 @@ namespace HelpDesk.Api.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Administrador,TI,Cliente")]  
         public async Task<IActionResult> GetAll([FromQuery] TicketHistoryFilterDto filter)
-        {
-            var response = await _historyService.GetAllAsync(filter);
+        { 
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int currentUserId = int.TryParse(userIdClaim, out var id) ? id : 0;
+
+          
+            bool isCliente = User.IsInRole("Cliente");
+
+            var response = await _historyService.GetAllAsync(filter, currentUserId, isCliente);
             return StatusCode(response.StatusCode, response);
         }
 

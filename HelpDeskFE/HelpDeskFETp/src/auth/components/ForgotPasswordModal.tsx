@@ -18,7 +18,7 @@ interface ForgotPasswordFormValues {
 export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen, onClose }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const navigate = useNavigate()
+  const navigate = useNavigate()
 
   const {
     register,
@@ -29,34 +29,34 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen
     defaultValues: { email: '' }
   });
 
-const onSubmit = async (data: ForgotPasswordFormValues) => {
-  try {
-    setIsSubmitting(true);
-    
-    // 1. Esperamos la respuesta limpia de .NET
-    await AXIOS_INSTANCE.post('/api/auth/forgot-password', {
-      email: data.email.trim().toLowerCase()
-    });
+  const onSubmit = async (data: ForgotPasswordFormValues) => {
+    try {
+      setIsSubmitting(true);
 
-    // 2. Notificamos éxito al usuario
-    toast.success("Correo de recuperación enviado");
-    
-    // 3. Redireccion
-    navigate('/auth/reset-password', { 
-      state: { email: data.email.trim().toLowerCase() },
-      replace: true 
-    });
+      // 1. Esperamos la respuesta limpia de .NET
+      await AXIOS_INSTANCE.post('/api/auth/forgot-password', {
+        email: data.email.trim().toLowerCase()
+      });
 
-    reset();
-    onClose();
-    
-  } catch (error) {
-    console.error("Error en la petición:", error);
-    toast.error("No se pudo procesar la solicitud");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+      // 2. Notificamos éxito al usuario
+      toast.success("Correo de recuperación enviado");
+
+      // 3. Redireccion
+      navigate('/auth/reset-password', {
+        state: { email: data.email.trim().toLowerCase() },
+        replace: true
+      });
+
+      reset();
+      onClose();
+
+    } catch (error) {
+      console.error("Error en la petición:", error);
+      toast.error("No se pudo procesar la solicitud");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleClose = () => {
     if (isSubmitting) return;
@@ -67,7 +67,7 @@ const onSubmit = async (data: ForgotPasswordFormValues) => {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="max-w-105 w-[90%] rounded-[24px] p-6 bg-white border-none shadow-2xl flex flex-col gap-5 select-none animate-in fade-in-50 zoom-in-95 duration-200">
-        
+
         <DialogHeader className="text-left w-full">
           <DialogTitle className="text-lg font-bold text-slate-800 tracking-tight">
             Ingrese su correo electrónico
@@ -75,7 +75,7 @@ const onSubmit = async (data: ForgotPasswordFormValues) => {
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 text-left">
-          
+
           {/* Campo Input de Correo */}
           <div className="space-y-2 relative">
             <div className="relative">
@@ -91,11 +91,10 @@ const onSubmit = async (data: ForgotPasswordFormValues) => {
                     message: 'El formato de correo no es válido.'
                   }
                 })}
-                className={`w-full h-11 pl-11 pr-4 bg-white border rounded-xl text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${
-                  errors.email
+                className={`w-full h-11 pl-11 pr-4 bg-white border rounded-xl text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${errors.email
                     ? 'border-red-500 focus:ring-red-500/20'
                     : 'border-gray-200 focus:ring-[#1a558b]/20 focus:border-[#1a558b]'
-                }`}
+                  }`}
               />
             </div>
             {errors.email && (
@@ -107,7 +106,7 @@ const onSubmit = async (data: ForgotPasswordFormValues) => {
 
           {/* Botones de Acción */}
           <div className="flex flex-row items-center gap-3 pt-2 w-full">
-            
+
             {/* Confirmar */}
             <button
               type="submit"

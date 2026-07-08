@@ -16,6 +16,7 @@ import {
 } from '../../../../@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../@/components/ui/select';
 import { useSolutionStatuses } from '@/support/solutionState/useSolutionStatuses';
+import { useTickets } from '@/support/tickets/hooks/useTickets';
 
 export interface ResolutionFormValues {
     idTicket: number | string;
@@ -27,13 +28,13 @@ export interface ResolutionFormValues {
     idSolutionStatus: string | number;
     idPriority: string | number;
     idDevice: string | number | null;
-    solutionTimeHours: number | string;
+    solutionTimeMinutes: number | string;
 }
 
 interface ResolutionFormProps {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     initialData?: (any & { id?: number }) | null;
-     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onSubmit: (payload: any) => Promise<void>;
     onCancel: () => void;
     isSubmitting?: boolean;
@@ -46,32 +47,30 @@ export const ResolutionForm: React.FC<ResolutionFormProps> = ({
     isSubmitting = false,
 }) => {
     const isEditMode = !!initialData?.id;
-
-    // ─── ENDPOINTS RELACIONALES ───
     const [isLoadingStatuses, setIsLoadingStatuses] = useState(false);
 
-    // Inyección de catálogos 
+
     const { priorities } = useSupportCatalogs();
     const { devices, isLoading: isLoadingDevices } = useDevices('', 1, 100);
+    const { tickets } = useTickets('', 1, 100);
     const { solutionStatuses } = useSolutionStatuses();
 
     const form = useForm<ResolutionFormValues>({
         mode: 'onBlur',
         defaultValues: {
-            idTicket: '',
-            actionTaken: '',
-            rootCause: '',
-            preventiveMeasures: '',
-            observation: '',
-            secondObservation: '',
-            idSolutionStatus: '',
-            idPriority: '',
-            idDevice: '',
-            solutionTimeHours: '',
+            idTicket: initialData?.idTicket ? String(initialData.idTicket) : '',
+            actionTaken: initialData?.actionTaken || '',
+            rootCause: initialData?.rootCause || '',
+            preventiveMeasures: initialData?.preventiveMeasures || '',
+            observation: initialData?.observation || '',
+            secondObservation: initialData?.secondObservation || '',
+            idSolutionStatus: initialData?.idSolutionStatus ? String(initialData.idSolutionStatus) : '',
+            idPriority: initialData?.idPriority ? String(initialData.idPriority) : '',
+            idDevice: initialData?.idDevice ? String(initialData.idDevice) : '0',
+            solutionTimeMinutes: initialData?.solutionTime ? String(Math.round(initialData.solutionTime * 60)) : '',
         },
     });
 
-    // 1. Cargar catálogo
     useEffect(() => {
         const fetchStatuses = async () => {
             try {
@@ -89,37 +88,49 @@ export const ResolutionForm: React.FC<ResolutionFormProps> = ({
     }, []);
 
     useEffect(() => {
-       const isCatalogReady = priorities?.length && devices?.length && solutionStatuses?.length;
+        const isCatalogReady = priorities?.length && devices?.length && solutionStatuses?.length && tickets?.length;
 
-    if (initialData && isCatalogReady) {
-        form.reset({
-            idTicket: initialData.idTicket ?? '',
-            actionTaken: initialData.actionTaken || '',
-            rootCause: initialData.rootCause || '',     
-            preventiveMeasures: initialData.preventiveMeasures || '',
-            observation: initialData.observation || '',
-            secondObservation: initialData.secondObservation || '',
-            idSolutionStatus: initialData.idSolutionStatus ? String(initialData.idSolutionStatus) : '',
-            idPriority: initialData.idPriority ? String(initialData.idPriority) : '',
-            idDevice: initialData.idDevice ? String(initialData.idDevice) : '',
-            solutionTimeHours: initialData.solutionTime ? Number(initialData.solutionTime / 60) : '',
-        });
-    }
-}, [initialData, form, priorities, devices, solutionStatuses]);
+        if (initialData && isCatalogReady) {
+            form.reset({
+                idTicket: initialData.idTicket ? String(initialData.idTicket) : '',
+                actionTaken: initialData.actionTaken || '',
+                rootCause: initialData.rootCause || '',
+                preventiveMeasures: initialData.preventiveMeasures || '',
+                observation: initialData.observation || '',
+                secondObservation: initialData.secondObservation || '',
+                idSolutionStatus: initialData.idSolutionStatus ? String(initialData.idSolutionStatus) : '',
+                idPriority: initialData.idPriority ? String(initialData.idPriority) : '',
+                idDevice: initialData.idDevice ? String(initialData.idDevice) : '',
+                solutionTimeMinutes: initialData.solutionTime ? String(Math.round(initialData.solutionTime * 60)) : '',
+            });
+        }
+    }, [initialData, form, priorities, devices, solutionStatuses, tickets]);
 
     const handleLocalSubmit = (values: ResolutionFormValues) => {
+        const rawDevice = values.idDevice;
         const processedPayload = {
             ...values,
             idTicket: Number(values.idTicket),
             idSolutionStatus: Number(values.idSolutionStatus),
             idPriority: Number(values.idPriority),
-            idDevice: values.idDevice ? Number(values.idDevice) : null,
-            solutionTime: Math.round(Number(values.solutionTimeHours) * 60)
+            idDevice: (rawDevice !== null && rawDevice !== undefined && String(rawDevice).trim() !== "" && String(rawDevice) !== "0" && String(rawDevice) !== "null" && Number(rawDevice) !== 0)
+                ? Number(rawDevice)
+                : null,
+            solutionTime: Number(values.solutionTimeMinutes)
         };
-         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        delete (processedPayload as any).solutionTimeHours;
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        delete (processedPayload as any).solutionTimeMinutes;
         onSubmit(processedPayload);
     };
+
+    if (!tickets || tickets.length === 0) {
+        return (
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 text-center text-sm font-medium text-gray-400 animate-pulse">
+                Cargando catálogos del sistema de tickets...
+            </div>
+        );
+    }
 
     return (
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 space-y-6 animate-fadeIn text-left select-none">
@@ -147,18 +158,39 @@ export const ResolutionForm: React.FC<ResolutionFormProps> = ({
                         <FormField
                             control={form.control}
                             name="idTicket"
-                            rules={{ required: 'El número de ticket es obligatorio.' }}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className="text-sm font-bold text-slate-700">Número de Ticket</FormLabel>
-                                    <FormControl>
-                                        <Input type="number" placeholder="Ej. 14" disabled={isEditMode} {...field} className="rounded-xl border-gray-200 h-11 pl-5 focus-visible:ring-1 focus-visible:ring-neutral-400 disabled:bg-slate-50 placeholder:text-gray-400" />
-                                    </FormControl>
-                                    <FormMessage className="text-xs text-red-500 font-medium" />
-                                </FormItem>
-                            )}
-                        />
+                            rules={{ required: 'Debe seleccionar un ticket.' }}
+                            render={({ field }) => {
+                                const currentVal = field.value ? String(field.value) : "";
+                                const valueExistsInCatalog = tickets?.some(p => String(p.id) === currentVal);
 
+                                return (
+                                    <FormItem>
+                                        <FormLabel className="text-sm font-bold text-slate-700">Numero de Ticket</FormLabel>
+                                        <Select onValueChange={field.onChange} value={currentVal}>
+                                            <FormControl>
+                                                <SelectTrigger className="rounded-xl border-gray-200 h-11 pl-5 pr-4 text-slate-700 w-full bg-white shadow-none">
+                                                    <SelectValue placeholder="Seleccionar" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent className="bg-white rounded-xl border border-gray-200">
+                                                {currentVal && !valueExistsInCatalog && (
+                                                    <SelectItem value={currentVal} className="cursor-pointer text-slate-700 font-medium">
+                                                        Ticket #{currentVal}
+                                                    </SelectItem>
+                                                )}
+                                                {tickets?.map(p => (
+                                                    <SelectItem key={p.id} value={String(p.id)} className="cursor-pointer">
+                                                        Ticket #{p.id}
+                                                    </SelectItem>
+                                                ))}
+
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage className="text-xs text-red-500 font-medium" />
+                                    </FormItem>
+                                );
+                            }}
+                        />
                         {/* Acción Tomada */}
                         <FormField
                             control={form.control}
@@ -195,6 +227,7 @@ export const ResolutionForm: React.FC<ResolutionFormProps> = ({
                         <FormField
                             control={form.control}
                             name="preventiveMeasures"
+                            rules={{ required: 'La medida preventiva es obligatoria.' }}
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className="text-sm font-bold text-slate-700">Medida Preventiva</FormLabel>
@@ -210,6 +243,7 @@ export const ResolutionForm: React.FC<ResolutionFormProps> = ({
                         <FormField
                             control={form.control}
                             name="observation"
+                            rules={{ required: 'La observacion es obligatoria.' }}
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className="text-sm font-bold text-slate-700">Observación</FormLabel>
@@ -253,7 +287,7 @@ export const ResolutionForm: React.FC<ResolutionFormProps> = ({
                                         <SelectContent className="bg-white rounded-xl border border-gray-200">
                                             {solutionStatuses?.map(s => (
                                                 <SelectItem key={s.id} value={String(s.id)} className="cursor-pointer">
-                                                    {s.name} {/* 🚀 Solo mapeamos id y name como viene del backend */}
+                                                    {s.name}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -289,22 +323,28 @@ export const ResolutionForm: React.FC<ResolutionFormProps> = ({
                                 </FormItem>
                             )}
                         />
-
                         {/* Selector: Dispositivo  */}
                         <FormField
                             control={form.control}
                             name="idDevice"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-sm font-bold text-slate-700">Dispositivo Asociado</FormLabel>
-                                    {/* Forzamos que si viene null/undefined o string vacío, use cadena vacía */}
-                                    <Select onValueChange={field.onChange} value={field.value ? String(field.value) : ""}>
+                                    <FormLabel className="text-sm font-bold text-slate-700">Dispositivo Asociado (Opcional)</FormLabel>
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value && field.value !== "0" && field.value !== 0 ? String(field.value) : "0"}
+                                    >
                                         <FormControl>
                                             <SelectTrigger className="rounded-xl border-gray-200 h-11 pl-5 pr-4 text-slate-700 focus:ring-[#1a558b] w-full bg-white shadow-none">
                                                 <SelectValue placeholder={isLoadingDevices ? "Cargando hardware..." : "Seleccionar Hardware"} />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent className="bg-white rounded-xl border border-gray-200">
+
+                                            <SelectItem value="0" className="cursor-pointer text-gray-400 italic">
+                                                Ninguno (Sin dispositivo asociado)
+                                            </SelectItem>
+
                                             {devices?.map(d => (
                                                 <SelectItem key={d.id} value={String(d.id)} className="cursor-pointer">
                                                     {d.brandName} - {d.code}
@@ -316,26 +356,24 @@ export const ResolutionForm: React.FC<ResolutionFormProps> = ({
                                 </FormItem>
                             )}
                         />
-
                         {/* input: Tiempo Tardado */}
                         <FormField
                             control={form.control}
-                            name="solutionTimeHours"
+                            name="solutionTimeMinutes"
                             rules={{
                                 required: 'Debe ingresar el tiempo invertido.',
-                                min: { value: 0.1, message: 'El tiempo debe ser mayor a 0.' }
+                                min: { value: 1, message: 'El tiempo debe ser mínimo 1 minuto.' }
                             }}
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-sm font-bold text-slate-700">Tiempo Invertido (Horas de Trabajo)</FormLabel>
+                                    <FormLabel className="text-sm font-bold text-slate-700">Tiempo Invertido (En Minutos)</FormLabel>
                                     <FormControl>
                                         <Input
                                             type="number"
-                                            step="0.25" // Permite saltos de 15 minutos en decimales (ej. 1.25, 2.50, 12, etc.)
-                                            placeholder="Ej. 1.5 (Equivale a 1 Hora y 30 Minutos)"
+                                            placeholder="Ej. 90 (Equivale a 1 Hora y 30 Minutos)"
                                             {...field}
                                             onChange={(e) => field.onChange(e.target.value)}
-                                            className="rounded-xl border-gray-200 h-11 pl-5 focus-visible:ring-1 focus-visible:ring-neutral-400 placeholder:text-gray-400 placeholder:font-normal "
+                                            className="rounded-xl border-gray-200 h-11 pl-5 focus-visible:ring-1 focus-visible:ring-neutral-400 placeholder:text-gray-400 placeholder:font-normal"
                                         />
                                     </FormControl>
                                     <FormMessage className="text-xs text-red-500 font-medium" />

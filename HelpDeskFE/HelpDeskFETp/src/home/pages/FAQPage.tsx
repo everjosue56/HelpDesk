@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { Button } from '../../../@/components/ui/button';
-import { 
-  FiHelpCircle, 
-  FiSettings, 
-  FiPackage, 
-  FiSliders, 
-  FiChevronDown, 
-  FiArrowLeft 
+import {
+  FiHelpCircle,
+  FiSettings,
+  FiPackage,
+  FiSliders,
+  FiChevronDown,
+  FiArrowLeft,
+  FiFileText
 } from 'react-icons/fi';
 
 interface FAQItem {
@@ -38,6 +39,18 @@ const faqData: FAQCategory[] = [
       {
         question: "¿Puedo reabrir un ticket que ya fue cerrado?",
         answer: "No, una vez que un ticket ha sido completado y cerrado, no se puede modificar. Si experimenta la misma falla, deberá registrar un nuevo ticket haciendo referencia al ID del reporte anterior."
+      },
+      {
+        question: "¿Qué significa que mi ticket esté en estado 'En Espera' o 'Congelado'?",
+        answer: "Este estado significa que el SLA (cronómetro de atención) se ha pausado temporalmente debido a que el equipo técnico requiere información adicional de su parte, la confirmación de un tercero o la llegada de un repuesto externo."
+      },
+      {
+        question: "¿Los tiempos de SLA corren durante los fines de semana o días feriados?",
+        answer: "No. Por defecto, los acuerdos de nivel de servicio (SLA) calculan el tiempo de resolución basándose exclusivamente en el calendario y horario operativo laboral de la institución, a menos que el ticket sea catalogado como una emergencia crítica global."
+      },
+      {
+        question: "¿Puedo cancelar un ticket si la falla se solucionó sola?",
+        answer: "Sí, siempre y cuando el ticket no haya sido tomado aún por un técnico. Puede ingresar al detalle de su solicitud desde su panel y presionar el botón 'Cancelar Ticket' especificando el motivo."
       }
     ]
   },
@@ -54,6 +67,14 @@ const faqData: FAQCategory[] = [
       {
         question: "¿Qué hago si me asignaron un equipo incorrecto?",
         answer: "Deberá levantar un ticket dirigido al área de Gestión de Activos o Administrativa especificando el código del dispositivo erróneo para que el inventario sea actualizado de inmediato."
+      },
+      {
+        question: "Si me transfieren físicamente a otra agencia o sede, ¿mi inventario se actualiza solo?",
+        answer: "No de forma automática. El sistema requiere que el área administrativa o de TI procese un ticket de 'Traslado de Activo' para reflejar el cambio de ubicación física e impedir inconsistencias de auditoría."
+      },
+      {
+        question: "¿Cómo sé cuál es el código de activo o número de serie de mi equipo?",
+        answer: "Cada dispositivo cuenta con una etiqueta física institucional holográfica o de alta resistencia con un código de barra/QR único. En laptops o PC, también puede validarlo desde el panel de información del sistema en su perfil de usuario."
       }
     ]
   },
@@ -66,6 +87,30 @@ const faqData: FAQCategory[] = [
       {
         question: "¿Cómo puedo restablecer mi contraseña de acceso?",
         answer: "Si olvidó sus credenciales, puede hacer clic en la opción '¿Olvidaste tu contraseña?' desde la pantalla de inicio de sesión. El sistema le enviará un código de verificación único a su correo electrónico institucional para autorizar el cambio."
+      },
+      {
+        question: "¿Mi cuenta se bloquea por intentos fallidos? ¿Cómo la desbloqueo?",
+        answer: "Sí, por motivos de seguridad institucional, la cuenta se suspende temporalmente tras 5 intentos fallidos consecutivos. El bloqueo dura 15 minutos, o bien, puede solicitar un desbloqueo inmediato notificando al administrador de TI."
+      },
+      {
+        question: "¿Puedo mantener mi sesión abierta en varios dispositivos a la vez?",
+        answer: "El sistema permite la consulta simultánea, pero cerrará automáticamente las sesiones activas anteriores si detecta cambios de dirección IP drásticos o accesos desde ubicaciones geográficas concurrentes no autorizadas."
+      }
+    ]
+  },
+  {
+    title: "Reportes y Auditoría",
+    icon: FiFileText,
+    colorClass: "text-purple-600",
+    bgClass: "bg-purple-50/50",
+    items: [
+      {
+        question: "¿Quiénes pueden visualizar los KPI y métricas de las agencias?",
+        answer: "La visualización de las métricas de carga operativa y distribución de incidencias está restringida bajo roles de acceso. Solo los administradores, jefes de área y personal de auditoría tienen permisos para interactuar con los filtros dinámicos."
+      },
+      {
+        question: "¿Por qué los reportes exportados en Excel/CSV a veces muestran variaciones con el gráfico interactivo?",
+        answer: "Los gráficos del dashboard principal procesan datos en tiempo real (asincrónicos). Si descarga un reporte masivo mientras hay técnicos operando y cerrando tickets en caliente, es normal percibir ligeras discrepancias de minutos."
       }
     ]
   }
@@ -84,8 +129,8 @@ export const FAQPage: React.FC = () => {
     <div className="w-full min-h-screen bg-neutral-100/60 flex flex-col antialiased">
       <Navbar />
 
-      <main className="flex-1 max-w-4xl w-full mx-auto px-6 py-10 flex flex-col gap-8 text-left animate-fadeIn">
-        
+      <main className="p-6 space-y-6 bg-[#f8f9fa] min-h-screen font-sans animate-fadeIn text-left mr-4 ml-4">
+
         {/* Historial y Encabezado */}
         <div className="flex flex-col gap-1 select-none">
           <div className="text-[13px] font-semibold text-neutral-400 flex items-center gap-1.5 tracking-wide">
@@ -93,7 +138,7 @@ export const FAQPage: React.FC = () => {
             <span className="text-neutral-300 font-normal">&gt;</span>
             <span className="text-gray-400 font-semibold">Preguntas Frecuentes</span>
           </div>
-          
+
           <div className="flex items-center gap-3.5 mt-2">
             <div className="p-3 bg-white border border-gray-200/80 rounded-2xl text-[#1a558b] shadow-sm">
               <FiHelpCircle className="h-6 w-6" />
@@ -109,10 +154,10 @@ export const FAQPage: React.FC = () => {
         <div className="space-y-6">
           {faqData.map((category, catIndex) => {
             const CatIcon = category.icon;
-            
+
             return (
               <div key={catIndex} className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-                
+
                 {/* Título de Categoría */}
                 <div className={`flex items-center gap-3 px-6 py-4 border-b border-gray-100 ${category.bgClass} select-none`}>
                   <CatIcon className={`w-5 h-5 ${category.colorClass}`} />
@@ -140,10 +185,9 @@ export const FAQPage: React.FC = () => {
                         </button>
 
                         {/* Panel Desplegable (Respuesta con animación fluida) */}
-                        <div 
-                          className={`transition-all duration-200 ease-in-out overflow-hidden ${
-                            isOpen ? 'max-h-40 opacity-100 border-t border-slate-50' : 'max-w-0 max-h-0 opacity-0'
-                          }`}
+                        <div
+                          className={`transition-all duration-200 ease-in-out overflow-hidden ${isOpen ? 'max-h-40 opacity-100 border-t border-slate-50' : 'max-w-0 max-h-0 opacity-0'
+                            }`}
                         >
                           <div className="px-6 py-4 bg-slate-50/40 text-sm text-neutral-500 font-medium leading-relaxed">
                             {item.answer}

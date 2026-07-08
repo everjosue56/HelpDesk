@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTickets } from '../hooks/useTickets';
-import { Copy, Edit3, ArrowLeft, Loader2, Tag, Calendar } from 'lucide-react';
+import { Copy, Edit3, ArrowLeft, Loader2, Tag, Calendar, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const DetailsTicketPage: React.FC = () => {
@@ -119,7 +119,7 @@ export const DetailsTicketPage: React.FC = () => {
     return (
         <div className="p-6 space-y-6 bg-[#f8f9fa] min-h-screen font-sans animate-fadeIn text-left select-none">
 
-            {/* Historial superior (Breadcrumbs de Tickets) */}
+            {/* Historial superior  */}
             <div className="flex flex-col gap-0.5">
                 <div className="text-[13px] font-semibold text-neutral-400 flex items-center gap-1.5 tracking-wide select-none">
                     <span onClick={() => navigate('/dashboard')} className="hover:text-[#1a558b] hover:underline cursor-pointer transition-colors">Inicio</span>
@@ -151,6 +151,13 @@ export const DetailsTicketPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => navigate('/dashboard/resolutions/create')}
+                            className="inline-flex items-center justify-center gap-2 bg-[#1e5f8a] hover:bg-[#154666] text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer uppercase tracking-wider"
+                        >
+                            <Settings className="h-3.5 w-3.5" />
+                            Resolver Ticket 
+                        </button>
                         <button
                             onClick={handleCopyClipboard}
                             className="inline-flex items-center justify-center gap-2 bg-[#1e5f8a] hover:bg-[#154666] text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer uppercase tracking-wider"

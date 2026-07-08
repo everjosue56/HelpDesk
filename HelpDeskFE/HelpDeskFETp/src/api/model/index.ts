@@ -77,6 +77,7 @@ export * from './priorityDtoResponseDto';
 export * from './resetPasswordDto';
 export * from './resolutionDto';
 export * from './resolutionDtoResponseDto';
+export * from './saveSlaGoalDto';
 export * from './softwareSystemDto';
 export * from './softwareSystemDtoResponseDto';
 export * from './solutionStateDto';

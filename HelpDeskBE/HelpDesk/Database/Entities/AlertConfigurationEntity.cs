@@ -35,6 +35,9 @@ namespace HelpDesk.Database.Entities
         [Column("is_active")]
         public bool IsActive { get; set; }
 
+        [Column("last_triggerd_date")]
+        public DateTime? LastTriggeredDate { get; set; }
+
         // --- Propiedades de Navegación ---
 
         [ForeignKey(nameof(IdArea))]

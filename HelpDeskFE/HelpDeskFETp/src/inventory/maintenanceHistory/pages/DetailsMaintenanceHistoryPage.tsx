@@ -42,7 +42,7 @@ export const DetailsMaintenanceHistoryPage: React.FC = () => {
         }
     };
 
-    // Formateador para convertir minutos a horas y minutos exactos de tu UI original
+    // Formateador para convertir minutos a horas y minutos exactos 
     const formatExecutionTime = (totalMinutes: number) => {
         if (!totalMinutes) return "0 Minutos";
         const hours = Math.floor(totalMinutes / 60);
@@ -93,7 +93,7 @@ export const DetailsMaintenanceHistoryPage: React.FC = () => {
     return (
         <div className="p-6 space-y-6 bg-[#f8f9fa] min-h-screen font-sans animate-fadeIn text-left select-none">
 
-            {/* Historial superior (Breadcrumbs) */}
+            {/* Historial superior  */}
             <div className="flex flex-col gap-0.5">
                 <div className="text-[13px] font-semibold text-neutral-400 flex items-center gap-1.5 tracking-wide select-none">
                     <span onClick={() => navigate('/dashboard')} className="hover:text-[#1a558b] hover:underline cursor-pointer transition-colors">Inicio</span>

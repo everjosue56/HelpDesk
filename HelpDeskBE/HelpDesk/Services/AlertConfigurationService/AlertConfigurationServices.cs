@@ -54,6 +54,7 @@ namespace HelpDesk.Services.AlertConfigurationService
                 var query = _context.AlertConfigurations
                     .Include(ac => ac.Areas)
                     .Include(ac => ac.Agencys)
+                     .Where(ac => !ac.IsDeleted)
                     .OrderByDescending(ac => ac.CreatedDate)
                     .AsQueryable(); 
 
@@ -169,11 +170,7 @@ namespace HelpDesk.Services.AlertConfigurationService
         public async Task<ResponseDto<bool>> ExecuteAlertAsync(long alertConfigurationId)
         {
             var executorUserId = _authService.GetUserId();
-
-            if (executorUserId == 0)
-            {
-                executorUserId = 1; 
-            }
+            if (executorUserId == 0) executorUserId = 1;
 
             var hasActiveTransaction = _context.Database.CurrentTransaction != null;
             using var transaction = hasActiveTransaction ? null : await _context.Database.BeginTransactionAsync();
@@ -190,22 +187,22 @@ namespace HelpDesk.Services.AlertConfigurationService
                     return new ResponseDto<bool> { Status = false, StatusCode = 404, Message = "Configuración de alerta no encontrada o inactiva.", Data = false };
                 }
 
+                // Cargamos usuarios activos
                 IQueryable<UserEntity> query = _context.Users.Where(u => u.IsActive);
 
-                await _alertHistoryService.CreateAsync(config.Id, executorUserId);
-
+                // Segmentación estricta por IDs
                 if (!config.IsGlobal)
                 {
-                    if (config.IdArea.HasValue)
+                    if (config.IdArea.HasValue && config.IdArea.Value > 0)
                         query = query.Where(u => u.IdArea == config.IdArea.Value);
 
-                    if (config.IdAgency.HasValue)
+                    if (config.IdAgency.HasValue && config.IdAgency.Value > 0)
                         query = query.Where(u => u.IdAgency == config.IdAgency.Value);
                 }
 
                 var targetUsers = await query.ToListAsync();
 
-                // 1. Notificaciones internas en la Base de Datos
+                // 1. Despacho de Notificaciones en App
                 foreach (var user in targetUsers)
                 {
                     var notificationDto = new CreateNotificationDto
@@ -219,15 +216,14 @@ namespace HelpDesk.Services.AlertConfigurationService
                     await _notificationService.CreateAsync(notificationDto);
                 }
 
-                // Guardamos la auditoría en la DB
                 await _alertHistoryService.CreateAsync(config.Id, executorUserId);
+ 
+                config.LastTriggeredDate = DateTime.Now;
+                _context.AlertConfigurations.Update(config);
+                await _context.SaveChangesAsync();
 
-                // 2. Confirmamos la transacción en la Base de Datos
                 if (transaction != null) await transaction.CommitAsync();
 
-                // =========================================================================
-                // 3. DISPARO DE ALERTAS POR CORREO ELECTRÓNICO (FUERA DE LA TRANSACCIÓN)
-                // =========================================================================
                 try
                 {
                     string scopeText = config.IsGlobal
@@ -241,7 +237,6 @@ namespace HelpDesk.Services.AlertConfigurationService
                         scopeText
                     );
 
-                    // Enviamos el correo a cada uno de los usuarios que entraron en la segmentación
                     foreach (var user in targetUsers)
                     {
                         if (!string.IsNullOrWhiteSpace(user.Email))
@@ -256,7 +251,6 @@ namespace HelpDesk.Services.AlertConfigurationService
                 }
                 catch (Exception ex)
                 {
-                    // Si falla el servidor SMTP, lo logueamos pero la ejecución ya fue exitosa en la DB
                     _logger.LogError(ex, "La alerta #{ConfigId} se procesó en la DB, pero falló el envío masivo de correos.", config.Id);
                 }
 
@@ -266,22 +260,33 @@ namespace HelpDesk.Services.AlertConfigurationService
             {
                 if (transaction != null) await transaction.RollbackAsync();
                 _logger.LogError(ex, "Error crítico al ejecutar la alerta #{AlertConfigurationId}", alertConfigurationId);
-                throw;
+                return new ResponseDto<bool> { Status = false, StatusCode = 500, Message = "Error interno al ejecutar la alerta.", Data = false };
             }
         }
-
         public async Task<ResponseDto<bool>> DeleteAsync(long id)
         {
-            var entity = await _context.AlertConfigurations.FindAsync(id);
-            if (entity == null)
+            try
             {
-                return new ResponseDto<bool> { Status = false, StatusCode = 404, Data = false };
+                var entity = await _context.AlertConfigurations.FindAsync(id);
+
+                if (entity == null)
+                {
+                    return new ResponseDto<bool> { Status = false, Message = "Configuracion no encontrada.", Data = false };
+                }
+
+                entity.IsDeleted = true;
+                entity.IsActive = false;
+
+                _context.AlertConfigurations.Update(entity);
+                await _context.SaveChangesAsync();
+
+                return new ResponseDto<bool> { Status = true, Message = "Configuracion desactivada correctamente.", Data = true };
             }
-
-            _context.AlertConfigurations.Remove(entity);
-            await _context.SaveChangesAsync();
-
-            return new ResponseDto<bool> { Status = true, StatusCode = 200, Data = true };
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al desactivar configuracion.");
+                return new ResponseDto<bool> { Status = false, Message = "Error al procesar la desactivacion.", Data = false };
+            }
         }
     }
 }

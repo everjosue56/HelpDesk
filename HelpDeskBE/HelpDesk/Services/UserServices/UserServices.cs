@@ -47,6 +47,7 @@ namespace HelpDesk.Services
                     .Include(u => u.Roles)
                     .Include(u => u.Agency)
                     .Include(u => u.Area)
+                    .OrderByDescending(u => u.CreatedDate)
                     .AsQueryable();
 
                 // 2. Aplicamos los filtros condicionales uno a uno
@@ -139,7 +140,7 @@ namespace HelpDesk.Services
                 var userEntity = _mapper.Map<UserEntity>(userDto);
                 userEntity.PasswordHash = hash;
                 userEntity.PasswordSalt = salt;
-                userEntity.IsActive = true;
+              //  userEntity.IsActive = true;
 
                 _context.Users.Add(userEntity);
                 await _context.SaveChangesAsync();
@@ -316,7 +317,8 @@ namespace HelpDesk.Services
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.UserName),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Roles?.Name ?? "User")  
+                new Claim(ClaimTypes.Role, user.Roles?.Name ?? "User"),
+                new Claim("idArea", user.IdArea.ToString())
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(

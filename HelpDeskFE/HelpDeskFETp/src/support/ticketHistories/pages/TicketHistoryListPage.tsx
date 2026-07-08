@@ -231,7 +231,7 @@ export const TicketHistoryListPage: React.FC = () => {
                         <thead>
                             <tr className="bg-[#eef2f5] text-slate-800 font-bold border-b border-gray-200">
                                 <th className="p-3.5 w-16 pl-5">No.</th>
-                                <th className="p-3.5">Usuario</th>
+                                <th className="p-3.5">Usuario/Tecnico</th>
                                 <th className="p-3.5">Ticket</th>
                                 <th className="p-3.5">Resolución</th>
                                 <th className="p-3.5">Fecha Cierre</th>

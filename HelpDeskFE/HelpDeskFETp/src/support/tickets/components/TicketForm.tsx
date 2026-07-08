@@ -16,7 +16,7 @@ import { useSupportCatalogs } from '../hooks/useSupportCatalogs';
 import { useAreas } from '../../../administrative/areas/hooks/useAreas';
 import { useSoftwareSystems } from '../../softwareSystem/hooks/useSoftwareSystems';
 import { useTypeErrors } from '../../typeError/hooks/useTypeErrors';
-import { useUsers } from '../../../administrative/users/hooks/useUser';
+//import { useUsers } from '../../../administrative/users/hooks/useUser';
 
 export interface TicketFormValues {
     description: string;
@@ -49,7 +49,7 @@ export const TicketForm: React.FC<TicketFormProps> = ({
     const { areas, isLoading: isLoadingAreas } = useAreas('', '', 1, 100);
     const { systems, isLoading: isLoadingSystems } = useSoftwareSystems('', 1, 100);
     const { typeErrors, isLoading: isLoadingTypes } = useTypeErrors('', 1, 100);
-    const { users, isLoading: isLoadingUsers } = useUsers('', null, null, null, null, 1, 100);
+    // const { users, isLoading: isLoadingUsers } = useUsers('', null, null, null, null, 1, 100);
 
     const form = useForm<TicketFormValues>({
         mode: 'onBlur',
@@ -65,32 +65,32 @@ export const TicketForm: React.FC<TicketFormProps> = ({
         },
     });
 
-   useEffect(() => {
-    if (
-        initialData && 
-        priorities?.length > 0 && 
-        impacts?.length > 0 && 
-        areas?.length > 0 && 
-        systems?.length > 0 && 
-        typeErrors?.length > 0 && 
-        users?.length > 0
-    ) {
-        form.reset({
-            description: initialData.description || '',
-            idArea: initialData.idArea ? String(initialData.idArea) : '',
-            idSoftwareSystem: initialData.idSoftwareSystem ? String(initialData.idSoftwareSystem) : '',
-            idTypeError: initialData.idTypeError ? String(initialData.idTypeError) : '',
-            idImpact: initialData.idImpact ? String(initialData.idImpact) : '',
-            idPriority: initialData.idPriority ? String(initialData.idPriority) : '',
-            idUser: initialData.idUser ? String(initialData.idUser) : '',
-            isActive: initialData.isActive ? String(initialData.isActive) : '1',
-        });
-    }
-}, [initialData, form, priorities, impacts, areas, systems, typeErrors, users]);
+    useEffect(() => {
+        if (
+            initialData &&
+            priorities?.length > 0 &&
+            impacts?.length > 0 &&
+            areas?.length > 0 &&
+            systems?.length > 0 &&
+            typeErrors?.length > 0
+            //users?.length > 0
+        ) {
+            form.reset({
+                description: initialData.description || '',
+                idArea: initialData.idArea ? String(initialData.idArea) : '',
+                idSoftwareSystem: initialData.idSoftwareSystem ? String(initialData.idSoftwareSystem) : '',
+                idTypeError: initialData.idTypeError ? String(initialData.idTypeError) : '',
+                idImpact: initialData.idImpact ? String(initialData.idImpact) : '',
+                idPriority: initialData.idPriority ? String(initialData.idPriority) : '',
+                idUser: initialData.idUser ? String(initialData.idUser) : '',
+                isActive: initialData.isActive ? String(initialData.isActive) : '1',
+            });
+        }
+    }, [initialData, form, priorities, impacts, areas, systems, typeErrors]);
 
     return (
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 space-y-6 animate-fadeIn text-left select-none">
-            
+
             <div className="flex items-center gap-4 border-b border-gray-100 pb-5">
                 <div className="p-3 bg-slate-50 border border-gray-100 rounded-xl text-slate-700">
                     <Tag className="h-6 w-6 text-[#1a558b]" />
@@ -100,8 +100,8 @@ export const TicketForm: React.FC<TicketFormProps> = ({
                         {isEditMode ? 'Editar Ticket' : 'Nuevo Ticket'}
                     </h2>
                     <p className="text-sm text-gray-400 mt-0.5">
-                        {isEditMode 
-                            ? 'Modifica los campos necesarios para actualizar la incidencia.' 
+                        {isEditMode
+                            ? 'Modifica los campos necesarios para actualizar la incidencia.'
                             : 'Completa el formulario para registrar una nueva incidencia.'}
                     </p>
                 </div>
@@ -110,7 +110,7 @@ export const TicketForm: React.FC<TicketFormProps> = ({
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-5">
-                        
+
                         {/* 1. Descripción */}
                         <FormField
                             control={form.control}
@@ -120,10 +120,10 @@ export const TicketForm: React.FC<TicketFormProps> = ({
                                 <FormItem>
                                     <FormLabel className="text-sm font-bold text-slate-700">Descripción</FormLabel>
                                     <FormControl>
-                                        <Input 
-                                            placeholder="Ej. No hay internet en mi area" 
-                                            {...field} 
-                                            className="rounded-xl border-gray-200 h-11 pl-5 focus-visible:ring-1 focus-visible:ring-neutral-400 text-xs placeholder:text-gray-400" 
+                                        <Input
+                                            placeholder="Ej. No hay internet en mi area"
+                                            {...field}
+                                            className="rounded-xl border-gray-200 h-11 pl-5 focus-visible:ring-1 focus-visible:ring-neutral-400 text-xs placeholder:text-gray-400"
                                         />
                                     </FormControl>
                                     <FormMessage className="text-xs text-red-500 font-medium" />
@@ -142,7 +142,7 @@ export const TicketForm: React.FC<TicketFormProps> = ({
                                     <Select onValueChange={field.onChange} value={field.value ? String(field.value) : ""} disabled={isLoadingCatalogs}>
                                         <FormControl>
                                             <SelectTrigger className="rounded-xl border-gray-200 h-11 pl-5 pr-4 text-slate-700 focus:ring-[#1a558b] w-full bg-white shadow-none text-xm">
-                                                <SelectValue placeholder="Seleccionar"  />
+                                                <SelectValue placeholder="Seleccionar" />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent className="bg-white rounded-xl border border-gray-200 text-xs">
@@ -255,32 +255,6 @@ export const TicketForm: React.FC<TicketFormProps> = ({
                                 </FormItem>
                             )}
                         />
-
-                        {/* 7. Usuario Asignado */}
-                        <FormField
-                            control={form.control}
-                            name="idUser"
-                            rules={{ required: 'Debe seleccionar un usuario responsable.' }}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className="text-sm font-bold text-slate-700">Usuario Asignado</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value ? String(field.value) : ""} disabled={isLoadingUsers}>
-                                        <FormControl>
-                                            <SelectTrigger className="rounded-xl border-gray-200 h-11 pl-5 pr-4 text-slate-700 focus:ring-[#1a558b] w-full bg-white shadow-none text-xm">
-                                                <SelectValue placeholder="Seleccionar" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent className="bg-white rounded-xl border border-gray-200 text-xs">
-                                            {users?.map(u => (
-                                                <SelectItem key={u.id} value={String(u.id)} className="cursor-pointer">{u.userName}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage className="text-xs text-red-500 font-medium" />
-                                </FormItem>
-                            )}
-                        />
-
                         {/* 8. Estado */}
                         <FormField
                             control={form.control}
@@ -289,22 +263,27 @@ export const TicketForm: React.FC<TicketFormProps> = ({
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className="text-sm font-bold text-slate-700">Estado</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value ? String(field.value) : ""}>
-                                        <FormControl>
-                                            <SelectTrigger className="rounded-xl border-gray-200 h-11 pl-5 pr-4 text-slate-700 focus:ring-[#1a558b] w-full bg-white shadow-none text-xm">
-                                                <SelectValue placeholder="Seleccionar" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent className="bg-white rounded-xl border border-gray-200 text-xs">
-                                            <SelectItem value="1" className="cursor-pointer">Abierto</SelectItem>
-                                            <SelectItem value="2" className="cursor-pointer">Resuelto</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                    <div className={!isEditMode ? "pointer-events-none opacity-60" : ""}>
+                                        <Select
+                                            onValueChange={field.onChange}
+                                            value={field.value ? String(field.value) : "1"}
+                                        >
+                                            <FormControl>
+
+                                                <SelectTrigger className={`rounded-xl border-gray-200 h-11 pl-5 pr-4 text-slate-700 focus:ring-[#1a558b] w-full shadow-none text-xm ${!isEditMode ? 'bg-neutral-50 text-neutral-400' : 'bg-white'}`}>
+                                                    <SelectValue placeholder="Seleccionar" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent className="bg-white rounded-xl border border-gray-200 text-xs">
+                                                <SelectItem value="1" className="cursor-pointer">Abierto</SelectItem>
+                                                <SelectItem value="2" className="cursor-pointer">Resuelto</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                     <FormMessage className="text-xs text-red-500 font-medium" />
                                 </FormItem>
                             )}
                         />
-
                     </div>
 
                     <div className="flex items-center justify-end gap-4 pt-4 border-t border-gray-100">

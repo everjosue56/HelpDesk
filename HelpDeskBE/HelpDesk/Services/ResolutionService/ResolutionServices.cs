@@ -187,8 +187,7 @@ namespace HelpDesk.Services
             var entity = _mapper.Map<ResolutionEntity>(dto);
 
             // 3. Cálculos y Auditoría
-            var timeSpan = DateTime.Now - ticket.ReportDate;
-            entity.SolutionTime = (decimal)timeSpan.TotalHours;
+            entity.SolutionTime = dto.SolutionTime / 60m;
             entity.ResolutionDate = DateTime.Now;
             entity.CreatedDate = DateTime.Now;
             entity.CreatedBy = currentUserId;
@@ -286,7 +285,7 @@ namespace HelpDesk.Services
                 };
             }
 
-            _mapper.Map(dto, entity);
+            entity.SolutionTime = dto.SolutionTime / 60m;
             entity.UpdatedDate = DateTime.Now;
             entity.UpdatedBy = currentUserId;
 

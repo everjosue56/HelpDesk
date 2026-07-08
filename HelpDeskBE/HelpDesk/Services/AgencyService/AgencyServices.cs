@@ -36,6 +36,7 @@ namespace HelpDesk.Services.AgencyService
             {
                 var query = _context.Agencies
                     .Include(a => a.Organizations)
+                    .OrderByDescending(a => a.Organizations)
                     .AsQueryable();
 
                 if (!string.IsNullOrWhiteSpace(filter.Name))

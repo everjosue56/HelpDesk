@@ -135,8 +135,8 @@ export const DetailsNotificationPage: React.FC = () => {
                 toast.success("Notificación marcada como leída");
               }}
               className={`inline-flex items-center justify-center gap-2 font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer ${notification.isRead
-                  ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
-                  : "bg-[#1a558b] hover:bg-[#133f67] text-white"
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
+                : "bg-[#1a558b] hover:bg-[#133f67] text-white"
                 }`}
             >
               <CheckCircle2 className="h-3.5 w-3.5" />
@@ -191,7 +191,10 @@ export const DetailsNotificationPage: React.FC = () => {
         <div className="pt-6 border-t border-gray-100 flex items-center gap-4 text-xs font-mono text-gray-400 select-none">
           <span>Id Notificación: {notification.id}</span>
           <span>Id Usuario: {notification.idUser}</span>
-          <span>Fecha de Envío: {formatFecha(notification.createdDate)}</span>
+          <span>Fecha de Envío: {notification.createdDate && notification.createdDate !== 'N/A'
+            ? new Date(notification.createdDate.endsWith('Z') ? notification.createdDate : `${notification.createdDate}Z`).toLocaleString()
+            : 'Reciente'
+          }</span>
         </div>
       </div>
     </div>

@@ -11,7 +11,7 @@ namespace HelpDesk.Api.Controllers
 {
     [Route("api/areas")]
     [ApiController]
-    [Authorize(Roles = "Administrador,TI")]
+    [Authorize]
     public class AreaController : ControllerBase
     {
         private readonly IAreaService _areaService;
@@ -22,12 +22,14 @@ namespace HelpDesk.Api.Controllers
         }
 
         [HttpGet]
+       
         public async Task<IActionResult> GetAll([FromQuery] AreaFilterDto pagination)
         {
             var response = await _areaService.GetAllAsync(pagination);
             return StatusCode(response.StatusCode, response);
         }
 
+        [Authorize(Roles = "Administrador,TI")]
         [HttpGet("{id}")]
         public async Task<ActionResult<ResponseDto<AreaDto>>> GetById(long id)
         {
@@ -35,6 +37,7 @@ namespace HelpDesk.Api.Controllers
             return response.Status ? Ok(response) : NotFound(response);
         }
 
+        [Authorize(Roles = "Administrador,TI")]
         [HttpPost]
         public async Task<ActionResult<ResponseDto<AreaDto>>> Create([FromBody] CreateAreaDto dto)
         {
@@ -42,6 +45,7 @@ namespace HelpDesk.Api.Controllers
             return response.Status ? Ok(response) : BadRequest(response);
         }
 
+        [Authorize(Roles = "Administrador,TI")]
         [HttpPut("{id}")]
         public async Task<ActionResult<ResponseDto<AreaDto>>> Update([FromBody] UpdateAreaDto dto, long id)
         {
@@ -49,6 +53,7 @@ namespace HelpDesk.Api.Controllers
             return response.Status ? Ok(response) : BadRequest(response);
         }
 
+        [Authorize(Roles = "Administrador,TI")]
         [HttpDelete("{id}")]
         public async Task<ActionResult<ResponseDto<bool>>> Delete(long id)
         {

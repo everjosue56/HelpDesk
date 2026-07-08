@@ -26,7 +26,6 @@ export const useSolutionStatuses = () => {
         }
     }, [service]);
 
-    // 🚀 CORRECCIÓN: Manejo asíncrono y seguro para evitar renders en cascada según ESLint
     useEffect(() => {
         let isMounted = true;
 

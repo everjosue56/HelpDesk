@@ -157,7 +157,7 @@ export const DetailsResolutionPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* ─── GRID CON 14 Campos ─── */}
+                {/* ─── GRIDs ─── */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
 
                     {/* Id Resolución */}
@@ -216,12 +216,6 @@ export const DetailsResolutionPage: React.FC = () => {
                     <div className="space-y-1">
                         <h3 className="text-sm font-bold text-slate-600">Usuario Solicitante (Ticket)</h3>
                         <p className="text-sm text-gray-500 font-medium select-text">{resolution.ticketCreatorName || 'N/A'}</p>
-                    </div>
-
-                    {/* Área del Ticket */}
-                    <div className="space-y-1">
-                        <h3 className="text-sm font-bold text-slate-600">Área Afectada</h3>
-                        <p className="text-sm text-gray-400 font-medium">{resolution.ticketAreaName || 'Mesa de Ayuda General'}</p>
                     </div>
 
                     {/* Descripción del Ticket */}

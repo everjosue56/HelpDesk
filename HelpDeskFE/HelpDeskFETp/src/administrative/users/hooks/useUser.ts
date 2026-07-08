@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "../../../context/AuthContext";
 import { AXIOS_INSTANCE } from "../../../api/axios-instance";
-import { getUsers } from "../../../api/generated/users/users"; 
+import { getUsers } from "../../../api/generated/users/users";
 import type { UserRegisterDto, UpdateUserDto } from "../../../api/model";
 
 export interface UserItem {
@@ -42,7 +42,7 @@ export const useUsers = (
   const [totalActivos, setTotalActivos] = useState<number>(0);
   const [totalInactivos, setTotalInactivos] = useState<number>(0);
 
-  // Inicialización del servicio de Orval 
+  // Inicialización del servicio de Orval
   const userService = useMemo(() => getUsers(AXIOS_INSTANCE), []);
 
   // 1. Obtener listado paginado y filtrado de usuarios
@@ -51,7 +51,6 @@ export const useUsers = (
     try {
       setIsLoading(true);
 
-      // Llamada tipada acoplada a la firma de tu API recopilada por Orval
       const response = await userService.getApiUsers({
         PageNumber: page,
         PageSize: pageSize,
@@ -139,7 +138,8 @@ export const useUsers = (
           idRol: item.idRol || item.roles?.id || 0,
           idAgency: item.idAgency || item.agency?.id || 0,
           idArea: item.idArea || item.area?.id || 0,
-          agencyName: item.agencyName || (item.agency ? item.agency.name : "N/A"),
+          agencyName:
+            item.agencyName || (item.agency ? item.agency.name : "N/A"),
           areaName: item.areaName || (item.area ? item.area.name : "N/A"),
         };
 
@@ -160,7 +160,7 @@ export const useUsers = (
   const createUser = async (dto: UserRegisterDto) => {
     try {
       setIsLoading(true);
-      await userService.postApiUsersRegister(dto); // Orval mapea el register como el POST de creación
+      await userService.postApiUsersRegister(dto);
       await fetchUsers();
     } catch (error) {
       console.error("Error al registrar el usuario:", error);

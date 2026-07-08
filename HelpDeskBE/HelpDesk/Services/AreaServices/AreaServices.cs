@@ -33,6 +33,7 @@ namespace HelpDesk.Services.AreaServices
             {
                 var query = _context.Areas
                     .Include(a => a.Agencies)
+                    .OrderByDescending(a => a.CreatedDate)
                     .AsQueryable();
 
                 if (!string.IsNullOrWhiteSpace(pagination.SearchName))

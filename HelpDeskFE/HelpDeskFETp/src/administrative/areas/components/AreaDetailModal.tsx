@@ -4,9 +4,9 @@ import {
     DialogContent,
     DialogHeader,
     DialogDescription,
-} from "../../../../@/components/ui/dialog"; 
+} from "../../../../@/components/ui/dialog";
 import { Button } from "../../../../@/components/ui/button";
-import { X, LayoutGrid, Building2 } from 'lucide-react'; 
+import { X, LayoutGrid, Building2 } from 'lucide-react';
 import type { AreaItem } from '../hooks/useAreas';
 
 interface AreaDetailModalProps {
@@ -36,7 +36,7 @@ export const AreaDetailModal: React.FC<AreaDetailModalProps> = ({
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="sm:max-w-md w-[90%] rounded-2xl p-6 bg-white border border-gray-100 shadow-2xl gap-0 select-none animate-in fade-in-50 zoom-in-95 duration-200">
-                
+
                 {/* ─── ENCABEZADO DE ÁREA ─── */}
                 <DialogHeader className="text-left flex flex-row items-center gap-4 pb-4 border-b border-gray-100">
                     <div className="p-3 bg-slate-50 border border-gray-100 rounded-xl text-slate-700">
@@ -54,7 +54,7 @@ export const AreaDetailModal: React.FC<AreaDetailModalProps> = ({
 
                 {/* ─── CUERPO INTERNO: INFORMACIÓN DEL ÁREA ─── */}
                 <div className="py-5 space-y-4 text-left">
-                    
+
                     {/* Fila: Nombre del Área */}
                     <div className="flex gap-3 items-start">
                         <LayoutGrid className="h-4 w-4 mt-0.5 text-gray-400 shrink-0" />

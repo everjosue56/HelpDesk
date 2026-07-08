@@ -54,7 +54,7 @@ export const EditTicketPage: React.FC = () => {
         try {
             await updateTicket(ticketId, {
                 description: values.description,
-                idArea: Number(values.idArea),
+               idArea: Number(values.idArea || "0"),
                 idSoftwareSystem: Number(values.idSoftwareSystem),
                 idTypeError: Number(values.idTypeError),
                 idImpact: Number(values.idImpact),

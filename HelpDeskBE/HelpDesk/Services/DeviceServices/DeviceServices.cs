@@ -39,6 +39,7 @@ namespace HelpDesk.Services.DeviceService
                     .Include(d => d.TypeDevices)
                     .Include(d => d.Users)
                     .Include(d => d.Areas)
+                    .OrderByDescending(d => d.CreatedDate)
                     .AsQueryable();
 
                 if (filter.IdUser.HasValue)

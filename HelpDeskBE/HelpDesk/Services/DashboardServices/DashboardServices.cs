@@ -18,7 +18,6 @@ namespace HelpDesk.Services.DashboardServices
             _context = context;
         }
 
-        // KPIS de reportes de metas y frecuencia de tickets por mes 
         public async Task<List<DashboardDto>> GetSlaReportAsync(int year)
         {
             var resolutions = await _context.Resolutions
@@ -28,6 +27,10 @@ namespace HelpDesk.Services.DashboardServices
             var tickets = await _context.Tickets
                 .Where(t => t.ReportDate.Year == year)
                 .ToListAsync();
+
+            var goalsDictionary = await _context.SlaGoals
+                .Where(g => g.Year == year)
+                .ToDictionaryAsync(g => g.Month, g => g.GoalValue);
 
             var report = new List<DashboardDto>();
 
@@ -49,7 +52,8 @@ namespace HelpDesk.Services.DashboardServices
                     metaAlcanzada = Math.Round((double)aTiempo / resolucionesDelMes.Count * 100, 2);
                 }
 
-                double metaFija = 95.0;
+                double metaFija = goalsDictionary.TryGetValue(m, out var customGoal) ? customGoal : 95.0;
+
                 string estadoCumplimiento = "Sin Datos";
 
                 if (incidentesCount > 0)
@@ -98,12 +102,13 @@ namespace HelpDesk.Services.DashboardServices
         }
 
         //  2. KPI de Carga por Área Operativa (Modificado con filtro de mes opcional)
-        public async Task<List<AreaPerformanceDto>> GetTicketsByAreaAsync(int year, int? month)
+        public async Task<List<AreaPerformanceDto>> GetTicketsByAreaAsync(int year, int? month, int? idAgency)
         {
-            // Creamos la query base para calcular el total condicionado primero
-            var totalQuery = _context.Tickets.Where(t => t.ReportDate.Year == year);
-            var query = _context.Tickets
-                .Include(t => t.User).ThenInclude(u => u.Area)
+            var totalQuery = _context.Tickets.AsNoTracking().Where(t => t.ReportDate.Year == year);
+
+            var query = _context.Tickets.AsNoTracking()
+                .Include(t => t.User)
+                    .ThenInclude(u => u.Area)
                 .Where(t => t.ReportDate.Year == year);
 
             if (month.HasValue)
@@ -112,8 +117,15 @@ namespace HelpDesk.Services.DashboardServices
                 query = query.Where(t => t.ReportDate.Month == month.Value);
             }
 
+            if (idAgency.HasValue)
+            {
+                totalQuery = totalQuery.Where(t => t.User.Area.IdAgency == idAgency.Value);
+                query = query.Where(t => t.User.Area.IdAgency == idAgency.Value);
+            }
+
             var totalTicketsPeriodo = await totalQuery.CountAsync();
             if (totalTicketsPeriodo == 0) return new List<AreaPerformanceDto>();
+
 
             return await query
                 .GroupBy(t => t.User.Area.NameArea)

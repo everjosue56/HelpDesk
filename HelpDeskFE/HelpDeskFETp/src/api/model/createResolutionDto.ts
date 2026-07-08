@@ -40,8 +40,8 @@ export interface CreateResolutionDto {
   secondObservation?: string | null;
   /** @minimum 1 */
   idPriority: number;
-  /** @minimum 1 */
-  idDevice?: number;
+  /** @nullable */
+  idDevice?: number | null;
   /**
      * @minimum 0.1
      * @maximum 999.99

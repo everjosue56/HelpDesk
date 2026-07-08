@@ -315,7 +315,7 @@ export const ListTicketsPage: React.FC = () => {
 
                 </div>
 
-                {/* TABLA DE DATOS DE ALTO CONTRASTE SÓLIDA */}
+                {/* TABLA DE DATOS  */}
                 <div className="overflow-x-auto rounded-xl border border-gray-100">
                     <table className="w-full text-left border-collapse text-[13px]">
                         <thead>

@@ -48,7 +48,6 @@ export const AlertConfigForm: React.FC<AlertConfigFormProps> = ({
 }) => {
     const isEditMode = !!initialData?.id;
 
-    //const { alertTypes } = useAlertTypes('', 1, 50);
     const { agencies } = useAgencies('', '', 1, 100);
     const { areas } = useAreas('', '', 1, 100);
 

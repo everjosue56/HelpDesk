@@ -32,9 +32,9 @@ namespace HelpDesk.Controllers
         }
 
         [HttpGet("carga-areas")]
-        public async Task<IActionResult> GetCargaAreas([FromQuery] int year, [FromQuery] int? month)
+        public async Task<IActionResult> GetCargaAreas([FromQuery] int year, [FromQuery] int? month, [FromQuery] int? agency)
         {
-            var data = await _dashboardService.GetTicketsByAreaAsync(year, month);
+            var data = await _dashboardService.GetTicketsByAreaAsync(year, month, agency);
             return Ok(data);
         }
 

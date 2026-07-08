@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { useAreasDashboard } from '../hooks/useAreasDashboard';
 import { Bar } from 'react-chartjs-2';
 import {
@@ -10,9 +10,10 @@ import {
     Tooltip,
     Legend
 } from 'chart.js';
-import { MapPin, Info, RefreshCw } from 'lucide-react';
+import { MapPin, Info, RefreshCw, X } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../@/components/ui/select';
 import { useNavigate } from 'react-router-dom';
+import { useAgencies } from '@/administrative/agencies/hooks/useAgencies';
 
 ChartJS.register(
     CategoryScale,
@@ -24,11 +25,14 @@ ChartJS.register(
 );
 
 export const AreasDashboardPage: React.FC = () => {
+
     const {
         year,
         setYear,
         month,
         setMonth,
+        idAgency,
+        setIdAgency,
         areasRecords,
         kpis,
         isLoading
@@ -43,7 +47,7 @@ export const AreasDashboardPage: React.FC = () => {
             {
                 label: 'Cantidad de Tickets',
                 data: areasRecords.map(a => a.cantidadTickets),
-                backgroundColor: '#d9a406', 
+                backgroundColor: '#d9a406',
                 borderRadius: 6,
                 barThickness: 40,
             }
@@ -52,7 +56,7 @@ export const AreasDashboardPage: React.FC = () => {
 
     const chartOptions = {
         responsive: true,
-        maintainAspectRatio: false, 
+        maintainAspectRatio: false,
         plugins: {
             legend: { display: false },
             tooltip: {
@@ -72,7 +76,8 @@ export const AreasDashboardPage: React.FC = () => {
             y: { border: { dash: [5, 5] }, grid: { color: '#f1f5f9' }, ticks: { color: '#9ca3af', font: { size: 11, weight: 'bold' as const } } }
         }
     };
-    const navigate = useNavigate()
+
+    const navigate = useNavigate();
     const currentYear = new Date().getFullYear();
     const yearsOptions = Array.from({ length: 5 }, (_, index) => currentYear - index);
 
@@ -82,6 +87,9 @@ export const AreasDashboardPage: React.FC = () => {
         { num: 7, name: "Julio" }, { num: 8, name: "Agosto" }, { num: 9, name: "Septiembre" },
         { num: 10, name: "Octubre" }, { num: 11, name: "Noviembre" }, { num: 12, name: "Diciembre" }
     ];
+
+    // catálogo de agencias
+    const { agencies } = useAgencies('', '', 1, 100);
 
     if (isLoading && areasRecords.length === 0) {
         return (
@@ -97,7 +105,7 @@ export const AreasDashboardPage: React.FC = () => {
     return (
         <div className="p-6 space-y-6 bg-[#f8f9fa] min-h-screen font-sans animate-fadeIn text-left">
 
-            {/* Historial superior (Breadcrumbs) */}
+            {/* Breadcrumbs */}
             <div className="flex flex-col gap-0.5">
                 <div className="text-[13px] font-semibold text-neutral-400 flex items-center gap-1.5 tracking-wide select-none">
                     <span className="hover:text-[#1a558b] hover:underline cursor-pointer transition-colors" onClick={() => navigate("/dashboard")}>Inicio</span>
@@ -122,10 +130,47 @@ export const AreasDashboardPage: React.FC = () => {
                     </div>
 
                     {/* FILTROS DINÁMICOS */}
-                    <div className="flex flex-col sm:flex-row gap-4 sm:items-center w-full sm:w-auto">
+                    <div className="flex flex-col sm:flex-row gap-x-6 gap-y-3 sm:items-center w-full sm:w-auto sm:flex-wrap justify-end">
+
+                        {/* Selector de Agencia */}
+
+                        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                            <label className="text-sm font-bold text-slate-500 whitespace-nowrap">Filtrar por Agencia:</label>
+                            <div className="flex items-center gap-1.5 w-full sm:w-auto">
+                                <Select
+                                    onValueChange={(val) => setIdAgency(val ? Number(val) : undefined)}
+                                    value={idAgency ? String(idAgency) : ""}
+                                >
+                                    <SelectTrigger className="rounded-xl border-gray-200 h-9.5 pl-4 pr-3 text-sm text-slate-700 focus:ring-[#1e5f8a]/20 focus:border-[#1e5f8a] w-full sm:w-52 bg-white select-none shadow-none flex items-center justify-between">
+                                        <span className="max-w-35 truncate text-left block">
+                                            <SelectValue placeholder="Todas las agencias" />
+                                        </span>
+                                    </SelectTrigger>
+
+                                    <SelectContent className="bg-white rounded-xl border border-gray-200 select-none">
+                                        {agencies?.map((agency) => (
+                                            <SelectItem key={agency.id} value={String(agency.id)} className="cursor-pointer text-sm">
+                                                {agency.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+
+                                {idAgency && (
+                                    <button
+                                        onClick={() => setIdAgency(undefined)}
+                                        className="p-2 bg-slate-100 hover:bg-slate-200/80 border border-slate-200/60 rounded-xl text-slate-500 hover:text-slate-700 transition-colors cursor-pointer shrink-0"
+                                        title="Limpiar filtro de agencia"
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
 
                         {/* Selector de Año */}
-                        <div className="flex items-center gap-2 w-full sm:max-w-xs">
+
+                        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
                             <label className="text-sm font-bold text-slate-500 whitespace-nowrap">Filtrar por año:</label>
                             <Select onValueChange={(val) => setYear(Number(val))} value={String(year)}>
                                 <SelectTrigger className="rounded-xl border-gray-200 h-9.5 pl-4 pr-3 text-sm text-slate-700 focus:ring-[#1e5f8a]/20 focus:border-[#1e5f8a] w-full sm:w-32 bg-white select-none shadow-none">
@@ -142,10 +187,11 @@ export const AreasDashboardPage: React.FC = () => {
                         </div>
 
                         {/* Selector de Mes */}
-                        <div className="flex items-center gap-2 w-full sm:max-w-xs">
+
+                        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
                             <label className="text-sm font-bold text-slate-500 whitespace-nowrap">Filtrar por mes:</label>
-                            <Select 
-                                onValueChange={(val) => setMonth(val ? Number(val) : undefined)} 
+                            <Select
+                                onValueChange={(val) => setMonth(val ? Number(val) : undefined)}
                                 value={month ? String(month) : ""}
                             >
                                 <SelectTrigger className="rounded-xl border-gray-200 h-9.5 pl-4 pr-3 text-sm text-slate-700 focus:ring-[#1e5f8a]/20 focus:border-[#1e5f8a] w-full sm:w-36 bg-white select-none shadow-none">
@@ -162,6 +208,7 @@ export const AreasDashboardPage: React.FC = () => {
                         </div>
 
                     </div>
+
                 </div>
 
                 {/* TARJETAS DE KPIS SUPERIORES */}
@@ -204,6 +251,6 @@ export const AreasDashboardPage: React.FC = () => {
                 </div>
 
             </div>
-        </div>
+        </div >
     );
 };

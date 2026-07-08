@@ -1,11 +1,12 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 
-// 1. Definimos el contrato de qué información tiene el usuario
+
 interface UserSession {
   id: number;
   username: string;
   email: string;
   roles: ("Administrador" | "TI" | "Cliente")[];
+  idArea?: number;
   permissions: {
     action: string;
     subject: string;
@@ -18,7 +19,7 @@ interface AuthContextType {
   login: (token: string, userData: UserSession) => void;
   logout: () => void;
   isLoading: boolean;
-  getInitials : () => string; 
+  getInitials: () => string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

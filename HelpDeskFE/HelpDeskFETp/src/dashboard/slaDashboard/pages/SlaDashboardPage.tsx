@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSlaDashboard } from '../hooks/useSlaDashboard';
 import { Bar, Line } from 'react-chartjs-2';
 import {
@@ -16,6 +16,9 @@ import {
 import { AlertCircle, Clock, Info, RefreshCw } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../@/components/ui/select';
 import { useNavigate } from 'react-router-dom';
+import { SlaGoalsModal } from '../components/SlaGoalsModal';
+import { Button } from '../../../../@/components/ui/button';
+import { FiSettings } from 'react-icons/fi';
 
 ChartJS.register(
     CategoryScale,
@@ -30,6 +33,7 @@ ChartJS.register(
 );
 
 export const SlaDashboardPage: React.FC = () => {
+    //   Extraemos setYear para refrescar la data de los gráficos al actualizar metas
     const {
         year,
         setYear,
@@ -47,7 +51,14 @@ export const SlaDashboardPage: React.FC = () => {
         { num: 10, name: "Octubre" }, { num: 11, name: "Noviembre" }, { num: 12, name: "Diciembre" }
     ];
 
-    const navigate = useNavigate(); 
+    const navigate = useNavigate();
+    const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+
+    const handleRefreshData = () => {
+        const currentYear = year;
+        setYear(0); // Estado temporal para limpiar
+        setTimeout(() => setYear(currentYear), 50); // Restablece y re-ejecuta
+    };
 
     // --- CONFIGURACIÓN DE DATA PARA LOS GRÁFICOS ---
     const labels = monthlyRecords.map(m => m.mesNombre.charAt(0).toUpperCase() + m.mesNombre.slice(1));
@@ -128,29 +139,39 @@ export const SlaDashboardPage: React.FC = () => {
 
     return (
         <div className="p-6 space-y-6 bg-[#f8f9fa] min-h-screen font-sans animate-fadeIn text-left">
-            
-            {/* Historial superior (Breadcrumbs) */}
-            <div className="flex flex-col gap-0.5">
-                <div className="text-[13px] font-semibold text-neutral-400 flex items-center gap-1.5 tracking-wide select-none">
-                    <span className="hover:text-[#1a558b] hover:underline cursor-pointer transition-colors" onClick={() => navigate("/dashboard")}>Inicio</span>
-                    <span className="text-neutral-300 font-normal">&gt;</span>
-                    <span className="hover:text-[#1a558b] text-neutral-400 font-semibold select-none" onClick={() => navigate("/dashboard/sla")}>Dashboard</span>
-                    <span className="text-neutral-300 font-normal">&gt;</span>
-                    <span className="text-neutral-400 font-semibold">Metas</span>
+
+            {/* Historial superior (Breadcrumbs) y Botón de Ajustes */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex flex-col gap-0.5">
+                    <div className="text-[13px] font-semibold text-neutral-400 flex items-center gap-1.5 tracking-wide select-none">
+                        <span className="hover:text-[#1a558b] hover:underline cursor-pointer transition-colors" onClick={() => navigate("/dashboard")}>Inicio</span>
+                        <span className="text-neutral-300 font-normal">&gt;</span>
+                        <span className="hover:text-[#1a558b] text-neutral-400 font-semibold select-none" onClick={() => navigate("/dashboard/sla")}>Dashboard</span>
+                        <span className="text-neutral-300 font-normal">&gt;</span>
+                        <span className="text-neutral-400 font-semibold">Metas</span>
+                    </div>
+                    <h1 className="text-2xl font-black text-neutral-800 tracking-tight mt-1">
+                        Metas TI
+                    </h1>
                 </div>
-                <h1 className="text-2xl font-black text-neutral-800 tracking-tight mt-1">
-                    Metas
-                </h1>
+
+                <Button
+                    onClick={() => setIsGoalModalOpen(true)}
+                    className="rounded-xl bg-[#1a558b] hover:bg-[#15436f] text-white font-bold flex items-center gap-2 shadow-sm h-10 px-4 self-start sm:self-auto"
+                >
+                    <FiSettings className="w-4 h-4" />
+                    Configurar Metas Mensuales
+                </Button>
             </div>
 
             {/* CONTENEDOR PRINCIPAL */}
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-6">
-                
+
                 {/* Cabecera Técnica del Dashboard */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                         <h2 className="text-lg font-bold text-slate-800">KPI'S de Metas (Vista Mensual Detallada)</h2>
-                        <p className="text-xs text-gray-400">Gestiona todas las organizaciones registradas en el sistema</p>
+                        <p className="text-xs text-gray-400">Visualización de métricas de cumplimiento de ANS institucionales</p>
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-4 sm:items-center w-full sm:w-auto">
@@ -183,7 +204,6 @@ export const SlaDashboardPage: React.FC = () => {
 
                 {/* TARJETAS DE KPI SUPERIORES */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-2">
-                    
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between h-28 relative">
                         <div className="space-y-1">
                             <p className="text-sm font-medium text-gray-500">Incidentes Reportados</p>
@@ -196,8 +216,8 @@ export const SlaDashboardPage: React.FC = () => {
 
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between h-28 relative">
                         <div className="space-y-1">
-                            <p className="text-sm font-medium text-gray-500">Tiempo Promedio</p>
-                            <p className="text-3xl font-bold text-slate-800 font-mono">{activeKpiData.tiempoPromedioResolucion?.toFixed(2) || activeKpiData.tiempoPromedioResolucion.toFixed(2)} H</p>
+                            <p className="text-sm font-medium text-gray-500">Tiempo Promedio en Resolucion</p>
+                            <p className="text-3xl font-bold text-slate-800 font-mono">{activeKpiData.tiempoPromedioResolucion?.toFixed(2) || "0.00"} H</p>
                         </div>
                         <div className="absolute right-6 top-1/2 -translate-y-1/2 p-3 bg-slate-50 border border-gray-100 rounded-xl text-slate-600">
                             <Clock className="h-6 w-6" />
@@ -208,7 +228,7 @@ export const SlaDashboardPage: React.FC = () => {
                         <div className="space-y-1">
                             <p className="text-sm font-medium text-gray-500">Alerta de Cumplimiento</p>
                             <p className={`text-2xl font-bold tracking-tight ${activeKpiData.cumplimiento === 'Alerta' || activeKpiData.cumplimiento === 'ALERTA' ? 'text-amber-500' : 'text-emerald-600'}`}>
-                                {activeKpiData.cumplimiento.toUpperCase()}
+                                {activeKpiData.cumplimiento?.toUpperCase() || "SIN DATOS"}
                             </p>
                         </div>
                         <div className="absolute right-6 top-1/2 -translate-y-1/2 p-3 bg-slate-50 border border-gray-100 rounded-xl text-slate-600">
@@ -227,24 +247,21 @@ export const SlaDashboardPage: React.FC = () => {
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-between text-xs font-bold text-slate-600">
-                                    <span>Alcanzada: {activeKpiData.metaAlcanzada.toFixed(1)}%</span>
+                                    <span>Alcanzada: {activeKpiData.metaAlcanzada?.toFixed(1) || "0.0"}%</span>
                                     <div className="w-24 bg-gray-100 h-2 rounded-full overflow-hidden">
-                                        <div className="bg-amber-500 h-full" style={{ width: `${Math.min(activeKpiData.metaAlcanzada, 100)}%` }}></div>
+                                        <div className="bg-amber-500 h-full" style={{ width: `${Math.min(activeKpiData.metaAlcanzada || 0, 100)}%` }}></div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-
                 </div>
 
                 {/* ─── SECCIÓN DE GRÁFICOS ─── */}
                 <div className="space-y-6 pt-2">
-                    
-                    {/* Gráfico 1: Evolución Mensual */}
                     <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-gray-100 pb-3 gap-2">
-                            <h3 className="text-sm font-bold text-slate-800">Evolución mensual de rendimiento por cada servicio hospitalario</h3>
+                            <h3 className="text-sm font-bold text-slate-800">Evolución mensual de rendimiento de atención SLA</h3>
                             <div className="flex items-center gap-4 text-xs font-bold">
                                 <div className="flex items-center gap-1.5 text-[#1a558b]">
                                     <span className="w-3 h-0.5 bg-[#1a558b] inline-block"></span> Meta
@@ -259,7 +276,6 @@ export const SlaDashboardPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Gráfico 2: Incidentes Reportados */}
                     <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-3">
                         <h3 className="text-sm font-bold text-slate-800 border-b border-gray-100 pb-3">Incidentes Reportados por Mes</h3>
                         <div className="relative h-64 w-full">
@@ -267,17 +283,22 @@ export const SlaDashboardPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Gráfico 3: Tiempo Promedio */}
                     <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-3">
-                        <h3 className="text-sm font-bold text-slate-800 border-b border-gray-100 pb-3">Tiempo Promedio de Resolucion</h3>
+                        <h3 className="text-sm font-bold text-slate-800 border-b border-gray-100 pb-3">Tiempo Promedio de Resolución (H)</h3>
                         <div className="relative h-64 w-full">
                             <Bar data={timeChartData} options={commonOptions} />
                         </div>
                     </div>
-
                 </div>
-
             </div>
+
+            <SlaGoalsModal
+                isOpen={isGoalModalOpen}
+                onClose={() => setIsGoalModalOpen(false)}
+                year={year}
+                currentData={monthlyRecords}
+                onSuccess={handleRefreshData}
+            />
         </div>
     );
 };

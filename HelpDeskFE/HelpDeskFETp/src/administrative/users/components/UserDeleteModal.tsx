@@ -14,7 +14,7 @@ interface UserDeleteModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (id: number) => Promise<void>;
-  user: UserItem | null; 
+  user: UserItem | null;
 }
 
 export const UserDeleteModal: React.FC<UserDeleteModalProps> = ({
@@ -42,7 +42,7 @@ export const UserDeleteModal: React.FC<UserDeleteModalProps> = ({
   return (
     <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <AlertDialogContent className="sm:max-w-125 w-[90%] rounded-3xl p-8 bg-white border-none shadow-2xl flex flex-col gap-0 select-none animate-in fade-in-50 zoom-in-95 duration-200">
-        
+
         {/* Cabecera del Modal */}
         <AlertDialogHeader className="text-center w-full flex flex-col items-center gap-0 pb-2">
           <AlertDialogTitle className="text-xl sm:text-2xl font-bold text-neutral-600 tracking-tight text-center uppercase">
@@ -68,7 +68,7 @@ export const UserDeleteModal: React.FC<UserDeleteModalProps> = ({
 
         {/* BOTONES ALINEADOS   */}
         <div className="flex flex-row items-center justify-center gap-3 w-full">
-          
+
           {/* Botón CANCELAR */}
           <Button
             type="button"

@@ -10,7 +10,7 @@ export const EditAgencyPage: React.FC = () => {
   const navigate = useNavigate();
   const agencyId = Number(id);
 
-  const { updateAgency, getAgencyById, isLoading, isFetching, agency } = useAgencies('','', 1, 1);
+  const { updateAgency, getAgencyById, isLoading, isFetching, agency } = useAgencies('', '', 1, 1);
   const { organizations: realOrganizations } = useOrganizations('', 1, 100);
 
   useEffect(() => {

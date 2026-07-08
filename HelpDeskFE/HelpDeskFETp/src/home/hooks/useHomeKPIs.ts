@@ -9,7 +9,8 @@ export interface HomeKPIsData {
 }
 
 export const useHomeKPIs = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  
   const [kpis, setKpis] = useState<HomeKPIsData>({
     resolvedToday: 0,
     activeTickets: 0,
@@ -17,19 +18,31 @@ export const useHomeKPIs = () => {
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
+  const isCliente = user?.roles.some(r => r.toLowerCase() === 'cliente') ?? false;
+
   const fetchKPIs = useCallback(async () => {
     if (!isAuthenticated) return;
     try {
       setIsLoading(true);
 
-      const ticketsResponse = await AXIOS_INSTANCE.get('/api/tickets?page=1&pageSize=1');
+      const ticketsResponse = await AXIOS_INSTANCE.get('/api/tickets?pageNumber=1&pageSize=1');
       const ticketsPagedData = ticketsResponse.data; 
-      const devicesResponse = await AXIOS_INSTANCE.get('/api/devices?page=1&pageSize=1');
-      const devicesPagedData = devicesResponse.data;
+
+      let totalDevicesCount = 0;
+    
+      if (!isCliente) {
+        try {
+          const devicesResponse = await AXIOS_INSTANCE.get('/api/devices?pageNumber=1&pageSize=1');
+          totalDevicesCount = devicesResponse.data?.totalItems ?? 0;
+        } catch (deviceError) {
+          console.error("Error aislado al recuperar dispositivos (Admin/TI):", deviceError);
+        }
+      }
+
       setKpis({
         resolvedToday: ticketsPagedData?.resolvedTodayCount ?? 0, 
         activeTickets: ticketsPagedData?.activeTicketsCount ?? 0, 
-        totalDevices: devicesPagedData?.totalItems ?? 0,        
+        totalDevices: totalDevicesCount,        
       });
 
     } catch (error) {
@@ -37,7 +50,7 @@ export const useHomeKPIs = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isCliente]); 
 
   useEffect(() => {
     let isMounted = true;

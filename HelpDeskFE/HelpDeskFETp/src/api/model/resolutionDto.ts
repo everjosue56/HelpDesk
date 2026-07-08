@@ -27,7 +27,8 @@ export interface ResolutionDto {
   idSolutionStatus?: number;
   /** @nullable */
   solutionStatusName?: string | null;
-  idDevice?: number;
+  /** @nullable */
+  idDevice?: number | null;
   /** @nullable */
   deviceName?: string | null;
   idPriority?: number;

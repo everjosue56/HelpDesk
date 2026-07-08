@@ -1,12 +1,12 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { AuthRouter } from "../auth/routes/AuthRouter"; 
+import { AuthRouter } from "../auth/routes/AuthRouter";
 import { DashBoardRouter } from "@/home/routes/DashboardRouter";
 import { useAuth } from "@/context/AuthContext";
 
 export const AppRouter = () => {
- const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
-  // Mientras el contexto lee el LocalStorage, mostramos una pantalla de carga limpia
+
   if (isLoading) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center bg-neutral-50 font-sans">
@@ -19,7 +19,7 @@ export const AppRouter = () => {
     <Routes>
       {/* Si está autenticado, la raíz lo manda al Dashboard. Si no, al Login */}
       <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/auth/login"} replace />} />
-      
+
       {/* Rutas Públicas (Login) */}
       <Route path="/auth/*" element={!isAuthenticated ? <AuthRouter /> : <Navigate to="/dashboard" replace />} />
 

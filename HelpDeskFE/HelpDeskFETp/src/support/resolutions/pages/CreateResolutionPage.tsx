@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 export const CreateResolutionPage: React.FC = () => {
     const navigate = useNavigate();
     const { createResolution, isLoading } = useResolutions('', 1, 5);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleSubmit = async (values: any) => {
         try {
             await createResolution({
@@ -19,7 +19,9 @@ export const CreateResolutionPage: React.FC = () => {
                 observation: values.observation || null,
                 secondObservation: values.secondObservation || null,
                 idPriority: Number(values.idPriority),
-                idDevice: values.idDevice ? Number(values.idDevice) : undefined,
+                idDevice: (values.idDevice && values.idDevice !== 0 && values.idDevice !== "0")
+                    ? Number(values.idDevice)
+                    : undefined,
                 solutionTime: Number(values.solutionTime)
             });
 

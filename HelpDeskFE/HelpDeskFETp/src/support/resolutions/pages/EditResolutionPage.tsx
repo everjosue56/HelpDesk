@@ -8,7 +8,7 @@ export const EditResolutionPage: React.FC = () => {
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
 
-    const { getResolutionById, updateResolution, isLoading } = useResolutions('', 1, 5);
+    const { getResolutionById, updateResolution, isLoading } = useResolutions('', 1, 10);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [resolutionData, setResolutionData] = useState<any | null>(null);
@@ -20,10 +20,8 @@ export const EditResolutionPage: React.FC = () => {
             try {
                 setIsFetchingData(true);
                 const result = await getResolutionById(Number(id));
-                
+
                 if (result) {
-                    console.log("Respuesta cruda del backend (Resolución):", result);
-                    
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const resAny = result as any;
                     const data = resAny?.data || resAny?.Data || resAny;
@@ -59,7 +57,7 @@ export const EditResolutionPage: React.FC = () => {
 
         loadResolution();
     }, [id, getResolutionById, navigate]);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleSubmit = async (values: any) => {
         if (!id) return;
         try {
@@ -72,8 +70,10 @@ export const EditResolutionPage: React.FC = () => {
                 observation: values.observation || null,
                 secondObservation: values.secondObservation || null,
                 idPriority: Number(values.idPriority),
-                idDevice: values.idDevice ? Number(values.idDevice) : undefined,
-                solutionTime: Number(values.solutionTime) 
+                idDevice: (values.idDevice && values.idDevice !== 0 && values.idDevice !== "0")
+                    ? Number(values.idDevice)
+                    : undefined,
+                solutionTime: Number(values.solutionTime)
             });
 
             toast.success("Registro de resolución modificado con éxito");
@@ -83,6 +83,14 @@ export const EditResolutionPage: React.FC = () => {
             toast.error("Error al guardar los cambios en la resolución");
         }
     };
+
+    if (isFetchingData || !resolutionData) {
+        return (
+            <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center text-sm font-medium text-gray-400 animate-pulse m-6">
+                Sincronizando ficha con la base de datos central...
+            </div>
+        );
+    }
 
     return (
         <div className="p-6 space-y-6 bg-[#f8f9fa] min-h-screen font-sans animate-fadeIn text-left select-none">

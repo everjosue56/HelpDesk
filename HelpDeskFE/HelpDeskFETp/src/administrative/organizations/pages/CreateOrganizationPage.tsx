@@ -74,7 +74,7 @@ export const CreateOrganizationPage: React.FC = () => {
                 <span className="text-gray-400 font-semibold">Crear</span>
             </div>
             
-            {/* Título de la página que da contexto antes del form */}
+            {/* Título  */}
             <h1 className="text-2xl font-black text-slate-800 tracking-tight mt-0.5">
                 Organizaciones
             </h1>

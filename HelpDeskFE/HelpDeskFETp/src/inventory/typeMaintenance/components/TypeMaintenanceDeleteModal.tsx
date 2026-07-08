@@ -52,7 +52,7 @@ export const TypeMaintenanceDeleteModal: React.FC<TypeMaintenanceDeleteModalProp
 
         <div className="w-full border-t border-neutral-200/60 my-4" />
 
-        {/* Cuerpo del Mensaje Adaptado a Mantenimiento */}
+        {/* Cuerpo del Mensaje  */}
         <div className="text-center flex flex-col items-center gap-4 py-2 px-1 w-full">
           <p className="text-[14px] font-black text-red-500 tracking-wide uppercase max-w-sm leading-snug">
             ¿Estás seguro que quieres desactivar este tipo de mantenimiento?

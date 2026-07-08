@@ -31,10 +31,16 @@ namespace HelpDesk.Services.NotificationService
             _logger = logger;
         }
 
-        public async Task<PagedResponseDto<NotificationDto>> GetAllAsync(NotificationFilterDto filter)
+        public async Task<PagedResponseDto<NotificationDto>> GetAllAsync(NotificationFilterDto filter, bool isCliente, int currentUserId)
         {
             try
             {
+
+                if (isCliente)
+                {
+                    filter.IdUser = currentUserId;
+                }
+
                 var query = _context.Notifications
                     .Include(n => n.Users)
                     .Include(n => n.AlertTypes)
