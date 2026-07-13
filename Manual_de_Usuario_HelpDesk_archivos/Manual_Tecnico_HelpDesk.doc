@@ -1,0 +1,367 @@
+
+    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+        <meta charset="utf-8">
+        <title>Manual Técnico - Plataforma HelpDesk</title>
+        <!--[if gte mso 9]>
+        <xml>
+            <w:WordDocument>
+                <w:View>Print</w:View>
+                <w:Zoom>100</w:Zoom>
+                <w:DoNotOptimizeForBrowser/>
+            </w:WordDocument>
+        </xml>
+        <![endif]-->
+        <style>
+            @page {
+                size: 8.5in 11in;
+                margin: 1.0in 1.0in 1.0in 1.0in;
+                mso-header-margin: .5in;
+                mso-footer-margin: .5in;
+                mso-paper-source: 0;
+            }
+            div.Section1 {
+                page: Section1;
+            }
+            body {
+                font-family: 'Calibri', 'Arial', sans-serif;
+                font-size: 11pt;
+                line-height: 1.25;
+                color: #333333;
+            }
+            h1 {
+                color: #1f4e79;
+                font-size: 22pt;
+                font-weight: bold;
+                border-bottom: 2px solid #1f4e79;
+                padding-bottom: 4px;
+                margin-top: 24pt;
+                margin-bottom: 12pt;
+            }
+            h2 {
+                color: #2e74b5;
+                font-size: 15pt;
+                font-weight: bold;
+                margin-top: 18pt;
+                margin-bottom: 8pt;
+                border-bottom: 1px solid #2e74b5;
+                padding-bottom: 2px;
+            }
+            h3 {
+                color: #595959;
+                font-size: 12.5pt;
+                font-weight: bold;
+                margin-top: 14pt;
+                margin-bottom: 6pt;
+            }
+            h4 {
+                color: #595959;
+                font-size: 11pt;
+                font-weight: bold;
+                font-style: italic;
+                margin-top: 12pt;
+                margin-bottom: 4pt;
+            }
+            p {
+                margin-top: 0;
+                margin-bottom: 6pt;
+                font-size: 11pt;
+                line-height: 1.15;
+            }
+            ul, ol {
+                margin-top: 0;
+                margin-bottom: 6pt;
+                padding-left: 20pt;
+            }
+            li {
+                margin-bottom: 3pt;
+                font-size: 11pt;
+            }
+            pre {
+                background-color: #f4f5f7;
+                border: 1px solid #d3d3d3;
+                padding: 10px;
+                font-family: 'Consolas', 'Courier New', monospace;
+                font-size: 9.5pt;
+                margin-top: 6pt;
+                margin-bottom: 6pt;
+                white-space: pre-wrap;
+            }
+            code {
+                font-family: 'Consolas', 'Courier New', monospace;
+                font-size: 9.5pt;
+                background-color: #f4f5f7;
+                padding: 1px 3px;
+                color: #c7254e;
+            }
+            blockquote {
+                border-left: 3.5pt solid #d0d7de;
+                padding-left: 10pt;
+                margin-left: 0;
+                margin-top: 6pt;
+                margin-bottom: 6pt;
+                color: #57606a;
+            }
+            table {
+                border-collapse: collapse;
+                width: 100%;
+                margin-top: 8pt;
+                margin-bottom: 8pt;
+            }
+            th, td {
+                border: 1px solid #d3d3d3;
+                padding: 6pt;
+                text-align: left;
+                font-size: 10pt;
+            }
+            th {
+                background-color: #f2f2f2;
+                font-weight: bold;
+                color: #1f4e79;
+            }
+            .note-box {
+                background-color: #ddf4ff;
+                border-left: 4pt solid #0969da;
+                padding: 8pt 10pt;
+                margin-top: 6pt;
+                margin-bottom: 6pt;
+            }
+            .tip-box {
+                background-color: #dafbe1;
+                border-left: 4pt solid #1a7f37;
+                padding: 8pt 10pt;
+                margin-top: 6pt;
+                margin-bottom: 6pt;
+            }
+            .warning-box {
+                background-color: #ffebe9;
+                border-left: 4pt solid #cf222e;
+                padding: 8pt 10pt;
+                margin-top: 6pt;
+                margin-bottom: 6pt;
+            }
+            .important-box {
+                background-color: #fff8c5;
+                border-left: 4pt solid #9a6700;
+                padding: 8pt 10pt;
+                margin-top: 6pt;
+                margin-bottom: 6pt;
+            }
+            hr {
+                border: 0;
+                height: 1px;
+                background-color: #d0d7de;
+                margin-top: 18pt;
+                margin-bottom: 18pt;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="Section1">
+    <h1>🛠️ Manual Técnico Extendido - Plataforma HelpDesk</h1>
+<p>Este manual proporciona una guía detallada sobre la arquitectura, diseño de base de datos, flujos de seguridad y, de manera prioritaria, los <strong>procedimientos de configuración y despliegue del entorno de desarrollo</strong> para la plataforma <strong>HelpDesk</strong>.</p>
+<hr />
+<h2>🏛️ 1. Arquitectura y Stack Tecnológico</h2>
+<p>La plataforma está diseñada bajo un modelo desacoplado cliente-servidor para optimizar la escalabilidad, el mantenimiento y la independencia tecnológica de cada componente:</p>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│                    CAPA DE PRESENTACIÓN (CLIENT)                │
+│  React 18/19 SPA | TypeScript | Tailwind CSS | Vite             │
+└────────────────────────────────┬────────────────────────────────┘
+                                 │
+                         HTTPS   │   Peticiones REST (JSON)
+                      CORS Policy│   Autenticación JWT Bearer
+                                 ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    CAPA DE NEGOCIO Y API (SERVER)               │
+│  ASP.NET Core Web API (.NET 10)                                 │
+│  - Controladores REST                                           │
+│  - Capa de Servicios de Negocio (Dependency Injection)          │
+│  - Background Services (AlertSchedulerWorker para alertas)      │
+└────────────────────────────────┬────────────────────────────────┘
+                                 │
+                         EF Core │   LINQ / Mapeo Relacional
+                         ORM     │   Migraciones Automáticas
+                                 ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                       CAPA DE DATOS (DATABASE)                  │
+│  SQL Server / PostgreSQL                                        │
+│  - Procedimientos de Seeding automáticos                        │
+└─────────────────────────────────────────────────────────────────┘</code></pre>
+<hr />
+<h2>📁 2. Estructura de Directorios Detallada</h2>
+<h3>2.1 Backend (<code>HelpDesk.BE</code>)</h3>
+<p>Ubicado en <a href="file:///C:/Users/Usuario/Desktop/Trabajos%20practica/HelpDesk/HelpDeskCode/HelpDeskBE/HelpDesk" style="color: #0969da; text-decoration: underline;">HelpDeskBE/HelpDesk</a>:</p>
+<pre><code>HelpDesk/
+│
+├── Controllers/              # Controladores de la API (Endpoints expuestos)
+│   ├── AuthController.cs     # Login y generación de JWT
+│   ├── TicketController.cs   # Operaciones CRUD e historial de tickets
+│   └── ...                   # Controladores para Inventario, Usuarios, KPIs, etc.
+│
+├── Services/                 # Capa de Lógica de Negocio
+│   ├── AuthService/          # Gestión de credenciales, hash de contraseñas y JWT
+│   ├── TicketService/        # Reglas de negocio para creación y asignación de tickets
+│   ├── BackgroundServices/   # Tareas programadas en segundo plano (AlertSchedulerWorker)
+│   └── ...                   # Servicios para Inventario, Auditoría, SLA, etc.
+│
+├── Database/                 # Capa de Acceso a Datos (EF Core)
+│   ├── Entities/             # Modelos de dominio y definición de tablas
+│   ├── Seed/                 # Scripts de inicialización de datos para desarrollo
+│   └── ApplicationDbContext  # Configuración del DbContext y relaciones Fluent API
+│
+├── Dtos/                     # Data Transfer Objects (Validación de entrada y salida)
+├── Config/                   # Clases auxiliares de configuración (EmailSettings, etc.)
+└── Program.cs                # Configuración inicial, inyección de dependencias y middlewares</code></pre>
+<h3>2.2 Frontend (<code>HelpDesk.FE</code>)</h3>
+<p>Ubicado en <a href="file:///C:/Users/Usuario/Desktop/Trabajos%20practica/HelpDesk/HelpDeskCode/HelpDeskFE/HelpDeskFETp" style="color: #0969da; text-decoration: underline;">HelpDeskFE/HelpDeskFETp</a>:</p>
+<pre><code>HelpDeskFETp/
+│
+├── src/
+│   ├── context/              # Contextos globales de React (AuthContext, etc.)
+│   ├── routes/               # Enrutador principal de la aplicación (AppRouter.tsx)
+│   ├── api/                  # Clientes HTTP (Axios) configurados para consumir la API
+│   │
+│   ├── feature/              # Estructura modular basada en características
+│   │   ├── auth/             # Login, formularios y componentes de protección de ruta
+│   │   ├── support/          # Tickets, resoluciones y catálogo de errores
+│   │   ├── inventory/        # Dispositivos, mantenimientos y tipologías
+│   │   ├── administrative/   # Gestión de usuarios, roles, áreas y logs de auditoría
+│   │   └── dashboard/        # Dashboards e indicadores KPI (SLA, tiempos de atención)
+│   │
+│   ├── main.tsx              # Punto de entrada de la aplicación React
+│   └── index.css             # Estilos globales y tokens de diseño Tailwind
+│
+├── package.json              # Scripting y dependencias de NPM
+├── tailwind.config.ts        # Parametrización del diseño responsivo y paleta de colores
+└── vite.config.ts            # Configuración de compilación y servidor de Vite</code></pre>
+<hr />
+<h2>💾 3. Diseño y Semillero de la Base de Datos</h2>
+<p>La base de datos utiliza Entity Framework Core Code-First.</p>
+<h3>Semilleros (<em>Seeders</em>) Incluidos</h3>
+<p>Para facilitar el levantamiento del proyecto, en <a href="file:///C:/Users/Usuario/Desktop/Trabajos%20practica/HelpDesk/HelpDeskCode/HelpDeskBE/HelpDesk/Database/Seed" style="color: #0969da; text-decoration: underline;">Database/Seed/</a> se definen datos predeterminados. Al aplicar las migraciones, se insertan automáticamente:</p>
+<ol>
+  <li><strong>Roles base:</strong> <code>Administrador</code>, <code>TI</code> (Técnicos de soporte), y <code>Cliente</code> (Usuarios finales).</li>
+  <li><strong>Estructura inicial:</strong> Organizaciones, agencias y áreas corporativas de prueba.</li>
+  <li><strong>Usuario Administrador por defecto:</strong></li>
+</ol>
+<ul>
+  <li><strong>Usuario:</strong> <code>admin</code> (Email: <code>admin@systemdeluxe.com</code>)</li>
+  <li><strong>Contraseña:</strong> <code>Admin1234.</code> <em>(Configurado con Hash y Salt seguros)</em></li>
+</ul>
+<ol>
+  <li><strong>Catálogos iniciales:</strong> Tipos de dispositivos, software críticos, tipos de mantenimiento y prioridades de incidentes.</li>
+</ol>
+<hr />
+<h2>🚀 4. Guía Paso a Paso para Levantar el Proyecto</h2>
+<p>Sigue estos pasos en el orden indicado para ejecutar el proyecto en tu máquina local.</p>
+<h3>4.1 Prerrequisitos de Software</h3>
+<p>Antes de iniciar, debes tener instalado en tu sistema:</p>
+<ul>
+  <li>[x] <strong>SDK de .NET 10.0</strong> (o posterior).</li>
+  <li>[x] <strong>Node.js</strong> (Versión 18 o superior) y <strong>NPM</strong>.</li>
+  <li>[x] <strong>SQL Server</strong> (Instancia LocalDB, Express o SQL Server Developer) o <strong>PostgreSQL</strong>.</li>
+  <li>[x] Una consola de comandos (PowerShell o Bash).</li>
+  <li>[x] Editor recomendado: <strong>Visual Studio 2022</strong> o <strong>VS Code</strong>.</li>
+</ul>
+<hr />
+<h3>4.2 Paso 1: Configurar y Levantar el Backend (API)</h3>
+<h4>1. Clonar y ubicar el directorio</h4>
+<p>Abre tu terminal en la carpeta raíz del backend:</p>
+<pre><code>cd "C:\Users\Usuario\Desktop\Trabajos practica\HelpDesk\HelpDeskCode\HelpDeskBE\HelpDesk"</code></pre>
+<h4>2. Configurar la Cadena de Conexión</h4>
+<p>Crea o modifica el archivo <code>appsettings.json</code> en la raíz del proyecto backend. Asegúrate de configurar la propiedad <code>DefaultConnection</code> para que apunte a tu base de datos local y define la clave de cifrado JWT <code>AppSettings:Token</code>:</p>
+<pre><code>{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=(localdb)\\MSSQLLocalDB;Database=HelpDeskDb;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True;"
+  },
+  "AppSettings": {
+    "Token": "MiSuperClaveSecretaDeAlMenos32CaracteresDeLargoParaSeguridadJWT"
+  },
+  "EmailSettings": {
+    "SmtpServer": "smtp.gmail.com",
+    "Port": 587,
+    "SenderName": "HelpDesk Soporte",
+    "SenderEmail": "tu-correo@gmail.com",
+    "Username": "tu-correo@gmail.com",
+    "Password": "tu-app-password"
+  },
+  "AllowedHosts": "*"
+}</code></pre>
+<div class="tip-box"><strong>CONSEJO:</strong> Si estás utilizando una instancia local estándar de SQL Server en lugar de LocalDB, cambia la sección <code>Server</code> por <code>localhost</code> o <code>.</code> y ajusta las credenciales de base de datos según corresponda.</div>
+<h4>3. Restaurar dependencias de .NET</h4>
+<p>Instala los paquetes de Entity Framework, AutoMapper, MailKit y demás dependencias necesarias:</p>
+<pre><code>dotnet restore</code></pre>
+<h4>4. Instalar la Herramienta de Entity Framework Core (Si no está instalada)</h4>
+<p>Para gestionar migraciones desde la terminal, necesitas la herramienta <code>dotnet-ef</code>:</p>
+<pre><code>dotnet tool install --global dotnet-ef</code></pre>
+<p><em>(Si ya la tienes instalada y deseas actualizarla, puedes correr <code>dotnet tool update --global dotnet-ef</code>)</em>.</p>
+<h4>5. Aplicar las Migraciones y Poblar la Base de Datos (Seeding)</h4>
+<p>Genera el esquema de tablas en tu base de datos y ejecuta el semillero inicial de datos ejecutando:</p>
+<pre><code>dotnet ef database update</code></pre>
+<p>Al finalizar este comando, deberías poder verificar en tu gestor de base de datos (ej. SQL Server Management Studio) que la base de datos <code>HelpDeskDb</code> ha sido creada con todas sus tablas y registros semilla correspondientes.</p>
+<h4>6. Ejecutar el Backend en modo Desarrollo</h4>
+<p>Arranca el servidor web Kestrel incorporado en .NET:</p>
+<pre><code>dotnet run</code></pre>
+<ul>
+  <li><strong>Verificación:</strong> La consola indicará en qué puerto HTTP/HTTPS está escuchando el servicio (por ejemplo, <code>https://localhost:7196</code> y <code>http://localhost:5196</code>).</li>
+  <li><strong>Swagger UI:</strong> Abre tu navegador e ingresa a <code>https://localhost:7196/swagger</code> para visualizar el panel de pruebas de la API y constatar que responde adecuadamente.</li>
+</ul>
+<hr />
+<h3>4.3 Paso 2: Configurar y Levantar el Frontend (React)</h3>
+<h4>1. Ubicar el directorio del Frontend</h4>
+<p>Abre una nueva pestaña o ventana de la consola y navega al proyecto React:</p>
+<pre><code>cd "C:\Users\Usuario\Desktop\Trabajos practica\HelpDesk\HelpDeskCode\HelpDeskFE\HelpDeskFETp"</code></pre>
+<h4>2. Instalar las dependencias de Node.js</h4>
+<p>Descarga e instala todos los paquetes y librerías declarados en el archivo <a href="file:///C:/Users/Usuario/Desktop/Trabajos%20practica/HelpDesk/HelpDeskCode/HelpDeskFE/HelpDeskFETp/package.json" style="color: #0969da; text-decoration: underline;">package.json</a>:</p>
+<pre><code>npm install</code></pre>
+<h4>3. Configurar las Variables de Entorno del Cliente</h4>
+<p>Crea un archivo llamado <code>.env</code> en la raíz de esta carpeta (si no existe) y define la URL donde está corriendo tu backend API de .NET:</p>
+<pre><code>VITE_API_URL=https://localhost:7196</code></pre>
+<p><em>(Asegúrate de que el puerto coincida exactamente con el puerto HTTPS expuesto por <code>dotnet run</code>)</em>.</p>
+<h4>4. Ejecutar el Servidor de Desarrollo con Vite</h4>
+<p>Inicia el entorno de desarrollo local:</p>
+<pre><code>npm run dev</code></pre>
+<ul>
+  <li><strong>Verificación:</strong> Vite indicará que la aplicación se está sirviendo en una dirección local, típicamente <code>http://localhost:5173</code>.</li>
+  <li>Abre tu navegador e ingresa a <code>http://localhost:5173</code>. Deberías visualizar la pantalla de Login del sistema.</li>
+</ul>
+<hr />
+<h3>4.4 Paso 3: Inicio de Sesión de Prueba</h3>
+<p>Para verificar que el flujo completo está conectado (Base de Datos ── Backend ── Frontend):</p>
+<ol>
+  <li>Ve a la pantalla de login en <code>http://localhost:5173/auth/login</code>.</li>
+  <li>Introduce las siguientes credenciales:</li>
+</ol>
+<ul>
+  <li><strong>Nombre de Usuario o Email:</strong> <code>admin</code> (o <code>admin@systemdeluxe.com</code>)</li>
+  <li><strong>Contraseña:</strong> <code>Admin1234.</code></li>
+</ul>
+<ol>
+  <li>Presiona el botón de <strong>Iniciar Sesión</strong>. Deberías ser redirigido exitosamente al Dashboard Principal de la aplicación, cargando gráficos y métricas iniciales del sistema.</li>
+</ol>
+<hr />
+<h2>🛠️ 5. Resolución de Problemas Comunes (Troubleshooting)</h2>
+<h3>1. Error de CORS (Cross-Origin Resource Sharing)</h3>
+<ul>
+  <li><strong>Síntoma:</strong> El login falla, la consola del navegador muestra un error indicando que las peticiones CORS han sido bloqueadas.</li>
+  <li><strong>Causa:</strong> La API no está permitiendo peticiones desde la dirección IP o puerto donde corre tu aplicación de React.</li>
+  <li><strong>Solución:</strong> Ve a la configuración de CORS en el archivo <a href="file:///C:/Users/Usuario/Desktop/Trabajos%20practica/HelpDesk/HelpDeskCode/HelpDeskBE/HelpDesk/Program.cs#L141-L150" style="color: #0969da; text-decoration: underline;">Program.cs</a> del backend. Asegúrate de que la URL de origen de tu servidor Vite esté permitida en la política:</li>
+</ul>
+<pre><code>  policy.WithOrigins("http://localhost:5173") // O la URL exacta donde corre React</code></pre>
+<h3>2. Error al aplicar <code>dotnet ef database update</code></h3>
+<ul>
+  <li><strong>Síntoma:</strong> Error de conexión al servidor de base de datos.</li>
+  <li><strong>Causa:</strong> El servicio de SQL Server no está corriendo en tu máquina, o la cadena de conexión en <code>appsettings.json</code> tiene un nombre de instancia incorrecto.</li>
+  <li><strong>Solución:</strong> Abre el Administrador de Servicios de Windows y verifica que el servicio <code>SQL Server (MSSQLSERVER)</code> o <code>SQL Server (SQLEXPRESS)</code> esté en estado "Ejecutándose". Ajusta la cadena de conexión si estás usando otra instancia.</li>
+</ul>
+<h3>3. Excepción por Token JWT Inválido al Iniciar</h3>
+<ul>
+  <li><strong>Síntoma:</strong> La API retorna un error <code>500</code> o la aplicación de React indica que no puede validar el token JWT tras loguearse.</li>
+  <li><strong>Causa:</strong> La clave <code>AppSettings:Token</code> tiene menos de 256 bits (32 bytes/caracteres).</li>
+  <li><strong>Solución:</strong> Reemplaza la clave en <code>appsettings.json</code> por una frase de seguridad más larga.</li>
+</ul>
+
+        </div>
+    </body>
+    </html>
+    
