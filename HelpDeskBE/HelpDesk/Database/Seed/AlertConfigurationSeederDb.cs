@@ -13,7 +13,7 @@ namespace HelpDesk.Database.Seed
                 new AlertConfigurationEntity
                 {
                     Id = 1,
-                    Title = "Caída General de Servidores",
+                    Title = "Caída General de Servidores - Example",
                     Subject = "[CRÍTICO] Interrupción de Servicios de Red",
                     Description = "Se ha detectado una pérdida de conectividad global en los servidores principales de la UNAH-CUROC. Equipo de TI favor verificar infraestructura.",
                     IsGlobal = true,
@@ -26,7 +26,7 @@ namespace HelpDesk.Database.Seed
                 new AlertConfigurationEntity
                 {
                     Id = 2,
-                    Title = "Mantenimiento Preventivo Trimestral",
+                    Title = "Mantenimiento Preventivo Trimestral - Example",
                     Subject = "Recordatorio: Inicio de Mantenimiento de Equipos de Cómputo",
                     Description = "Estimado equipo, se les recuerda que según el calendario establecido se debe dar inicio al mantenimiento preventivo de los laboratorios asignados.",
                     IsGlobal = false,

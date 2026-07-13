@@ -210,4 +210,4 @@ http://localhost:5173
 
 ## 📄 Licencia
 
-Este proyecto es de uso interno y pertenece al equipo de desarrollo de **System**.
+Este proyecto es de uso interno y pertenece al equipo de desarrollo de **HELPDESK | EG**.

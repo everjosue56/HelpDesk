@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+    using AutoMapper;
 using HelpDesk.Database;
 using HelpDesk.Database.Entities;
 using HelpDesk.Dtos.Common;
@@ -36,9 +36,11 @@ namespace HelpDesk.Services.DeviceService
             try
             {
                 var query = _context.Devices
+                    .IgnoreQueryFilters()
                     .Include(d => d.TypeDevices)
                     .Include(d => d.Users)
                     .Include(d => d.Areas)
+                    .Where(d => d.IsDeleted == false || d.IsDeleted == null)
                     .OrderByDescending(d => d.CreatedDate)
                     .AsQueryable();
 
@@ -95,6 +97,7 @@ namespace HelpDesk.Services.DeviceService
         public async Task<ResponseDto<DeviceDto>> GetByIdAsync(long id)
         {
             var entity = await _context.Devices
+                .IgnoreQueryFilters()
                 .Include(d => d.TypeDevices)
                 .Include(d => d.Users)
                 .Include(d => d.Areas)
@@ -139,6 +142,7 @@ namespace HelpDesk.Services.DeviceService
             entity.CreatedDate = DateTime.Now;
             entity.CreatedBy = currentUserId; 
             entity.IsActive = true;
+            entity.IsDeleted = false;
 
             _context.Devices.Add(entity);
             await _context.SaveChangesAsync();

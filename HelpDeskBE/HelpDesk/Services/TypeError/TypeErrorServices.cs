@@ -94,7 +94,8 @@ namespace HelpDesk.Services
             var currentUserId = _authService.GetUserId();
 
             entity.CreatedDate = DateTime.Now;
-            entity.CreatedBy = currentUserId;  
+            entity.CreatedBy = currentUserId;
+            entity.IsDeleted = false;
 
             _context.TypeErrors.Add(entity);
             await _context.SaveChangesAsync();

@@ -39,6 +39,7 @@ namespace HelpDesk.Services.MaintenanceService
                     .Include(m => m.Area)
                     .Include(m => m.Device)
                     .OrderByDescending(m => m.CreatedDate)
+                    .Where(m => !m.IsDeleted)
                     .AsQueryable();
 
                 if (filter.IdMaintenanceType.HasValue)
@@ -163,6 +164,7 @@ namespace HelpDesk.Services.MaintenanceService
                     SolutionTime = maintenanceEntity.ExecutionTime,
                     CreatedBy = currentUserId,
                     CreatedDate = currentDate,
+                    IsDeleted = false
                 };
 
                 _context.MaintenanceHistories.Add(historyEntity);
@@ -205,24 +207,42 @@ namespace HelpDesk.Services.MaintenanceService
         {
             try
             {
-                var maintenanceEntity = await _context.Maintenances.FindAsync(id);
+                var entity = await _context.Maintenances.FindAsync(id);
 
-                if (maintenanceEntity == null)
+                if (entity == null)
                 {
-                    return new ResponseDto<bool> { Status = false, Message = "Mantenimiento no encontrada.", Data = false };
+                    return new ResponseDto<bool>
+                    {
+                        Status = false,
+                        StatusCode = 404, // 🚀 Agregado: Not Found
+                        Message = "Mantenimiento no encontrado.",
+                        Data = false
+                    };
                 }
 
-                maintenanceEntity.IsDeleted = true;
+                entity.IsDeleted = true;
 
-                _context.Maintenances.Update(maintenanceEntity);
+                _context.Maintenances.Update(entity);
                 await _context.SaveChangesAsync();
 
-                return new ResponseDto<bool> { Status = true, Message = "Mantenimiento desactivado correctamente.", Data = true };
+                return new ResponseDto<bool>
+                {
+                    Status = true,
+                    StatusCode = 200, // 🚀 Agregado: OK
+                    Message = "Mantenimiento eliminado correctamente.",
+                    Data = true
+                };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al desactivar mantenimiento.");
-                return new ResponseDto<bool> { Status = false, Message = "Error al procesar la desactivacion.", Data = false };
+                _logger.LogError(ex, "Error al eliminar mantenimiento con ID {Id}.", id);
+                return new ResponseDto<bool>
+                {
+                    Status = false,
+                    StatusCode = 500, // 🚀 Agregado: Internal Server Error
+                    Message = "Error al procesar la eliminación.",
+                    Data = false
+                };
             }
         }
     }

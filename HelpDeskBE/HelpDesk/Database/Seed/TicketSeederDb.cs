@@ -13,7 +13,7 @@ namespace HelpDesk.Database.Seed
                 new TicketEntity
                 {
                     Id = 1,
-                    Description = "Error al intentar referenciar un paciente en el módulo de emergencias.",
+                    Description = "Error al intentar referenciar un paciente en el módulo de emergencias - example.",
                     ReportDate = new DateTime(2026, 5, 10, 8, 30, 0),
                     IdUser = 1,
                     IdTypeError = 1, 
@@ -28,7 +28,7 @@ namespace HelpDesk.Database.Seed
                 new TicketEntity
                 {
                     Id = 2,
-                    Description = "No se cargan las citas disponibles para el mes de junio en la vista de calendario.",
+                    Description = "No se cargan las citas disponibles para el mes de junio en la vista de calendario - example.",
                     ReportDate = new DateTime(2026, 5, 12, 14, 15, 0),
                     IdUser = 1,
                     IdTypeError = 4, 

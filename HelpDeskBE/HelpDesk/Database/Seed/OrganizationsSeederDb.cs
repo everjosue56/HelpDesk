@@ -13,7 +13,7 @@ namespace HelpDesk.Database.Seed
                 new OrganizationEntity
                 {
                     Id = 1,
-                    Name = "CODIMERSA",
+                    Name = "CODIMERSA - example",
                     Address = "Santa Rosa de Copán",
                     PhoneNumber = "50426620000",
                     Logo = "codimersa_logo.png",
@@ -24,7 +24,7 @@ namespace HelpDesk.Database.Seed
                 new OrganizationEntity
                 {
                     Id = 2,
-                    Name = "CODIMERSA",
+                    Name = "CODIMERSA - example",
                     Address = "Honduras",
                     PhoneNumber = "50499999999",
                     Logo = "codimersa_logo.png",

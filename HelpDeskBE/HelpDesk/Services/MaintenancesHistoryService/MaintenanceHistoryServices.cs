@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using HelpDesk.Database;
 using HelpDesk.Database.Entities;
 using HelpDesk.Dtos.Common;
@@ -36,6 +36,7 @@ namespace HelpDesk.Services.MaintenanceHistoryService
             try
             {
                 var query = _context.MaintenanceHistories
+                    .IgnoreQueryFilters()
                     .Include(mh => mh.Maintenances)
                         .ThenInclude(m => m.TypeMaintenance)
                     .Include(mh => mh.Devices)
@@ -96,6 +97,7 @@ namespace HelpDesk.Services.MaintenanceHistoryService
         public async Task<ResponseDto<MaintenanceHistoryDto>> GetByIdAsync(long id)
         {
             var entity = await _context.MaintenanceHistories
+                .IgnoreQueryFilters()
                 .Include(mh => mh.Maintenances)
                 .Include(mh => mh.Users)
                 .Include(mh => mh.Devices)

@@ -48,6 +48,7 @@ namespace HelpDesk.Services
                     .Include(u => u.Agency)
                     .Include(u => u.Area)
                     .OrderByDescending(u => u.CreatedDate)
+                    .Where(u => !u.IsDeleted)
                     .AsQueryable();
 
                 // 2. Aplicamos los filtros condicionales uno a uno

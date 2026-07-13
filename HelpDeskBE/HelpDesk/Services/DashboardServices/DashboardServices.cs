@@ -1,4 +1,4 @@
-﻿using HelpDesk.Database;
+using HelpDesk.Database;
 using HelpDesk.Dtos.DashboardDto;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -21,10 +21,12 @@ namespace HelpDesk.Services.DashboardServices
         public async Task<List<DashboardDto>> GetSlaReportAsync(int year)
         {
             var resolutions = await _context.Resolutions
+                .IgnoreQueryFilters()
                 .Where(r => r.ResolutionDate.Year == year)
                 .ToListAsync();
 
             var tickets = await _context.Tickets
+                .IgnoreQueryFilters()
                 .Where(t => t.ReportDate.Year == year)
                 .ToListAsync();
 
@@ -80,6 +82,7 @@ namespace HelpDesk.Services.DashboardServices
         public async Task<List<AgencyLoadDto>> GetTicketsByAgencyAsync(int year, int? month)
         {
             var query = _context.Tickets
+                .IgnoreQueryFilters()
                 .Include(t => t.User).ThenInclude(u => u.Agency)
                 .Where(t => t.ReportDate.Year == year);
 
@@ -104,9 +107,10 @@ namespace HelpDesk.Services.DashboardServices
         //  2. KPI de Carga por Área Operativa (Modificado con filtro de mes opcional)
         public async Task<List<AreaPerformanceDto>> GetTicketsByAreaAsync(int year, int? month, int? idAgency)
         {
-            var totalQuery = _context.Tickets.AsNoTracking().Where(t => t.ReportDate.Year == year);
+            var totalQuery = _context.Tickets.AsNoTracking().IgnoreQueryFilters().Where(t => t.ReportDate.Year == year);
 
             var query = _context.Tickets.AsNoTracking()
+                .IgnoreQueryFilters()
                 .Include(t => t.User)
                     .ThenInclude(u => u.Area)
                 .Where(t => t.ReportDate.Year == year);
@@ -143,6 +147,7 @@ namespace HelpDesk.Services.DashboardServices
         public async Task<List<TechnicianPerformanceDto>> GetTechnicianPerformanceAsync(int year, int? month, int? userId)
         {
             var query = _context.Resolutions
+                .IgnoreQueryFilters()
                 .Include(r => r.User)
                 .Where(r => r.ResolutionDate.Year == year);
 

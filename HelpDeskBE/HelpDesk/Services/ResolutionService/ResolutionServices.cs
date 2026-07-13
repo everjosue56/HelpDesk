@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using HelpDesk.Database;
 using HelpDesk.Database.Entities;
 using HelpDesk.Dtos.Common;
@@ -53,6 +53,7 @@ namespace HelpDesk.Services
             {
                 var query = _context.Resolutions
                     .AsNoTracking()
+                    .IgnoreQueryFilters()
                     .Include(r => r.Ticket)
                     .Include(r => r.User)
                     .Include(r => r.SolutionStatus)
@@ -110,6 +111,7 @@ namespace HelpDesk.Services
                 var today = DateTime.Today;
                 var resolvedTodayCount = await _context.Resolutions
                     .AsNoTracking()
+                    .IgnoreQueryFilters()
                     .CountAsync(r => !r.IsDeleted && r.CreatedDate >= today);
 
                 var dtos = _mapper.Map<IEnumerable<ResolutionDto>>(entities);
@@ -143,6 +145,7 @@ namespace HelpDesk.Services
         public async Task<ResponseDto<ResolutionDto>> GetByIdAsync(long id)
         {
             var entity = await _context.Resolutions
+                .IgnoreQueryFilters()
                 .Include(r => r.Ticket)
                 .Include(r => r.User)
                 .Include(r => r.SolutionStatus)
@@ -192,7 +195,7 @@ namespace HelpDesk.Services
             entity.CreatedDate = DateTime.Now;
             entity.CreatedBy = currentUserId;
             entity.IdUser = currentUserId;
-
+            entity.IsDeleted = false;
             // 4. Guardar la Resolución
             _context.Resolutions.Add(entity);
 
@@ -230,6 +233,7 @@ namespace HelpDesk.Services
             {
                 // Jalamos la info detallada con Includes para inyectar nombres reales en el HTML
                 var resolutionInfo = await _context.Resolutions
+                    .IgnoreQueryFilters()
                     .Include(r => r.User) // Técnico que resuelve el ticket
                     .Include(r => r.Ticket)
                         .ThenInclude(t => t.User) // Usuario afectado que abrió el ticket

@@ -35,7 +35,10 @@ namespace HelpDesk.Services.AlertTypeService
         {
             try
             {
-                var query = _context.AlertsType.AsQueryable();
+                var query = _context.AlertsType
+                 .AsNoTracking()
+                 .Where(at => !at.IsDeleted)
+                 .AsQueryable();
 
                 if (!string.IsNullOrWhiteSpace(filter.Name))
                 {
@@ -93,6 +96,7 @@ namespace HelpDesk.Services.AlertTypeService
             var entity = _mapper.Map<AlertTypeEntity>(dto);
             entity.CreatedBy = _authService.GetUserId();
             entity.CreatedDate = DateTime.Now;
+            entity.IsDeleted = false;
 
             _context.AlertsType.Add(entity);
             await _context.SaveChangesAsync();

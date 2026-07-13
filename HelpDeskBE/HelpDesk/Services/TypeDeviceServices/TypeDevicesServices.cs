@@ -102,7 +102,8 @@ namespace HelpDesk.Services.TypeDeviceService
             var currentUserId = _authService.GetUserId();
 
             entity.CreatedDate = DateTime.Now;
-            entity.CreatedBy = currentUserId; 
+            entity.CreatedBy = currentUserId;
+            entity.IsDeleted = false;
 
             _context.TypeDevices.Add(entity);
             await _context.SaveChangesAsync();

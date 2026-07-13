@@ -135,6 +135,7 @@ namespace HelpDesk.Services.AlertConfigurationService
             entity.CreatedBy = _authService.GetUserId();
             entity.CreatedDate = DateTime.Now;
             entity.IsActive = true;
+            entity.IsDeleted = false;
 
             _context.AlertConfigurations.Add(entity);
             await _context.SaveChangesAsync();

@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using HelpDesk.Database;
 using HelpDesk.Database.Entities;
 using HelpDesk.Dtos.Common;
@@ -58,6 +58,7 @@ namespace HelpDesk.Services
                 // 1. Base query utilizando AsNoTracking para optimizar el rendimiento y la velocidad
                 var query = _context.Tickets
                     .AsNoTracking()
+                    .IgnoreQueryFilters()
                     .Include(t => t.User)
                     .Include(t => t.TypeError)
                     .Include(t => t.Area)
@@ -114,10 +115,12 @@ namespace HelpDesk.Services
 
                     finalActiveCount = await _context.Tickets
                         .AsNoTracking()
+                        .IgnoreQueryFilters()
                         .CountAsync(t => t.IdUser == currentUserId && t.IsActive && !t.IsDeleted);
 
                     finalResolvedCount = await _context.Tickets
                         .AsNoTracking()
+                        .IgnoreQueryFilters()
                         .CountAsync(t => t.IdUser == currentUserId && !t.IsDeleted);
                 }
                 else
@@ -125,10 +128,12 @@ namespace HelpDesk.Services
              
                     finalActiveCount = await _context.Tickets
                         .AsNoTracking()
+                        .IgnoreQueryFilters()
                         .CountAsync(t => t.IsActive && !t.IsDeleted);
 
                     finalResolvedCount = await _context.Tickets
                         .AsNoTracking()
+                        .IgnoreQueryFilters()
                         .CountAsync(t => !t.IsActive && !t.IsDeleted && t.UpdatedDate >= today);
                 }
 
@@ -165,6 +170,7 @@ namespace HelpDesk.Services
         public async Task<ResponseDto<TicketDto>> GetByIdAsync(long id)
         {
             var entity = await _context.Tickets
+                .IgnoreQueryFilters()
                 .Include(t => t.User)
                 .Include(t => t.TypeError)
                 .Include(t => t.Area)
@@ -208,7 +214,7 @@ namespace HelpDesk.Services
                 entity.IdUser = currentUserId;
                 entity.IdArea = dto.IdArea;
                 entity.IsActive = true;
-
+                entity.IsDeleted = false;
                 _context.Tickets.Add(entity);
                 await _context.SaveChangesAsync();
 
@@ -234,8 +240,8 @@ namespace HelpDesk.Services
                 // =========================================================================
                 try
                 {
-                    // Jalamos la información con sus Includes para alimentar la plantilla con nombres reales
                     var ticketInfo = await _context.Tickets
+                        .IgnoreQueryFilters()
                         .Include(t => t.User)
                         .Include(t => t.Area)
                         .Include(t => t.SoftwareSystem)
@@ -244,9 +250,11 @@ namespace HelpDesk.Services
 
                     if (ticketInfo != null)
                     {
-                        // A. Correo al Cliente que reportó el problema
+                        string fullName = $"{ticketInfo.User.FirstName} {ticketInfo.User.LastName}";
+
+                        // A. Correo al Cliente (La plantilla que ya tenías)
                         string clientHtml = HelpDesk.Helpers.EmailTemplates.GetTicketCreationTemplate(
-                            $"{ticketInfo.User.FirstName} {ticketInfo.User.LastName}",
+                            fullName,
                             ticketInfo.Id,
                             ticketInfo.Area.NameArea,
                             ticketInfo.SoftwareSystem.Name,
@@ -254,33 +262,38 @@ namespace HelpDesk.Services
                             ticketInfo.Description
                         );
 
-                        // Disparo asíncrono al cliente
                         await _emailService.SendEmailAsync(
                             ticketInfo.User.Email,
                             $"[Financiera Codimersa] Ticket #{ticketInfo.Id} registrado con éxito",
                             clientHtml
                         );
 
-                        // B. Correo a los encargados de TI / Soporte Técnico
-                        // Buscamos los correos de los usuarios que tengan rol de Admin o Técnico
+                        // 🚀 B. NUEVA LÓGICA: Correo específico a los encargados de TI
+                        string tiHtml = HelpDesk.Helpers.EmailTemplates.GetTiNotificationTemplate(
+                            fullName,
+                            ticketInfo.Id,
+                            ticketInfo.Area.NameArea,
+                            ticketInfo.SoftwareSystem.Name,
+                            ticketInfo.Priority.Name,
+                            ticketInfo.Description
+                        );
+
                         var tiEmails = await _context.Users
                             .Where(u => u.IdRol == 1 || u.IdRol == 2)
                             .Select(u => u.Email)
                             .ToListAsync();
 
-                        string tiSubject = $"⚠️ NUEVO TICKET #{ticketInfo.Id} - Área: {ticketInfo.Area.NameArea}";
+                        string tiSubject = $"⚠️ ACCIÓN REQUERIDA: Ticket #{ticketInfo.Id} - Área: {ticketInfo.Area.NameArea}";
 
                         foreach (var tiEmail in tiEmails)
                         {
-                            // Reutilizamos la plantilla para alertar al staff técnico
-                            await _emailService.SendEmailAsync(tiEmail, tiSubject, clientHtml);
+                            // Ahora mandamos el 'tiHtml' en lugar del 'clientHtml'
+                            await _emailService.SendEmailAsync(tiEmail, tiSubject, tiHtml);
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    // Capturamos el error en los logs si el servidor de correos falla,
-                    // pero NO interrumpimos la respuesta exitosa hacia el cliente en React.
                     _logger.LogError(ex, "El ticket #{TicketId} se guardó, pero falló el envío de alertas por correo electrónico.", entity.Id);
                 }
                 // =========================================================================

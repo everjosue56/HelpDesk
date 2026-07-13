@@ -50,6 +50,38 @@ namespace HelpDesk.Helpers
             </div>";
         }
 
+        //plantilla para TI cuando se genera un nuevo ticket en el sistema
+
+        public static string GetTiNotificationTemplate(string clientName, long ticketId, string area, string system, string priority, string description)
+        {
+            return $@"
+    <div style='font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;'>
+        <div style='background-color: #1e5f8a; padding: 20px; text-align: center;'>
+            <h2 style='color: #ffffff; margin: 0;'>⚠️ Nueva Incidencia Reportada</h2>
+        </div>
+        <div style='padding: 20px; background-color: #f8f9fa;'>
+            <p style='font-size: 16px;'>Hola, equipo de Soporte TI,</p>
+            <p>Se ha registrado un nuevo ticket en la plataforma que requiere atención. Aquí están los detalles:</p>
+            
+            <div style='background-color: #ffffff; padding: 15px; border-radius: 6px; border-left: 4px solid #1e5f8a; margin: 20px 0;'>
+                <p style='margin: 5px 0;'><strong>Ticket No:</strong> #{ticketId}</p>
+                <p style='margin: 5px 0;'><strong>Reportado por:</strong> {clientName}</p>
+                <p style='margin: 5px 0;'><strong>Área:</strong> {area}</p>
+                <p style='margin: 5px 0;'><strong>Sistema:</strong> {system}</p>
+                <p style='margin: 5px 0;'><strong>Prioridad:</strong> <span style='color: #e74c3c;'>{priority}</span></p>
+                <p style='margin: 10px 0 5px 0;'><strong>Descripción del problema:</strong></p>
+                <p style='margin: 0; color: #555; font-style: italic;'>{description}</p>
+            </div>
+
+            <div style='text-align: center; margin-top: 30px;'>
+                <a href='http://servidor-local/dashboard/tickets' style='background-color: #1e5f8a; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; display: inline-block;'>
+                    Ir al Dashboard para Resolver
+                </a>
+            </div>
+        </div>
+    </div>";
+        }
+
         // 2. Plantilla para Resolución de Ticket (TI hacia el Cliente)
         public static string GetTicketResolutionTemplate(string userName, long ticketId, string technicianName, string diagnosis, string solutionDescription)
         {

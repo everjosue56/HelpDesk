@@ -13,7 +13,7 @@ namespace HelpDesk.Database.Seed
                 new AgencyEntity
                 {
                     Id = 1,
-                    Name = "Sede Principal - Santa Rosa",
+                    Name = "Sede Principal - Example",
                     Address = "Barrio El Centro, Santa Rosa de Copán",
                     PhoneNumber = "50426620000",
                     Email = "src@codimersa.com",
@@ -25,7 +25,7 @@ namespace HelpDesk.Database.Seed
                 new AgencyEntity
                 {
                     Id = 2,
-                    Name = "Sucursal San Pedro Sula",
+                    Name = "Sucursal San Pedro Sula - Example",
                     Address = "Barrio Guamilito, SPS",
                     PhoneNumber = "50425500000",
                     Email = "sps@codimersa.com",
@@ -37,7 +37,7 @@ namespace HelpDesk.Database.Seed
                 new AgencyEntity
                 {
                     Id = 3,
-                    Name = "Oficina Desarrollo",
+                    Name = "Oficina Desarrollo - Example ",
                     Address = "Edificio 4",
                     PhoneNumber = "50499999999",
                     Email = "dev@example.com",

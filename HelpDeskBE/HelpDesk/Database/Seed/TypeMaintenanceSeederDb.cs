@@ -13,7 +13,7 @@ namespace HelpDesk.Database.Seed
                 new TypeMaintenanceEntity
                 {
                     Id = 1,
-                    Name = "Mantenimiento Preventivo",
+                    Name = "Mantenimiento Preventivo - example",
                     EstimatedTime = 60, 
                     CreatedDate = new DateTime(2026, 5, 15),
                     CreatedBy = 1
@@ -21,7 +21,7 @@ namespace HelpDesk.Database.Seed
                 new TypeMaintenanceEntity
                 {
                     Id = 2,
-                    Name = "Mantenimiento Correctivo",
+                    Name = "Mantenimiento Correctiv - example",
                     EstimatedTime = 120,
                     CreatedDate = new DateTime(2026, 5, 15),
                     CreatedBy = 1
@@ -29,7 +29,7 @@ namespace HelpDesk.Database.Seed
                 new TypeMaintenanceEntity
                 {
                     Id = 3,
-                    Name = "Actualización de Software",
+                    Name = "Actualización de Software - example",
                     EstimatedTime = 45,
                     CreatedDate = new DateTime(2026, 5, 15),
                     CreatedBy = 1
@@ -37,7 +37,7 @@ namespace HelpDesk.Database.Seed
                 new TypeMaintenanceEntity
                 {
                     Id = 4,
-                    Name = "Limpieza de Hardware",
+                    Name = "Limpieza de Hardware - example",
                     EstimatedTime = 30,
                     CreatedDate = new DateTime(2026, 5, 15),
                     CreatedBy = 1

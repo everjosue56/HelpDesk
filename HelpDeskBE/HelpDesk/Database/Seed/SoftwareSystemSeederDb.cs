@@ -13,14 +13,14 @@ namespace HelpDesk.Database.Seed
                 new SoftwareSystemEntity
                 {
                     Id = 1,
-                    Name = "Infraestructura de Red / Servidores",
+                    Name = "Infraestructura de Red / Servidores - example",
                     CreatedDate = new DateTime(2026, 5, 14),
                     CreatedBy = 1
                 },
                 new SoftwareSystemEntity
                 {
                     Id = 2,
-                    Name = "Correo Institucional y Suite Office",
+                    Name = "Correo Institucional y Suite Office - example",
                     CreatedDate = new DateTime(2026, 5, 14),
                     CreatedBy = 1
                 }

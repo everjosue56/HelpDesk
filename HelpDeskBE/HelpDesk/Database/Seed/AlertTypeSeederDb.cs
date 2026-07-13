@@ -20,7 +20,7 @@ namespace HelpDesk.Database.Seed
                 new AlertTypeEntity
                 {
                     Id = 2,
-                    Name = "Notificación Interna (In-App)",
+                    Name = "Notificación Interna",
                     CreatedDate = new DateTime(2026, 5, 18),
                     CreatedBy = 1
                 },

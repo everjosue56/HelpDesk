@@ -8,7 +8,7 @@ namespace HelpDesk.Controllers
 {
     [ApiController]
     [Route("api/roles")]
-    [Authorize(Roles = "Administrador")] 
+    [Authorize(Roles = "Administrador, TI")] 
     public class RolesController : ControllerBase
     {
         private readonly IRolService _rolService;
@@ -25,6 +25,7 @@ namespace HelpDesk.Controllers
             return Ok(response);
         }
 
+        [Authorize(Roles = "Administrador")]
         [HttpGet("{id}")]
         public async Task<ActionResult> GetById(long id)
         {
@@ -36,6 +37,7 @@ namespace HelpDesk.Controllers
             return Ok(response);
         }
 
+        [Authorize(Roles = "Administrador")]
         [HttpPost]
         public async Task<ActionResult> Create([FromBody] CreateRolDto createDto)
         {
@@ -47,6 +49,7 @@ namespace HelpDesk.Controllers
             return Ok(response);
         }
 
+        [Authorize(Roles = "Administrador")]
         [HttpPut("{id}")]
         public async Task<ActionResult> Update(long id, [FromBody] UpdateRolDto updateDto)
         {
@@ -58,6 +61,7 @@ namespace HelpDesk.Controllers
             return Ok(response);
         }
 
+        [Authorize(Roles = "Administrador")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(long id)
         {

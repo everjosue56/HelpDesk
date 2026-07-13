@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using HelpDesk.Database;
 using HelpDesk.Database.Entities;
 using HelpDesk.Dtos.Common;
@@ -36,6 +36,7 @@ namespace HelpDesk.Services.TicketHistoryService
             try
             {
                 var query = _context.TicketHistories
+                    .IgnoreQueryFilters()
                     .Include(th => th.Resolution)
                     .Include(th => th.User)
                     .Include(th => th.Ticket)
@@ -108,6 +109,7 @@ namespace HelpDesk.Services.TicketHistoryService
         public async Task<ResponseDto<TicketHistoryDto>> GetByIdAsync(long id)
         {
             var entity = await _context.TicketHistories
+                .IgnoreQueryFilters()
                 .Include(th => th.Ticket)
                      .ThenInclude(t => t.SoftwareSystem)
                 .Include(th => th.Resolution)

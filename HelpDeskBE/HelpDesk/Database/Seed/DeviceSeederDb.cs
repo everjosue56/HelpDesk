@@ -14,8 +14,8 @@ namespace HelpDesk.Database.Seed
                 {
                     Id = 1,
                     Quantity = 1,
-                    BrandName = "Dell Latitude 3420",
-                    Code = "UNAH-001",
+                    BrandName = "Dell Latitude 3420 - Example",
+                    Code = "UNEE-001",
                     IdDeviceType = 2, 
                     IdUser = 1,      
                     IdArea = 1,      
@@ -28,7 +28,7 @@ namespace HelpDesk.Database.Seed
                 {
                     Id = 2,
                     Quantity = 1,
-                    BrandName = "HP ProLiant DL380",
+                    BrandName = "HP ProLiant DL380 - Example",
                     Code = "SR-SERVER-01",
                     IdDeviceType = 3, 
                     IdUser = 1,
@@ -42,7 +42,7 @@ namespace HelpDesk.Database.Seed
                 {
                     Id = 3,
                     Quantity = 25,
-                    BrandName = "Logitech M170",
+                    BrandName = "Logitech M170 - Example",
                     Code = "ACC-GEN-01",
                     IdDeviceType = 1, 
                     IdUser = 1,

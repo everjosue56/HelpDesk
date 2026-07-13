@@ -17,10 +17,10 @@ namespace HelpDesk.Database.Seed
                 new UserEntity
                 {
                     Id = 1,
-                    FirstName = "Ever",
-                    LastName = "Garcia",
+                    FirstName = "Example",
+                    LastName = "Example",
                     UserName = "admin",
-                    Email = "admin@systemdeluxe.com",
+                    Email = "admin@me.com",
                     PasswordHash = hash,
                     PasswordSalt = salt,
                     PhoneNumber = "50400000000",

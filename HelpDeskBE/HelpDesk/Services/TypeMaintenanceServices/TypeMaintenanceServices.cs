@@ -105,6 +105,7 @@ namespace HelpDesk.Services.TypeMaintenanceService
             // Auditoría manual
             entity.CreatedDate = DateTime.Now;
             entity.CreatedBy = currentUserId;
+            entity.IsDeleted = false;
 
             _context.TypeMaintenances.Add(entity);
             await _context.SaveChangesAsync();

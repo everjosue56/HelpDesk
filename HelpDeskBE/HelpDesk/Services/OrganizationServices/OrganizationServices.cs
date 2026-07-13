@@ -146,28 +146,27 @@ namespace HelpDesk.Services
 
         public async Task<ResponseDto<bool>> DeleteAsync(long id)
         {
-            var entity = await _context.Organizations.FindAsync(id);
-
-            if (entity == null)
+            try
             {
-                return new ResponseDto<bool>
+                var entity = await _context.Organizations.FindAsync(id);
+
+                if (entity == null)
                 {
-                    Status = false,
-                    Data = false,
-                    StatusCode = 404,
-                    Message = "El registro ya no existe."
-                };
+                    return new ResponseDto<bool> { Status = false, Message = "Organizacion no encontrada.", Data = false };
+                }
+
+                entity.IsDeleted = true;
+
+                _context.Organizations.Update(entity);
+                await _context.SaveChangesAsync();
+
+                return new ResponseDto<bool> { Status = true, Message = "Organizacion eliminada correctamente.", Data = true };
             }
-
-            _context.Organizations.Remove(entity);
-            await _context.SaveChangesAsync();
-
-            return new ResponseDto<bool>
+            catch (Exception ex)
             {
-                Status = true,
-                Data = true,
-                StatusCode = 200
-            };
+                _logger.LogError(ex, "Error al eliminar Organizacion.");
+                return new ResponseDto<bool> { Status = false, Message = "Error al procesar la eliminación.", Data = false };
+            }
         }
     }
 }
