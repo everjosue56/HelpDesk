@@ -149,7 +149,9 @@ namespace HelpDesk.Herlpers
                 .ForMember(dest => dest.AreaName, opt => opt.MapFrom(src => src.Area.NameArea))
                 .ForMember(dest => dest.SoftwareSystemName, opt => opt.MapFrom(src => src.SoftwareSystem.Name))
                 .ForMember(dest => dest.ImpactName, opt => opt.MapFrom(src => src.Impact.Name))
-                .ForMember(dest => dest.PriorityName, opt => opt.MapFrom(src => src.Priority.Name));
+                .ForMember(dest => dest.PriorityName, opt => opt.MapFrom(src => src.Priority.Name))
+                .ForMember(dest => dest.SolutionStatusName, opt => opt.MapFrom(src => src.SolutionStatus.Name))
+                .ForMember(dest => dest.AssignedUserName, opt => opt.MapFrom(src => src.AssignedUser != null ? src.AssignedUser.UserName : string.Empty));
             CreateMap<CreateTicketDto, TicketEntity>();
             CreateMap<UpdateTicketDto, TicketEntity>();
 

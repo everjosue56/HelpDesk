@@ -29,4 +29,11 @@ export interface TicketDto {
   idPriority?: number;
   /** @nullable */
   priorityName?: string | null;
+  idSolutionState?: number;
+  /** @nullable */
+  solutionStatusName?: string | null;
+  /** @nullable */
+  idUserAssigned?: number | null;
+  /** @nullable */
+  assignedUserName?: string | null;
 }

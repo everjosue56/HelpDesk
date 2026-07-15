@@ -28,7 +28,7 @@ namespace HelpDesk.Api.Controllers
         public async Task<IActionResult> GetAll([FromQuery] NotificationFilterDto filter)
         {
             var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            int currentUserId = int.TryParse(userIdClaim, out var id) ? id : 0;
+            long currentUserId = long.TryParse(userIdClaim, out var id) ? id : 0;
 
             bool isCliente = User.IsInRole("Cliente");
 

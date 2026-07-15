@@ -32,5 +32,10 @@ namespace HelpDesk.Dtos.TicketDto
         // Datos de Prioridad
         public long IdPriority { get; set; }
         public string PriorityName { get; set; } = string.Empty;
+
+        public long IdSolutionState { get; set; }
+        public string SolutionStatusName { get; set; }
+        public long? IdUserAssigned { get; set; }
+        public string AssignedUserName { get; set; }
     }
 }

@@ -31,7 +31,7 @@ namespace HelpDesk.Services.NotificationService
             _logger = logger;
         }
 
-        public async Task<PagedResponseDto<NotificationDto>> GetAllAsync(NotificationFilterDto filter, bool isCliente, int currentUserId)
+        public async Task<PagedResponseDto<NotificationDto>> GetAllAsync(NotificationFilterDto filter, bool isCliente, long currentUserId)
         {
             try
             {
@@ -40,8 +40,13 @@ namespace HelpDesk.Services.NotificationService
                 {
                     filter.IdUser = currentUserId;
                 }
+                else if (!filter.IdUser.HasValue || filter.IdUser == 0)
+                {
+                    filter.IdUser = currentUserId;
+                }
 
                 var query = _context.Notifications
+                    .IgnoreQueryFilters()
                     .Include(n => n.Users)
                     .Include(n => n.AlertTypes)
                     .OrderByDescending(n => n.CreatedDate)
@@ -54,7 +59,7 @@ namespace HelpDesk.Services.NotificationService
 
                 if (filter.IdAlertType.HasValue)
                 {
-                    query = query.Where(n => n.IdAlertType == filter.IdAlertType.Value);
+                    query = query.Where(n => n.IdAlertType == filter.IdAlertType.Value);    
                 }
 
                 if (filter.IsRead.HasValue)
@@ -98,6 +103,7 @@ namespace HelpDesk.Services.NotificationService
         public async Task<ResponseDto<IEnumerable<NotificationDto>>> GetUnreadByUserIdAsync(long userId)
         {
             var entities = await _context.Notifications
+                .IgnoreQueryFilters()
                 .Include(n => n.Users)
                 .Include(n => n.AlertTypes)
                 .Where(n => n.IdUser == userId && !n.IsRead)

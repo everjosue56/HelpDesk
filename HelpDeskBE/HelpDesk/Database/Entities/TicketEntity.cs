@@ -45,6 +45,13 @@ namespace HelpDesk.Database.Entities
         [Required]
         public long IdPriority { get; set; }
 
+        [Column("id_solution_state")]
+        [Required]
+        public long IdSolutionState { get; set; } = 3;
+
+        [Column("user_assigned_id")]
+        public long? IdUserAssigned { get; set; }
+
         // --- Virtual Properties (Navigation) ---
 
         [ForeignKey(nameof(IdUser))]
@@ -64,5 +71,11 @@ namespace HelpDesk.Database.Entities
 
         [ForeignKey(nameof(IdPriority))]
         public virtual PriorityEntity Priority { get; set; } = null!;
+        
+        [ForeignKey(nameof(IdSolutionState))]
+        public virtual SolutionStatusEntity SolutionStatus { get; set; }
+
+        [ForeignKey(nameof(IdUserAssigned))]
+        public virtual UserEntity? AssignedUser { get; set; }
     }
 }

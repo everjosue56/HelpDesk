@@ -45,7 +45,7 @@ namespace HelpDesk.Services
             _emailService = emailService;
         }
 
-        public async Task<PagedResponseDto<TicketDto>> GetAllAsync(TicketFilterDto filter, bool isCliente, int currentUserId)
+        public async Task<PagedResponseDto<TicketDto>> GetAllAsync(TicketFilterDto filter, bool isCliente, long currentUserId)
         {
             try
             {
@@ -65,6 +65,8 @@ namespace HelpDesk.Services
                     .Include(t => t.SoftwareSystem)
                     .Include(t => t.Impact)
                     .Include(t => t.Priority)
+                    .Include(t => t.SolutionStatus)
+                    .Include(t => t.AssignedUser)
                     .OrderByDescending(t => t.CreatedDate)
                     .Where(t => t.IsActive && !t.IsDeleted);
 
@@ -358,6 +360,86 @@ namespace HelpDesk.Services
             {
                 _logger.LogError(ex, "Error al desactivar ticket.");
                 return new ResponseDto<bool> { Status = false, Message = "Error al procesar la desactivacion.", Data = false };
+            }
+        }
+
+        public async Task<ResponseDto<bool>> ClaimTicketAsync(long ticketId)
+        {
+            try
+            {
+                // 1. Buscar el ticket en la base de datos
+                var ticket = await _context.Tickets.FindAsync(ticketId);
+
+                if (ticket == null)
+                {
+                    return new ResponseDto<bool>
+                    {
+                        Status = false,
+                        StatusCode = 404,
+                        Message = "El ticket especificado no existe."
+                    };
+                }
+
+                // 2. Validar que no haya sido tomado o resuelto previamente
+                // (IdSolutionState == 3 significa "Pendiente")
+                if (ticket.IdUserAssigned.HasValue || ticket.IdSolutionState != 3)
+                {
+                    return new ResponseDto<bool>
+                    {
+                        Status = false,
+                        StatusCode = 400,
+                        Message = "Este ticket ya está en proceso o ha sido resuelto por otro técnico."
+                    };
+                }
+
+                // 3. Obtener el ID del técnico que está logueado actualmente en el sistema
+                var currentUserId = _authService.GetUserId();
+
+                // 4. Asignar el técnico y cambiar el estado de la solución a "En Proceso" (ID: 2)
+                ticket.IdUserAssigned = currentUserId;
+                ticket.IdSolutionState = 2; // 2 = "En Proceso"
+                ticket.UpdatedBy = currentUserId;
+                ticket.UpdatedDate = DateTime.Now;
+
+                _context.Tickets.Update(ticket);
+                await _context.SaveChangesAsync();
+
+                // 5. Disparar una notificación interna al cliente que reportó el problema
+                try
+                {
+                    var createNotificationDto = new CreateNotificationDto
+                    {
+                        IdUser = ticket.IdUser, // ID del cliente
+                        IdAlertType = 2, // Alerta de Soporte
+                        TextMessage = $"Tu Ticket #{ticket.Id} ha sido tomado por el equipo de TI y ya se encuentra 'En Proceso' de resolución.",
+                        IdReference = ticket.Id
+                    };
+                    await _notificationService.CreateAsync(createNotificationDto);
+                }
+                catch (Exception ex)
+                {
+                    // Si la notificación llega a fallar por alguna razón, logueamos el error
+                    // pero no interrumpimos la respuesta exitosa para el técnico de TI.
+                    _logger.LogError(ex, "El ticket #{TicketId} fue tomado, pero falló el envío de la notificación al cliente.", ticketId);
+                }
+
+                return new ResponseDto<bool>
+                {
+                    Status = true,
+                    StatusCode = 200,
+                    Data = true,
+                    Message = "Has tomado el ticket con éxito. Ya puedes trabajar en su solución."
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al intentar tomar el ticket {TicketId}", ticketId);
+                return new ResponseDto<bool>
+                {
+                    Status = false,
+                    StatusCode = 500,
+                    Message = "Ocurrió un error interno en el servidor al intentar procesar la solicitud."
+                };
             }
         }
     }

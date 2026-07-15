@@ -105,7 +105,7 @@ namespace HelpDesk.Services.DashboardServices
         }
 
         //  2. KPI de Carga por Área Operativa (Modificado con filtro de mes opcional)
-        public async Task<List<AreaPerformanceDto>> GetTicketsByAreaAsync(int year, int? month, int? idAgency)
+        public async Task<List<AreaPerformanceDto>> GetTicketsByAreaAsync(int year, int? month, long? idAgency)
         {
             var totalQuery = _context.Tickets.AsNoTracking().IgnoreQueryFilters().Where(t => t.ReportDate.Year == year);
 
@@ -144,11 +144,13 @@ namespace HelpDesk.Services.DashboardServices
         }
 
         //  3. KPI de Productividad de Técnicos 
-        public async Task<List<TechnicianPerformanceDto>> GetTechnicianPerformanceAsync(int year, int? month, int? userId)
+        public async Task<List<TechnicianPerformanceDto>> GetTechnicianPerformanceAsync(int year, int? month, long? userId)
         {
+
             var query = _context.Resolutions
                 .IgnoreQueryFilters()
                 .Include(r => r.User)
+                .Where(r => r.User.IdRol != 3)
                 .Where(r => r.ResolutionDate.Year == year);
 
             // Inyección del filtro de mes
@@ -157,10 +159,10 @@ namespace HelpDesk.Services.DashboardServices
                 query = query.Where(r => r.ResolutionDate.Month == month.Value);
             }
 
-            // Inyección del filtro por técnico específico
+            // Inyección del filtro por técnico específico 
             if (userId.HasValue)
             {
-                query = query.Where(r => r.IdUser == userId.Value);
+                query = query.Where(r => r.User.Roles.Name.ToUpper() == "TI");
             }
 
             return await query

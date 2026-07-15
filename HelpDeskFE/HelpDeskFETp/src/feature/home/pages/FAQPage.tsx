@@ -41,10 +41,6 @@ const faqData: FAQCategory[] = [
         answer: "No, una vez que un ticket ha sido completado y cerrado, no se puede modificar. Si experimenta la misma falla, deberá registrar un nuevo ticket haciendo referencia al ID del reporte anterior."
       },
       {
-        question: "¿Qué significa que mi ticket esté en estado 'En Espera' o 'Congelado'?",
-        answer: "Este estado significa que el SLA (cronómetro de atención) se ha pausado temporalmente debido a que el equipo técnico requiere información adicional de su parte, la confirmación de un tercero o la llegada de un repuesto externo."
-      },
-      {
         question: "¿Los tiempos de SLA corren durante los fines de semana o días feriados?",
         answer: "No. Por defecto, los acuerdos de nivel de servicio (SLA) calculan el tiempo de resolución basándose exclusivamente en el calendario y horario operativo laboral de la institución, a menos que el ticket sea catalogado como una emergencia crítica global."
       },
@@ -89,10 +85,6 @@ const faqData: FAQCategory[] = [
         answer: "Si olvidó sus credenciales, puede hacer clic en la opción '¿Olvidaste tu contraseña?' desde la pantalla de inicio de sesión. El sistema le enviará un código de verificación único a su correo electrónico institucional para autorizar el cambio."
       },
       {
-        question: "¿Mi cuenta se bloquea por intentos fallidos? ¿Cómo la desbloqueo?",
-        answer: "Sí, por motivos de seguridad institucional, la cuenta se suspende temporalmente tras 5 intentos fallidos consecutivos. El bloqueo dura 15 minutos, o bien, puede solicitar un desbloqueo inmediato notificando al administrador de TI."
-      },
-      {
         question: "¿Puedo mantener mi sesión abierta en varios dispositivos a la vez?",
         answer: "El sistema permite la consulta simultánea, pero cerrará automáticamente las sesiones activas anteriores si detecta cambios de dirección IP drásticos o accesos desde ubicaciones geográficas concurrentes no autorizadas."
       }
@@ -108,10 +100,7 @@ const faqData: FAQCategory[] = [
         question: "¿Quiénes pueden visualizar los KPI y métricas de las agencias?",
         answer: "La visualización de las métricas de carga operativa y distribución de incidencias está restringida bajo roles de acceso. Solo los administradores, jefes de área y personal de auditoría tienen permisos para interactuar con los filtros dinámicos."
       },
-      {
-        question: "¿Por qué los reportes exportados en Excel/CSV a veces muestran variaciones con el gráfico interactivo?",
-        answer: "Los gráficos del dashboard principal procesan datos en tiempo real (asincrónicos). Si descarga un reporte masivo mientras hay técnicos operando y cerrando tickets en caliente, es normal percibir ligeras discrepancias de minutos."
-      }
+
     ]
   }
 ];

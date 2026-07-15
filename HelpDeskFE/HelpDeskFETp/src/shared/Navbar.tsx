@@ -20,7 +20,8 @@ export const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  const { notifications, unreadCount, markAsRead } = useNotifications(user?.id || 0);
+  const userIdActual = user?.id ? Number(user.id) : null;
+const { notifications, unreadCount, markAsRead } = useNotifications(userIdActual ?? 0);
 
   const primaryRole = user && user.roles.length > 0 ? user.roles[0] : "Usuario";
 

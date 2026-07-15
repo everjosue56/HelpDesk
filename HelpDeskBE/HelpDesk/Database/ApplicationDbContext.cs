@@ -298,6 +298,16 @@ namespace HelpDesk.Database
                     .WithMany()
                     .HasForeignKey(t => t.IdPriority)
                     .OnDelete(DeleteBehavior.Restrict);
+
+               entity.HasOne(t => t.AssignedUser)
+                    .WithMany()
+                    .HasForeignKey(t => t.IdUserAssigned)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(t => t.SolutionStatus)
+                    .WithMany()
+                    .HasForeignKey(t => t.IdSolutionState)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<ResolutionEntity>(entity =>

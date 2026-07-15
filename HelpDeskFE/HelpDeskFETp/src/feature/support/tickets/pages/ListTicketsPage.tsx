@@ -5,6 +5,8 @@ import { useUsers } from '../../../administrative/users/hooks/useUser';
 import { useAreas } from '../../../administrative/areas/hooks/useAreas';
 import { useSupportCatalogs } from '../hooks/useSupportCatalogs';
 import { useTypeErrors } from '../../typeError/hooks/useTypeErrors';
+import { useAuth } from '../../../../context/AuthContext';
+import { claimTicket } from '../../../../api/ticket.service';
 import {
     Plus,
     Search,
@@ -14,7 +16,7 @@ import {
     X,
     CheckCircle,
     Tag,
-    Calendar
+    Calendar,
 } from 'lucide-react';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '../../../../../@/components/ui/pagination';
 import { toast } from 'sonner';
@@ -22,6 +24,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { TicketDeleteModal } from '../components/TicketDeleteModal';
 
 export const ListTicketsPage: React.FC = () => {
+    const { user } = useAuth();
+    const rolesSoporte = ['ti', 'administrador'];
+    const esSoporte = user?.roles.some(r => rolesSoporte.includes(r.toLowerCase()));
+
     // ─── ESTADOS DE FILTROS INTERACTIVOS ───
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedUser, setSelectedUser] = useState<number | undefined>(undefined);
@@ -48,12 +54,14 @@ export const ListTicketsPage: React.FC = () => {
         dateTo: null
     }), [selectedTypeError, selectedArea, selectedImpact, selectedUser, selectedDate]);
 
+
     const {
         tickets,
         totalCount,
         resolvedTodayCount,
         isLoading,
-        deleteTicket
+        deleteTicket,
+        refresh
     } = useTickets(searchTerm, page, pageSize, memoizedFilters);
 
     const totalPages = Math.ceil(totalCount / pageSize) || 1;
@@ -64,6 +72,21 @@ export const ListTicketsPage: React.FC = () => {
     const { areas } = useAreas('', '', 1, 100);
     const { typeErrors, isLoading: isLoadingTypes } = useTypeErrors('', 1, 100);
     const { impacts, isLoadingCatalogs } = useSupportCatalogs();
+
+    const handleClaimClick = async (ticketId: number) => {
+        try {
+            const res = await claimTicket(ticketId);
+            if (res.status || res.statusCode === 200) {
+                toast.success(res.message || "¡Has tomado el ticket con éxito!");
+                if (refresh) refresh();
+            } else {
+                toast.error(res.message || "No se pudo tomar el ticket.");
+            }
+        } catch (error) {
+            console.error("Error al reclamar el ticket:", error);
+            toast.error("Error de red al intentar reclamar el ticket.");
+        }
+    };
 
     // Lógica de renderizado de colores para impacto 
     const renderImpactBadge = (impactName: string, impactId: number) => {
@@ -98,6 +121,49 @@ export const ListTicketsPage: React.FC = () => {
                 return (
                     <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-md text-xs font-bold bg-gray-50 text-gray-600 border border-gray-100">
                         {label}
+                    </span>
+                );
+        }
+    };
+
+
+    const renderStatusBadge = (statusId: number, statusName?: string, technicianName?: string | null) => {
+        switch (statusId) {
+            case 1: // Terminado
+                return (
+                    <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-md text-xs font-bold bg-green-50 text-green-700 border border-green-100">
+                        {statusName || "Terminado"}
+                    </span>
+                );
+            case 2: // En Proceso
+                return (
+                    <div className="flex flex-col gap-0.5">
+                        <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-md text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100 w-max">
+                            {statusName || "En Proceso"}
+                        </span>
+                        {technicianName && (
+                            <span className="text-[10px] text-neutral-400 font-medium whitespace-nowrap">
+                                Por: {technicianName}
+                            </span>
+                        )}
+                    </div>
+                );
+            case 3: // Pendiente
+                return (
+                    <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-md text-xs font-bold bg-amber-50 text-amber-700 border border-amber-100">
+                        {statusName || "Pendiente"}
+                    </span>
+                );
+            case 4: // Cancelado
+                return (
+                    <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-md text-xs font-bold bg-red-50 text-red-700 border border-red-100">
+                        {statusName || "Cancelado"}
+                    </span>
+                );
+            default:
+                return (
+                    <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-md text-xs font-bold bg-gray-50 text-gray-600 border border-gray-100">
+                        Pendiente
                     </span>
                 );
         }
@@ -192,7 +258,6 @@ export const ListTicketsPage: React.FC = () => {
 
                 {/* BARRA DE FILTROS */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 w-full pt-2">
-
                     {/* 1. Buscador global */}
                     <div className="relative w-full">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -312,7 +377,6 @@ export const ListTicketsPage: React.FC = () => {
                             </button>
                         )}
                     </div>
-
                 </div>
 
                 {/* TABLA DE DATOS  */}
@@ -325,20 +389,21 @@ export const ListTicketsPage: React.FC = () => {
                                 <th className="p-3.5">Área</th>
                                 <th className="p-3.5">Tipo de Error</th>
                                 <th className="p-3.5">Impacto</th>
+                                <th className="p-3.5">Estado</th>
                                 <th className="p-3.5">Fecha</th>
-                                <th className="p-3.5 w-28 text-center">Acciones</th>
+                                <th className="p-3.5 w-44 text-center">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 text-slate-900 font-medium">
                             {isLoading && tickets.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="p-8 text-center text-slate-800 font-bold animate-pulse bg-slate-50/50">
+                                    <td colSpan={8} className="p-8 text-center text-slate-800 font-bold animate-pulse bg-slate-50/50">
                                         Sincronizando reportes de soporte técnico con el servidor central...
                                     </td>
                                 </tr>
                             ) : tickets.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="p-8 text-center text-slate-500 font-bold bg-slate-50/30">
+                                    <td colSpan={8} className="p-8 text-center text-slate-500 font-bold bg-slate-50/30">
                                         No se encontraron registros de tickets con los criterios especificados.
                                     </td>
                                 </tr>
@@ -354,17 +419,75 @@ export const ListTicketsPage: React.FC = () => {
                                             <td className="p-3.5">
                                                 {renderImpactBadge(item.impactName, item.idImpact)}
                                             </td>
+                                            <td className="p-3.5">
+                                                {renderStatusBadge(item.idSolutionState, item.solutionStatusName, item.assignedUserName)}
+                                            </td>
                                             <td className="p-3.5 text-slate-500 font-medium whitespace-nowrap">
                                                 <div className="flex items-center gap-1.5">
                                                     <Calendar className="h-3.5 w-3.5 text-slate-500" />
                                                     {new Date(item.reportDate).toLocaleDateString('es-HN')}
                                                 </div>
                                             </td>
-                                            <td className="p-3">
-                                                <div className="flex items-center justify-center gap-3 text-gray-400">
-                                                    <button type="button" className="hover:text-[#1a558b] transition-colors cursor-pointer hover:bg-slate-100 rounded-md" onClick={() => navigate(`details/${item.id}`)} title="Ver detalle"><Eye className="h-4 w-4" /></button>
-                                                    <button type="button" className="hover:text-red-600 transition-colors cursor-pointer  hover:bg-red-50 rounded-md" onClick={() => openDeleteConfirm(item.id, item.description)} title="Eliminar Ticket"><Trash2 className="h-4 w-4" /></button>
-                                                    <button type="button" className="hover:text-[#1e5f8a] transition-colors cursor-pointer hover:bg-blue-50 rounded-md" onClick={() => navigate(`edit/${item.id}`)} title="Editar"><Edit className="h-4 w-4" /></button>
+                                            <td className="p-3 w-55 min-w-55 align-middle">
+                                                <div className="flex items-center justify-end gap-3">
+
+                                                    {/* Contenedor para el botón de cambio de estado (Tomar / Resolver) */}
+                                                    <div className="grow flex justify-end">
+                                                        {esSoporte && item.idSolutionState === 3 && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleClaimClick(item.id)}
+                                                                className="bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-200 shadow-sm hover:shadow active:scale-95 cursor-pointer whitespace-nowrap"
+                                                            >
+                                                                Tomar Ticket
+                                                            </button>
+                                                        )}
+
+                                                        {/* 🚀 BOTÓN DINÁMICO: "Resolver" */}
+                                                        {esSoporte && item.idSolutionState === 2 && item.idUserAssigned === user?.id && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => navigate('/dashboard/resolutions/create', { state: { idTicket: item.id } })}
+                                                                className="bg-[#1a558b] hover:bg-[#154673] text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-200 shadow-sm hover:shadow active:scale-95 cursor-pointer whitespace-nowrap"
+                                                            >
+                                                                Resolver
+                                                            </button>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Divisor vertical sutil entre los botones principales y los iconos CRUD */}
+                                                    <div className="h-5 w-px bg-slate-200" />
+
+                                                    {/* Grupo de iconos CRUD estandarizados */}
+                                                    <div className="flex items-center gap-1 text-slate-400">
+                                                        <button
+                                                            type="button"
+                                                            className="hover:text-slate-700 hover:bg-slate-100 p-1.5 rounded-lg transition-colors cursor-pointer"
+                                                            onClick={() => navigate(`details/${item.id}`)}
+                                                            title="Ver detalle"
+                                                        >
+                                                            <Eye className="h-4 w-4" />
+                                                        </button>
+
+                                                        <button
+                                                            type="button"
+                                                            className="hover:text-[#1e5f8a] hover:bg-blue-50 p-1.5 rounded-lg transition-colors cursor-pointer"
+                                                            onClick={() => navigate(`edit/${item.id}`)}
+                                                            title="Editar"
+                                                        >
+                                                            <Edit className="h-4 w-4" />
+                                                        </button>
+
+                                                        <button
+                                                            type="button"
+                                                            className="hover:text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition-colors cursor-pointer"
+                                                            onClick={() => openDeleteConfirm(item.id, item.description)}
+                                                            title="Eliminar Ticket"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </button>
+                                                    </div>
+
                                                 </div>
                                             </td>
                                         </tr>
@@ -380,7 +503,6 @@ export const ListTicketsPage: React.FC = () => {
                     <div className="pt-4 flex justify-center select-none">
                         <Pagination>
                             <PaginationContent className="text-xs font-bold text-neutral-500 gap-1">
-
                                 {/* Botón Anterior */}
                                 <PaginationItem>
                                     <PaginationPrevious
@@ -398,40 +520,33 @@ export const ListTicketsPage: React.FC = () => {
                                     const pages: (number | string)[] = [];
 
                                     if (totalPages <= 5) {
-                                        // Si son poquitas páginas, las metemos todas directas
                                         for (let i = 1; i <= totalPages; i++) pages.push(i);
                                     } else {
-                                        // Siempre metemos la página 1 y 2
                                         pages.push(1);
                                         pages.push(2);
 
-                                        // Si la página actual está más adelante, metemos los puntos suspensivos
                                         if (page > 4) {
                                             pages.push("...");
                                         }
 
-                                        // Renderizamos las páginas cercanas a la actual
                                         for (let i = Math.max(3, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
                                             if (!pages.includes(i)) {
                                                 pages.push(i);
                                             }
                                         }
 
-                                        // Si falta mucho para llegar al final, otra elipsis
                                         if (page < totalPages - 2) {
                                             if (!pages.includes("...")) {
                                                 pages.push("...");
                                             }
                                         }
 
-                                        // Siempre cerramos con la última página fija al final
                                         if (!pages.includes(totalPages)) {
                                             pages.push(totalPages);
                                         }
                                     }
 
                                     return pages.map((pageItem, index) => {
-                                        // Si es una elipsis, pintamos texto estático plano
                                         if (pageItem === "...") {
                                             return (
                                                 <PaginationItem key={`ellipsis-${index}`}>
@@ -442,7 +557,6 @@ export const ListTicketsPage: React.FC = () => {
                                             );
                                         }
 
-                                        // Si es un número, pintamos el botón interactivo normal
                                         const pageNum = pageItem as number;
                                         return (
                                             <PaginationItem key={pageNum}>
@@ -473,12 +587,10 @@ export const ListTicketsPage: React.FC = () => {
                                             }`}
                                     />
                                 </PaginationItem>
-
                             </PaginationContent>
                         </Pagination>
                     </div>
                 )}
-
             </div>
 
             {/* MODAL DE DESACTIVACIÓN */}

@@ -24,6 +24,10 @@ export interface TicketItem {
   impactName: string;
   idPriority: number;
   priorityName: string;
+  idSolutionState: number;      
+  solutionStatusName?: string;   
+  idUserAssigned: number | null; 
+  assignedUserName?: string | null;
 }
 
 export const useTickets = (
@@ -159,13 +163,17 @@ export const useTickets = (
     [service],
   );
 
+  const refresh = useCallback(() => {
+    fetchTickets(true);
+  }, [fetchTickets]);
+
   return {
     tickets,
     totalCount,
     activeTicketsCount,
     resolvedTodayCount,
     isLoading,
-    refresh: () => fetchTickets(true),
+    refresh,
     createTicket,
     updateTicket,
     deleteTicket,

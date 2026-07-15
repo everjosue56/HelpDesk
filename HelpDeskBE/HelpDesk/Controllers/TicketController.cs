@@ -12,7 +12,7 @@ namespace HelpDesk.Api.Controllers
 {
     [Route("api/tickets")]
     [ApiController]
-    [Authorize] // Requiere que el usuario esté logueado para reportar fallas
+    [Authorize]
     public class TicketController : ControllerBase
     {
         private readonly ITicketService _ticketService;
@@ -21,26 +21,32 @@ namespace HelpDesk.Api.Controllers
         {
             _ticketService = ticketService;
         }
+
         [HttpGet]
         [Authorize(Roles = "Administrador,TI,Cliente")]
         public async Task<IActionResult> GetAll([FromQuery] TicketFilterDto filter)
         {
-            // Extraemos ID del usuario del Token y convertimos a entero
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int currentUserId = int.TryParse(userIdClaim, out var id) ? id : 0;
+            long currentUserId = long.TryParse(userIdClaim, out var id) ? id : 0;
 
-            // Evaluamos el rol del cliente
             bool isCliente = User.IsInRole("Cliente");
 
-            // Inyectamos las nuevas variables al servicio
-            var response = await _ticketService.GetAllAsync(filter, isCliente, currentUserId );
+            var response = await _ticketService.GetAllAsync(filter, isCliente, currentUserId);
             return StatusCode(response.StatusCode, response);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<ResponseDto<TicketDto>>> GetById(long id)
-        {   
+        {
             var response = await _ticketService.GetByIdAsync(id);
+            return StatusCode(response.StatusCode, response);
+        }
+
+        [HttpPut("{id}/claim")]
+        [Authorize(Roles = "Administrador,TI")]
+        public async Task<ActionResult<ResponseDto<bool>>> Claim(long id)
+        {
+            var response = await _ticketService.ClaimTicketAsync (id);
             return StatusCode(response.StatusCode, response);
         }
 
@@ -59,7 +65,7 @@ namespace HelpDesk.Api.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Administrador,TI,Cliente")] 
+        [Authorize(Roles = "Administrador,TI,Cliente")]
         public async Task<ActionResult<ResponseDto<bool>>> Delete(long id)
         {
             var response = await _ticketService.DeleteAsync(id);

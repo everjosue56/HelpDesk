@@ -8,7 +8,7 @@ namespace HelpDesk.Services.DashboardServices
     {
         Task<List<DashboardDto>> GetSlaReportAsync(int year);
         Task<List<AgencyLoadDto>> GetTicketsByAgencyAsync(int year, int? month);
-        Task<List<AreaPerformanceDto>> GetTicketsByAreaAsync(int year, int? month, int? agency);
-        Task<List<TechnicianPerformanceDto>> GetTechnicianPerformanceAsync(int year, int? month, int? userId);
+        Task<List<AreaPerformanceDto>> GetTicketsByAreaAsync(int year, int? month, long? agency);
+        Task<List<TechnicianPerformanceDto>> GetTechnicianPerformanceAsync(int year, int? month, long? userId);
     }
 }

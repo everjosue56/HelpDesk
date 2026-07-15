@@ -19,23 +19,21 @@ export interface NotificationItem {
 
 export const useNotifications = (userId: number) => {
     const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isLoading, setIsLoading] = useState<boolean>(() => userId > 0);
 
     const service = useMemo(() => getNotification(AXIOS_INSTANCE), []);
 
+   
     const fetchUnreadNotifications = useCallback(async (isMounted: boolean) => {
-        if (!userId) return;
+        if (!userId || userId <= 0) return;
         try {
             if (isMounted) setIsLoading(true);
             const response = await service.getApiNotificationsUnreadUserUserId(userId);
-            
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const backendResponse = response.data as any;
             const data = backendResponse?.data || backendResponse?.Data || backendResponse || [];
             
-            if (isMounted) {
-                setNotifications(data);
-            }
+            if (isMounted) setNotifications(data);
         } catch (error) {
             console.error("Error al recuperar las notificaciones:", error);
             if (isMounted) setNotifications([]);
@@ -46,28 +44,22 @@ export const useNotifications = (userId: number) => {
 
     const markAsRead = useCallback(async (notificationId: number) => {
         const previousNotifications = [...notifications];
-        
         setNotifications(prev => prev.filter(n => n.id !== notificationId));
 
         try {
             const response = await service.putApiNotificationsIdMarkAsRead(notificationId);
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const backendResponse = response.data as any;
-            
             const isSuccess = backendResponse?.data ?? backendResponse?.Data ?? backendResponse ?? false;
 
-            if (!isSuccess) {
-                throw new Error("El backend no procesó el cambio");
-            }
+            if (!isSuccess) throw new Error("El backend no procesó el cambio");
         } catch (error) {
             console.error("Error al marcar la notificación como leída:", error);
             toast.error("No se pudo marcar la notificación como leída");
-            // Hacemos rollback si la red falló
             setNotifications(previousNotifications);
         }
     }, [notifications, service]);
 
-    //  3. Marcar TODAS como leídas 
     const markAllAsRead = useCallback(async () => {
         if (notifications.length === 0) return;
         const previousNotifications = [...notifications];
@@ -82,19 +74,38 @@ export const useNotifications = (userId: number) => {
         }
     }, [notifications, service]);
 
-   useEffect(() => {
+ 
+    useEffect(() => {
         let isMounted = true;
 
-        const executeFetch = async () => {
-            await fetchUnreadNotifications(isMounted);
+        const cargarDatos = async () => {
+            if (!userId || userId <= 0) return;
+            
+            try {
+ 
+                if (isMounted) setIsLoading(true);
+                
+                const response = await service.getApiNotificationsUnreadUserUserId(userId);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const backendResponse = response.data as any;
+                const data = backendResponse?.data || backendResponse?.Data || backendResponse || [];
+                
+                if (isMounted) setNotifications(data);
+            } catch (error) {
+                console.error("Error en useEffect de notificaciones:", error);
+                if (isMounted) setNotifications([]);
+            } finally {
+                if (isMounted) setIsLoading(false);
+            }
         };
 
-        executeFetch();
+        cargarDatos();
         
         return () => { 
             isMounted = false; 
         };
-    }, [userId, fetchUnreadNotifications]);
+    }, [userId, service]); 
+
     const unreadCount = useMemo(() => notifications.length, [notifications]);
 
     return {

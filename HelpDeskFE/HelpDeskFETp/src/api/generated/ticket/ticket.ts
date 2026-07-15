@@ -63,9 +63,18 @@ const deleteApiTicketsId = (
       `/api/tickets/${id}`,options
     );
   }
-return {getApiTickets,postApiTickets,getApiTicketsId,putApiTicketsId,deleteApiTicketsId}};
+const putApiTicketsIdClaim = (
+    id: number, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<BooleanResponseDto>> => {
+    return axiosInstance.put(
+      `/api/tickets/${id}/claim`,
+      undefined,options
+    );
+  }
+return {getApiTickets,postApiTickets,getApiTicketsId,putApiTicketsId,deleteApiTicketsId,putApiTicketsIdClaim}};
 export type GetApiTicketsResult = AxiosResponse<void>
 export type PostApiTicketsResult = AxiosResponse<TicketDtoResponseDto>
 export type GetApiTicketsIdResult = AxiosResponse<TicketDtoResponseDto>
 export type PutApiTicketsIdResult = AxiosResponse<TicketDtoResponseDto>
 export type DeleteApiTicketsIdResult = AxiosResponse<BooleanResponseDto>
+export type PutApiTicketsIdClaimResult = AxiosResponse<BooleanResponseDto>

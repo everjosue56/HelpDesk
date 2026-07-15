@@ -9,7 +9,7 @@ namespace HelpDesk.Services.NotificationServices
 {
     public interface INotificationService
     {
-        Task<PagedResponseDto<NotificationDto>> GetAllAsync(NotificationFilterDto filterbool,bool isCliente, int currentUserId);
+        Task<PagedResponseDto<NotificationDto>> GetAllAsync(NotificationFilterDto filterbool,bool isCliente, long currentUserId);
         Task<ResponseDto<IEnumerable<NotificationDto>>> GetUnreadByUserIdAsync(long userId);
         Task<ResponseDto<NotificationDto>> GetByIdAsync(long id);
         Task<ResponseDto<NotificationDto>> CreateAsync(CreateNotificationDto dto);

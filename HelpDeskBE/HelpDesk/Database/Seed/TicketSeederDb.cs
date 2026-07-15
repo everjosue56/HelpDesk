@@ -20,7 +20,9 @@ namespace HelpDesk.Database.Seed
                     IdArea = 1,
                     IdSoftwareSystem = 1, 
                     IdImpact = 3, 
-                    IdPriority = 1, 
+                    IdPriority = 1,
+                    IdSolutionState = 3, 
+                    IdUserAssigned = null, 
                     IsActive = true,
                     CreatedDate = new DateTime(2026, 5, 10),
                     CreatedBy = 1
@@ -35,7 +37,9 @@ namespace HelpDesk.Database.Seed
                     IdArea = 1,
                     IdSoftwareSystem = 2, 
                     IdImpact = 2, 
-                    IdPriority = 2, 
+                    IdPriority = 2,
+                    IdSolutionState = 3, 
+                    IdUserAssigned = null, 
                     IsActive = true,
                     CreatedDate = new DateTime(2026, 5, 12),
                     CreatedBy = 1

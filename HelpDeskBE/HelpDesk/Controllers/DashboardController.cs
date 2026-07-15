@@ -32,14 +32,14 @@ namespace HelpDesk.Controllers
         }
 
         [HttpGet("carga-areas")]
-        public async Task<IActionResult> GetCargaAreas([FromQuery] int year, [FromQuery] int? month, [FromQuery] int? agency)
+        public async Task<IActionResult> GetCargaAreas([FromQuery] int year, [FromQuery] int? month, [FromQuery] long? agency)
         {
             var data = await _dashboardService.GetTicketsByAreaAsync(year, month, agency);
             return Ok(data);
         }
 
         [HttpGet("rendimiento-tecnicos")]
-        public async Task<IActionResult> GetRendimientoTecnicos([FromQuery] int year, [FromQuery] int? month, [FromQuery] int? userId)
+        public async Task<IActionResult> GetRendimientoTecnicos([FromQuery] int year, [FromQuery] int? month, [FromQuery] long? userId)
         {
             var data = await _dashboardService.GetTechnicianPerformanceAsync(year, month, userId);
             return Ok(data);
