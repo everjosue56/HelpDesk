@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { X, Save, BellRing } from 'lucide-react';
 import { Input } from '../../../../../@/components/ui/input';
 import { Button } from '../../../../../@/components/ui/button';
@@ -21,6 +21,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '../../../../../@/components/ui/select';
+import { useAlertTypes } from '../../alertType/hooks/useAlertTypes';
 
 export interface AlertConfigFormValues {
     title: string;
@@ -50,6 +51,7 @@ export const AlertConfigForm: React.FC<AlertConfigFormProps> = ({
 
     const { agencies } = useAgencies('', '', 1, 100);
     const { areas } = useAreas('', '', 1, 100);
+    const { alertTypes } = useAlertTypes('', 1, 100);
 
     const form = useForm<AlertConfigFormValues>({
         defaultValues: {
@@ -65,13 +67,17 @@ export const AlertConfigForm: React.FC<AlertConfigFormProps> = ({
     });
 
     // Verificamos el estado global para mostrar o ocultar los selects de area y agencia 
-    const isGlobalWatch = form.watch('isGlobal');
+    const isGlobalWatch = useWatch({
+        control: form.control,
+        name: 'isGlobal'
+    });
 
     // Sincronizar y resetear valores en modo edición
     useEffect(() => {
+        const isAlertTypesLoaded = alertTypes?.length > 0;
         const catalogsLoaded = initialData?.isGlobal || (areas?.length > 0 && agencies?.length > 0);
 
-        if (initialData && catalogsLoaded) {
+        if (initialData && isAlertTypesLoaded && catalogsLoaded) {
             form.reset({
                 title: initialData.title || '',
                 subject: initialData.subject || '',
@@ -83,7 +89,7 @@ export const AlertConfigForm: React.FC<AlertConfigFormProps> = ({
                 scheduledDate: initialData.scheduledDate || '',
             });
         }
-    }, [initialData, form, areas, agencies]);
+    }, [initialData, form, areas, agencies, alertTypes]);
 
     return (
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 space-y-6 animate-fadeIn text-left">
@@ -113,13 +119,31 @@ export const AlertConfigForm: React.FC<AlertConfigFormProps> = ({
                         <FormField
                             control={form.control}
                             name="title"
-                            rules={{ required: 'El título de la alerta es obligatorio.' }}
+                            rules={{ required: 'El tipo de alerta es obligatorio.' }}
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-sm font-bold text-slate-700">Título de la Alerta</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Ej. Alerta de Mantenimiento Preventivo" {...field} className="rounded-xl border-gray-200 h-11 pl-5 placeholder:text-gray-400 placeholder:font-normal" />
-                                    </FormControl>
+                                    <FormLabel className="text-sm font-bold text-slate-700">Tipo / Título de Alerta</FormLabel>
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value}
+                                    >
+                                        <FormControl>
+                                            <SelectTrigger className="rounded-xl border-gray-200 h-11 pl-5 pr-4 text-slate-700 focus:ring-[#1a558b] w-full bg-white">
+                                                <SelectValue placeholder="Seleccione un Tipo de Alerta" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent className="bg-white rounded-xl border border-gray-200">
+                                            {alertTypes?.map((type) => (
+                                                <SelectItem
+                                                    key={type.id}
+                                                    value={type.name}
+                                                    className="cursor-pointer text-slate-700"
+                                                >
+                                                    {type.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                     <FormMessage className="text-xs text-red-500 font-medium" />
                                 </FormItem>
                             )}

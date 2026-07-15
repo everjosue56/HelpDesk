@@ -22,7 +22,7 @@ export const CreateAlertTypePage: React.FC = () => {
         description: `La clasificación "${values.name}" ha sido agregada al catálogo.`,
       });
 
-      navigate('/dashboard/alert-types');
+      navigate('/dashboard/alerttypes');
     } catch (error) {
       console.error(error);
       toast.error("No se pudo crear el tipo de alerta");

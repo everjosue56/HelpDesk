@@ -38,6 +38,8 @@ export const TechnicianDashboardPage: React.FC = () => {
     } = useTechnicianDashboard(2026);
 
     const { users } = useUsers('', null, null, null, null, 1, 100);
+    const idRolTI = 2;
+    const techniciansOnly = users?.filter(u => u.idRol === idRolTI) || [];
 
     const labels = techRecords.map(t => t.tecnicoNombre);
 
@@ -47,7 +49,7 @@ export const TechnicianDashboardPage: React.FC = () => {
             {
                 label: 'Incidencias Resueltas',
                 data: techRecords.map(t => t.ticketsResueltos),
-                backgroundColor: '#1e5f8a', 
+                backgroundColor: '#1e5f8a',
                 borderRadius: 6,
                 barThickness: 45,
             }
@@ -89,7 +91,7 @@ export const TechnicianDashboardPage: React.FC = () => {
 
     const navigate = useNavigate()
     // Encontrar el nombre del técnico seleccionado para mostrar en la tarjeta de KPI
-    const currentTechName = users?.find(u => u.id === selectedUser)?.userName || "Todos";
+    const currentTechName = techniciansOnly.find(u => u.id === selectedUser)?.userName || "Todos";
 
     if (isLoading && techRecords.length === 0) {
         return (
@@ -171,7 +173,8 @@ export const TechnicianDashboardPage: React.FC = () => {
                                         <SelectValue placeholder="Todos los Técnicos" />
                                     </SelectTrigger>
                                     <SelectContent className="bg-white rounded-xl border border-gray-200 text-sm">
-                                        {users?.map((u) => (
+
+                                        {techniciansOnly.map((u) => (
                                             <SelectItem key={u.id} value={String(u.id)} className="cursor-pointer text-sm">{u.userName}</SelectItem>
                                         ))}
                                     </SelectContent>
@@ -183,13 +186,12 @@ export const TechnicianDashboardPage: React.FC = () => {
                                 )}
                             </div>
                         </div>
-
                     </div>
                 </div>
 
                 {/* TARJETAS DE KPIS SUPERIORES */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
-                    
+
                     {/* Tarjeta 1: Técnico Activo */}
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center h-28 relative">
                         <div className="space-y-1">

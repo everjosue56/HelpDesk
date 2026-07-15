@@ -146,23 +146,22 @@ namespace HelpDesk.Services.DashboardServices
         //  3. KPI de Productividad de Técnicos 
         public async Task<List<TechnicianPerformanceDto>> GetTechnicianPerformanceAsync(int year, int? month, long? userId)
         {
-
+            // 1. Cargamos la base de las resoluciones con el usuario
             var query = _context.Resolutions
                 .IgnoreQueryFilters()
                 .Include(r => r.User)
-                .Where(r => r.User.IdRol != 3)
                 .Where(r => r.ResolutionDate.Year == year);
 
-            // Inyección del filtro de mes
+            query = query.Where(r => r.User.IdRol == 2);
+
             if (month.HasValue)
             {
                 query = query.Where(r => r.ResolutionDate.Month == month.Value);
             }
 
-            // Inyección del filtro por técnico específico 
             if (userId.HasValue)
             {
-                query = query.Where(r => r.User.Roles.Name.ToUpper() == "TI");
+                query = query.Where(r => r.IdUser == userId.Value);
             }
 
             return await query

@@ -51,15 +51,16 @@ export const useTechnicianDashboard = (initialYear: number = 2026) => {
         return () => { isMounted = false; };
     }, [year, month, selectedUser, fetchTechData]);
 
-   const kpis = useMemo(() => {
-        const totalResueltos = techRecords.reduce((acc, curr) => acc + (curr.ticketsResueltos || 0), 0);
+     const kpis = useMemo(() => {
+   
+    const totalResueltos = techRecords.reduce((acc, curr) => acc + (curr.ticketsResueltos || 0), 0);
+    
+    const promedioMttr = techRecords.length > 0 
+        ? Math.round((techRecords.reduce((acc, curr) => acc + (curr.mttrHoras || 0), 0) / techRecords.length) * 100) / 100
+        : 0;
         
-        const promedioMttr = techRecords.length > 0 
-            ? Math.round((techRecords.reduce((acc, curr) => acc + (curr.mttrHoras || 0), 0) / techRecords.length) * 100) / 100
-            : 0;
-            
-        return { totalResueltos, promedioMttr };
-    }, [techRecords]);;
+    return { totalResueltos, promedioMttr };
+}, [techRecords]);
 
     return {
         year,
