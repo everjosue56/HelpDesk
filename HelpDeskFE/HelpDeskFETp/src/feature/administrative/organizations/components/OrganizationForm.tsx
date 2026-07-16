@@ -19,7 +19,7 @@ import type { OrganizationItem } from '../hooks/useOrganizations';
 const organizationSchema = z.object({
     name: z.string().min(1, { message: "El nombre es obligatorio" }),
     contact: z.string().min(1, { message: "El contacto o teléfono es obligatorio" }),
-    address: z.string().optional(),
+    address: z.string().min(1, { message: "La dirección es obligatoria" }),
     description: z.string().optional(),
     logo: z.string().optional(),
 });

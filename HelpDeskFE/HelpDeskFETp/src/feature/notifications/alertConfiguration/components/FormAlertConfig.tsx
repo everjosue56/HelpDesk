@@ -54,6 +54,9 @@ export const AlertConfigForm: React.FC<AlertConfigFormProps> = ({
     const { alertTypes } = useAlertTypes('', 1, 100);
 
     const form = useForm<AlertConfigFormValues>({
+        mode: 'onSubmit',
+        reValidateMode: 'onChange',
+        shouldFocusError: true,
         defaultValues: {
             title: '',
             subject: '',
@@ -62,7 +65,7 @@ export const AlertConfigForm: React.FC<AlertConfigFormProps> = ({
             isActive: true,
             idArea: null,
             idAgency: null,
-            scheduledDate: new Date().toISOString().slice(0, 16),
+            scheduledDate: '',
         },
     });
 
@@ -124,8 +127,12 @@ export const AlertConfigForm: React.FC<AlertConfigFormProps> = ({
                                 <FormItem>
                                     <FormLabel className="text-sm font-bold text-slate-700">Tipo / Título de Alerta</FormLabel>
                                     <Select
+                                        name={field.name}
                                         onValueChange={field.onChange}
-                                        value={field.value}
+                                        value={field.value ?? ''}
+                                        onOpenChange={(open) => {
+                                            if (!open) field.onBlur();
+                                        }}
                                     >
                                         <FormControl>
                                             <SelectTrigger className="rounded-xl border-gray-200 h-11 pl-5 pr-4 text-slate-700 focus:ring-[#1a558b] w-full bg-white">
@@ -205,12 +212,17 @@ export const AlertConfigForm: React.FC<AlertConfigFormProps> = ({
                         <FormField
                             control={form.control}
                             name="isGlobal"
+                            rules={{ required: 'Seleccione el alcance de la alerta.' }}
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className="text-sm font-bold text-slate-700">Alcance de la Alerta</FormLabel>
                                     <Select
+                                        name={field.name}
                                         onValueChange={(val) => field.onChange(val === 'true')}
-                                        value={String(field.value)}
+                                        value={String(field.value ?? false)}
+                                        onOpenChange={(open) => {
+                                            if (!open) field.onBlur();
+                                        }}
                                     >
                                         <FormControl>
                                             <SelectTrigger className="rounded-xl border-gray-200 h-11 pl-5 pr-4 text-slate-700 focus:ring-[#1a558b] w-full bg-white">
@@ -222,6 +234,7 @@ export const AlertConfigForm: React.FC<AlertConfigFormProps> = ({
                                             <SelectItem value="true" className="cursor-pointer">Global (Toda la organización)</SelectItem>
                                         </SelectContent>
                                     </Select>
+                                    <FormMessage className="text-xs text-red-500 font-medium" />
                                 </FormItem>
                             )}
                         />
@@ -234,12 +247,24 @@ export const AlertConfigForm: React.FC<AlertConfigFormProps> = ({
                                 <FormField
                                     control={form.control}
                                     name="idAgency"
+                                    rules={{
+                                        validate: (value) => {
+                                            if (isGlobalWatch) return true;
+                                            return value !== null && value !== undefined && value !== ''
+                                                ? true
+                                                : 'Seleccione una agencia destino.';
+                                        },
+                                    }}
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormLabel className="text-sm font-bold text-slate-700">Agencia Destino</FormLabel>
                                             <Select
+                                                name={field.name}
                                                 onValueChange={(val) => field.onChange(val === 'null' ? null : Number(val))}
                                                 value={field.value !== null && field.value !== undefined ? String(field.value) : "null"}
+                                                onOpenChange={(open) => {
+                                                    if (!open) field.onBlur();
+                                                }}
                                             >
                                                 <FormControl>
                                                     <SelectTrigger className="rounded-xl border-gray-200 h-11 pl-5 pr-4 text-slate-700 focus:ring-[#1a558b] w-full bg-white">
@@ -253,6 +278,7 @@ export const AlertConfigForm: React.FC<AlertConfigFormProps> = ({
                                                     ))}
                                                 </SelectContent>
                                             </Select>
+                                            <FormMessage className="text-xs text-red-500 font-medium" />
                                         </FormItem>
                                     )}
                                 />
@@ -261,12 +287,24 @@ export const AlertConfigForm: React.FC<AlertConfigFormProps> = ({
                                 <FormField
                                     control={form.control}
                                     name="idArea"
+                                    rules={{
+                                        validate: (value) => {
+                                            if (isGlobalWatch) return true;
+                                            return value !== null && value !== undefined && value !== ''
+                                                ? true
+                                                : 'Seleccione un área técnica destino.';
+                                        },
+                                    }}
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormLabel className="text-sm font-bold text-slate-700">Área Técnica Destino</FormLabel>
                                             <Select
+                                                name={field.name}
                                                 onValueChange={(val) => field.onChange(val === 'null' ? null : Number(val))}
                                                 value={field.value !== null && field.value !== undefined ? String(field.value) : "null"}
+                                                onOpenChange={(open) => {
+                                                    if (!open) field.onBlur();
+                                                }}
                                             >
                                                 <FormControl>
                                                     <SelectTrigger className="rounded-xl border-gray-200 h-11 pl-5 pr-4 text-slate-700 focus:ring-[#1a558b] w-full bg-white">
@@ -280,6 +318,7 @@ export const AlertConfigForm: React.FC<AlertConfigFormProps> = ({
                                                     ))}
                                                 </SelectContent>
                                             </Select>
+                                            <FormMessage className="text-xs text-red-500 font-medium" />
                                         </FormItem>
                                     )}
                                 />
@@ -294,8 +333,12 @@ export const AlertConfigForm: React.FC<AlertConfigFormProps> = ({
                                 <FormItem>
                                     <FormLabel className="text-sm font-bold text-slate-700">Estado de la Configuración</FormLabel>
                                     <Select
+                                        name={field.name}
                                         onValueChange={(val) => field.onChange(val === 'true')}
-                                        value={String(field.value)}
+                                        value={String(field.value ?? true)}
+                                        onOpenChange={(open) => {
+                                            if (!open) field.onBlur();
+                                        }}
                                     >
                                         <FormControl>
                                             <SelectTrigger className="rounded-xl border-gray-200 h-11 pl-5 pr-4 text-slate-700 focus:ring-[#1a558b] w-full bg-white">
@@ -307,6 +350,7 @@ export const AlertConfigForm: React.FC<AlertConfigFormProps> = ({
                                             <SelectItem value="false" className="cursor-pointer">Inactiva</SelectItem>
                                         </SelectContent>
                                     </Select>
+                                    <FormMessage className="text-xs text-red-500 font-medium" />
                                 </FormItem>
                             )}
                         />
