@@ -14,6 +14,7 @@ export const CreateMaintenancePage: React.FC = () => {
         idMaintenanceType: Number(values.idMaintenanceType),
         idArea: Number(values.idArea),
         idDevice: Number(values.idDevice),
+        idMaintenanceFrequency: Number(values.idMaintenanceFrequency ?? 0),
         notificationDate: new Date(values.notificationDate).toISOString(),
         completionDate: new Date(values.completionDate).toISOString(),
         details: values.details || "",

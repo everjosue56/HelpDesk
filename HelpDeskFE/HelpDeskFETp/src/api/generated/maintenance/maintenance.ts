@@ -14,8 +14,11 @@ import type {
 import type {
   BooleanResponseDto,
   CreateMaintenanceDto,
+  GetApiMaintenancesCalendarParams,
   GetApiMaintenancesParams,
+  MaintenanceCalendarDtoListResponseDto,
   MaintenanceDtoResponseDto,
+  RenewMaintenanceDto,
   UpdateMaintenanceDto
 } from '../../model';
 
@@ -38,6 +41,15 @@ const postApiMaintenances = (
     return axiosInstance.post(
       `/api/maintenances`,
       createMaintenanceDto,options
+    );
+  }
+const getApiMaintenancesCalendar = (
+    params?: GetApiMaintenancesCalendarParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<MaintenanceCalendarDtoListResponseDto>> => {
+    return axiosInstance.get(
+      `/api/maintenances/calendar`,{
+    ...options,
+        params: {...params, ...options?.params},}
     );
   }
 const getApiMaintenancesId = (
@@ -63,9 +75,20 @@ const deleteApiMaintenancesId = (
       `/api/maintenances/${id}`,options
     );
   }
-return {getApiMaintenances,postApiMaintenances,getApiMaintenancesId,putApiMaintenancesId,deleteApiMaintenancesId}};
+const postApiMaintenancesIdRenew = (
+    id: number,
+    renewMaintenanceDto?: RenewMaintenanceDto, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<MaintenanceDtoResponseDto>> => {
+    return axiosInstance.post(
+      `/api/maintenances/${id}/renew`,
+      renewMaintenanceDto,options
+    );
+  }
+return {getApiMaintenances,postApiMaintenances,getApiMaintenancesCalendar,getApiMaintenancesId,putApiMaintenancesId,deleteApiMaintenancesId,postApiMaintenancesIdRenew}};
 export type GetApiMaintenancesResult = AxiosResponse<void>
 export type PostApiMaintenancesResult = AxiosResponse<MaintenanceDtoResponseDto>
+export type GetApiMaintenancesCalendarResult = AxiosResponse<MaintenanceCalendarDtoListResponseDto>
 export type GetApiMaintenancesIdResult = AxiosResponse<MaintenanceDtoResponseDto>
 export type PutApiMaintenancesIdResult = AxiosResponse<MaintenanceDtoResponseDto>
 export type DeleteApiMaintenancesIdResult = AxiosResponse<BooleanResponseDto>
+export type PostApiMaintenancesIdRenewResult = AxiosResponse<MaintenanceDtoResponseDto>

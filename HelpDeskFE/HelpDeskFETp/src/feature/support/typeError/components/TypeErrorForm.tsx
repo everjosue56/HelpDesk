@@ -76,7 +76,7 @@ export const TypeErrorForm: React.FC<TypeErrorFormProps> = ({
                             name="name"
                             rules={{
                                 required: 'El nombre del tipo de error es obligatorio.',
-                                maxLength: { value: 100, message: 'El nombre no puede exceder los 100 caracteres.' }
+                                maxLength: { value: 60, message: 'El nombre no puede exceder los 60 caracteres.' }
                             }}
                             render={({ field }) => (
                                 <FormItem>

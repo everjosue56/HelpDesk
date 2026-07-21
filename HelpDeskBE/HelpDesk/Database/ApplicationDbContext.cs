@@ -168,6 +168,7 @@ namespace HelpDesk.Database
         public DbSet<DeviceEntity> Devices { get; set; }
         public DbSet<MaintenanceEntity> Maintenances { get; set; }
         public DbSet<MaintenanceHistoryEntity> MaintenanceHistories { get; set; }
+        public DbSet<MaintenanceFrequencyEntity> MaintenanceFrequencies { get; set; }
 
         // --- Alertas y Notificaciones ---
         public DbSet<AlertTypeEntity> AlertsType { get; set; }
@@ -213,6 +214,7 @@ namespace HelpDesk.Database
             modelBuilder.Entity<AlertConfigurationEntity>().ToTable("alert_configuration");
             modelBuilder.Entity<NotificationHistoryEntity>().ToTable("notification_history");
             modelBuilder.Entity<AlertHistoryEntity>().ToTable("alert_history");
+            modelBuilder.Entity<MaintenanceFrequencyEntity>().ToTable("maintenance_frequency");
 
             // 3. Configuración de Relaciones (Fluent API)
 
@@ -418,6 +420,12 @@ namespace HelpDesk.Database
                 entity.HasOne(m => m.Device)
                     .WithMany()
                     .HasForeignKey(m => m.IdDevice)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // 4. Relacion con Frecuencia
+                entity.HasOne(m => m.MaintenanceFrequencies)
+                    .WithMany()
+                    .HasForeignKey(m => m.IdMaintenanceFrequency)
                     .OnDelete(DeleteBehavior.Restrict);
             });
 

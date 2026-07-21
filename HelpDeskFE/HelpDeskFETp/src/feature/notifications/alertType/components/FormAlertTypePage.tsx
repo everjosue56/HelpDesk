@@ -51,7 +51,7 @@ export const AlertTypeForm: React.FC<AlertTypeFormProps> = ({
                         {...register('name', {
                             required: 'El nombre del tipo de alerta es obligatorio.',
                             minLength: { value: 3, message: 'El nombre debe tener al menos 3 caracteres.' },
-                            maxLength: { value: 100, message: 'El nombre no puede exceder los 100 caracteres.' },
+                            maxLength: { value: 60, message: 'El nombre no puede exceder los 60 caracteres.' },
                         })}
                         className={`w-full px-4 py-2 bg-white border rounded-xl text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${errors.name
                                 ? 'border-red-500 focus:ring-red-500/20'

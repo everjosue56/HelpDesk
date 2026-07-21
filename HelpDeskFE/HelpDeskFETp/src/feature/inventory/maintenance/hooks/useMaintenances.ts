@@ -5,6 +5,7 @@ import { getMaintenance } from "../../../../api/generated/maintenance/maintenanc
 import type { 
   CreateMaintenanceDto, 
   UpdateMaintenanceDto, 
+  RenewMaintenanceDto,
   GetApiMaintenancesParams 
 } from "../../../../api/model";
 
@@ -16,6 +17,8 @@ export interface MaintenanceItem {
   executionTime: number;
   idMaintenanceType: number;
   maintenanceTypeName: string;
+  idMaintenanceFrequency: number;
+  frequencyName: string;
   idArea: number;
   areaName: string;
   idDevice: number;
@@ -25,6 +28,17 @@ export interface MaintenanceItem {
   createdDate: string;
 }
 
+// 🚀 Tipo para los eventos del calendario
+export interface MaintenanceCalendarEvent {
+  id: number;
+  title: string;
+  start: string;
+  end: string;
+  details?: string;
+  deviceName?: string;
+  frequencyName?: string;
+}
+
 export const useMaintenances = (
   keyword: string,
   page: number,
@@ -32,6 +46,7 @@ export const useMaintenances = (
   idMaintenanceType?: number | null,
   idArea?: number | null,
   idDevice?: number | null,
+  idFrequency?: number | null,
   dateFrom?: string | null,
   dateTo?: string | null
 ) => {
@@ -44,10 +59,12 @@ export const useMaintenances = (
   const [maintenance, setMaintenance] = useState<MaintenanceItem | null>(null);
   const [isFetching, setIsFetching] = useState<boolean>(false);
 
-  // Inicializar el servicio
+  void idFrequency;
+
+  // Inicializar el servicio Orval
   const maintenanceService = useMemo(() => getMaintenance(AXIOS_INSTANCE), []);
 
-  // 1. Obtener listado 
+  // 1. Obtener listado paginado
   const fetchMaintenances = useCallback(async () => {
     if (!isAuthenticated) return;
     try {
@@ -83,6 +100,8 @@ export const useMaintenances = (
             maintenanceTypeName: item.maintenanceTypeName || "N/A",
             idArea: item.idArea || 0,
             areaName: item.areaName || "N/A",
+            idMaintenanceFrequency: item.idMaintenanceFrequency ?? item.idFrequency ?? 0,
+            frequencyName: item.frequencyName || "N/A",
             idDevice: item.idDevice || 0,
             deviceCode: item.deviceCode || "N/A",
             deviceBrand: item.deviceBrand || "N/A",
@@ -100,7 +119,7 @@ export const useMaintenances = (
     }
   }, [isAuthenticated, keyword, page, pageSize, idMaintenanceType, idArea, idDevice, dateFrom, dateTo, maintenanceService]);
 
-  // 2. Obtener un mantenimiento individual (Para detalles o edición)
+  // 2. Obtener un mantenimiento individual
   const getMaintenanceById = useCallback(async (id: number): Promise<MaintenanceItem | null> => {
     try {
       setIsFetching(true);
@@ -124,6 +143,8 @@ export const useMaintenances = (
         maintenanceTypeName: item.maintenanceTypeName || "",
         idArea: item.idArea || 0,
         areaName: item.areaName || "",
+        idMaintenanceFrequency: item.idMaintenanceFrequency ?? item.idFrequency ?? 0,
+        frequencyName: item.frequencyName || "N/A",
         idDevice: item.idDevice || 0,
         deviceCode: item.deviceCode || "",
         deviceBrand: item.deviceBrand || "",
@@ -142,7 +163,21 @@ export const useMaintenances = (
     }
   }, [maintenanceService]);
 
-  // 3. Mutaciones CRUD
+  // 3. Obtener eventos para la vista de Calendario
+  const getMaintenanceCalendar = useCallback(async (year?: number, month?: number): Promise<MaintenanceCalendarEvent[]> => {
+    try {
+      const response = await AXIOS_INSTANCE.get('/api/maintenances/calendar', {
+        params: { year, month }
+      });
+    
+      return response.data?.data || [];
+    } catch (error) {
+      console.error("Error al obtener el calendario de mantenimientos:", error);
+      return [];
+    }
+  }, []);
+
+  // 4. Mutaciones CRUD y Acciones Especiales
   const createMaintenance = async (dto: CreateMaintenanceDto) => {
     try {
       setIsLoading(true);
@@ -163,6 +198,20 @@ export const useMaintenances = (
       await fetchMaintenances();
     } catch (error) {
       console.error("Error al actualizar mantenimiento:", error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 🚀 Función para renovar el mantenimiento (Mismo ID, guarda historial y recalcula alertas)
+  const renewMaintenance = async (id: number, dto: RenewMaintenanceDto) => {
+    try {
+      setIsLoading(true);
+      await maintenanceService.postApiMaintenancesIdRenew(id, dto);
+      await fetchMaintenances();
+    } catch (error) {
+      console.error("Error al renovar mantenimiento:", error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -203,8 +252,10 @@ export const useMaintenances = (
     maintenance,
     isFetching,
     getMaintenanceById,
+    getMaintenanceCalendar,
     createMaintenance,
     updateMaintenance,
+    renewMaintenance,
     deleteMaintenance,
     refresh: fetchMaintenances,
   };

@@ -17,4 +17,5 @@ export interface UpdateMaintenanceDto {
      */
   details: string;
   executionTime?: number;
+  idMaintenanceFrequency: number;
 }

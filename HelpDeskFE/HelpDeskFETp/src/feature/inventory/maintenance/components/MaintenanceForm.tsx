@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { X, Save, Wrench } from 'lucide-react';
 import { Input } from '../../../../../@/components/ui/input';
@@ -7,6 +7,9 @@ import { Textarea } from '../../../../../@/components/ui/textarea';
 import { useAreas } from '../../../administrative/areas/hooks/useAreas';
 import { useDevices } from '../../devices/hooks/useDevices';
 import { useTypeMaintenance } from '../../typeMaintenance/hooks/useTypeMaintenance'; 
+import { AXIOS_INSTANCE } from '../../../../api/axios-instance';
+import { getMaintenanceFrequency } from '../../../../api/generated/maintenance-frequency/maintenance-frequency';
+import type { MaintenanceFrequencyDto } from '../../../../api/model';
 import {
     Form,
     FormControl,
@@ -21,6 +24,7 @@ export interface MaintenanceFormValues {
     idMaintenanceType: string | number | null;
     idArea: string | number | null;
     idDevice: string | number | null;
+    idMaintenanceFrequency: string | number | null;
     notificationDate: string;
     completionDate: string;
     details: string;
@@ -46,6 +50,7 @@ export const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
     const { devices } = useDevices('', 1, 100);
     const { areas } = useAreas('', '', 1, 100);
     const { typeMaintenance } = useTypeMaintenance('', 1, 100); 
+    const [frequencies, setFrequencies] = useState<MaintenanceFrequencyDto[]>([]);
 
     const form = useForm<MaintenanceFormValues>({
         mode: 'onBlur',
@@ -53,12 +58,37 @@ export const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
             idMaintenanceType: undefined,
             idArea: '',
             idDevice: '',
+            idMaintenanceFrequency: '',
             notificationDate: '',
             completionDate: '',
             details: '',
             executionTime: 0,
         },
     });
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadFrequencies = async () => {
+            try {
+                const service = getMaintenanceFrequency(AXIOS_INSTANCE);
+                const response = await service.getApiMaintenanceFrequency({ PageNumber: 1, PageSize: 100 } as never);
+                const data = (response.data as { data?: MaintenanceFrequencyDto[] })?.data || [];
+
+                if (isMounted) {
+                    setFrequencies(Array.isArray(data) ? data : []);
+                }
+            } catch (error) {
+                console.error('Error al cargar intervalos de mantenimiento:', error);
+            }
+        };
+
+        loadFrequencies();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     // Sincronización asíncrona para el modo de edicion 
     useEffect(() => {
@@ -73,6 +103,7 @@ export const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
             idMaintenanceType: initialData.idMaintenanceType ? String(initialData.idMaintenanceType) : '',
             idArea: initialData.idArea ? String(initialData.idArea) : '',
             idDevice: initialData.idDevice ? String(initialData.idDevice) : '',
+            idMaintenanceFrequency: initialData.idMaintenanceFrequency ? String(initialData.idMaintenanceFrequency) : '',
             notificationDate: formatForInput(initialData.notificationDate),
             completionDate: formatForInput(initialData.completionDate),
             details: initialData.details || '',
@@ -195,6 +226,36 @@ export const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
                             )}
                         />
 
+                        {/* Selector: Intervalo de tiempo */}
+                        <FormField
+                            control={form.control}
+                            name="idMaintenanceFrequency"
+                            rules={{ required: 'Debe seleccionar el intervalo de tiempo.' }}
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-sm font-bold text-slate-700">Intervalo de tiempo</FormLabel>
+                                    <Select 
+                                        onValueChange={(val) => field.onChange(Number(val))}
+                                        value={field.value !== undefined && field.value !== null ? String(field.value) : ""}
+                                    >
+                                        <FormControl>
+                                            <SelectTrigger className="rounded-xl border-gray-200 h-11 pl-5 pr-4 text-slate-700 focus:ring-[#1a558b] w-full bg-white shadow-none">
+                                                <SelectValue placeholder="Seleccionar intervalo" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent className="bg-white rounded-xl border border-gray-200">
+                                            {frequencies?.map((f) => (
+                                                <SelectItem key={f.id} value={String(f.id)} className="cursor-pointer">
+                                                    {f.name || `${f.daysInterval ?? 0} días`}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage className="text-xs text-red-500 font-medium" />
+                                </FormItem>
+                            )}
+                        />
+
                         {/* Tiempo Demorado / Minutos u Horas */}
                         <FormField
                             control={form.control}
@@ -248,7 +309,9 @@ export const MaintenanceForm: React.FC<MaintenanceFormProps> = ({
                             <FormField
                                 control={form.control}
                                 name="details"
-                                rules={{ required: 'Debe ingresar los detalles o hallazgos técnicos del mantenimiento.' }}
+                                rules={{ required: 'Debe ingresar los detalles o hallazgos técnicos del mantenimiento.',
+                                         maxLength: { value: 500, message: 'Los detalles no pueden exceder los 500 caracteres.' }
+                                 }}
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel className="text-sm font-bold text-slate-700">Detalles técnicos</FormLabel>

@@ -14,5 +14,7 @@ namespace HelpDesk.Services.MaintenanceService
         Task<ResponseDto<MaintenanceDto>> CreateAsync(CreateMaintenanceDto dto);
         Task<ResponseDto<MaintenanceDto>> UpdateAsync(UpdateMaintenanceDto dto, long id);
         Task<ResponseDto<bool>> DeleteAsync(long id);
+        Task<ResponseDto<List<MaintenanceCalendarDto>>> GetMaintenanceCalendarAsync(int? year, int? month);
+        Task<ResponseDto<MaintenanceDto>> RenewAsync(long previousMaintenanceId, RenewMaintenanceDto dto);
     }
 }

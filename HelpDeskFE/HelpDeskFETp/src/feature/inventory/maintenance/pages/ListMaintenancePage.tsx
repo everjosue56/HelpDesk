@@ -12,12 +12,17 @@ import {
     Trash2,
     Edit,
     X,
-    Settings
+    Settings,
+    Calendar,
+    RotateCw
 } from 'lucide-react';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '../../../../../@/components/ui/pagination';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../../@/components/ui/select';
 import { MaintenanceDeleteModal } from '../components/MaintenanceDeleteModal';
+import { MaintenanceCalendarModal } from '../components/MaintenanceCalendarModal';
+import { MaintenanceRenewModal } from '../components/MaintenanceRenewModal';
+import type { RenewMaintenanceDto } from '@/api/model/renewMaintenanceDto';
 
 export const ListMaintenancePage: React.FC = () => {
     // ─── ESTADOS DE FILTROS INTERACTIVOS ───
@@ -26,6 +31,7 @@ export const ListMaintenancePage: React.FC = () => {
     const [selectedArea, setSelectedArea] = useState<number | undefined>(undefined);
     const [selectedType, setSelectedType] = useState<number | undefined>(undefined);
     const [filterDate, setFilterDate] = useState<string>('');
+    const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
 
     const [page, setPage] = useState(1);
     const pageSize = 5;
@@ -34,8 +40,9 @@ export const ListMaintenancePage: React.FC = () => {
         maintenances,
         totalCount,
         isLoading,
-        deleteMaintenance
-    } = useMaintenances(searchTerm, page, pageSize, selectedType, selectedArea, selectedDevice, filterDate || null, filterDate || null);
+        deleteMaintenance,
+        renewMaintenance
+    } = useMaintenances(searchTerm, page, pageSize, selectedType, selectedArea, selectedDevice, undefined, filterDate || null, filterDate || null);
 
     // ─── CONSUMO DE HOOKS RELACIONALES PARA FILTROS ───
     const { devices } = useDevices('', 1, 100);
@@ -71,6 +78,8 @@ export const ListMaintenancePage: React.FC = () => {
     // ─── ESTADOS PARA MODALES DE ACCIÓN ───
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedMaintenance, setSelectedMaintenance] = useState<MaintenanceItem | null>(null);
+    const [isRenewModalOpen, setIsRenewModalOpen] = useState(false);
+    const [selectedMaintenanceForRenew, setSelectedMaintenanceForRenew] = useState<MaintenanceItem | null>(null);
 
     const handleConfirmDelete = async (id: number) => {
         try {
@@ -82,6 +91,10 @@ export const ListMaintenancePage: React.FC = () => {
             toast.error("Error al intentar eliminar el registro de mantenimiento");
             console.error(error);
         }
+    };
+
+    const handleConfirmRenew = async (id: number, dto: RenewMaintenanceDto) => {
+        await renewMaintenance(id, dto);
     };
 
     return (
@@ -124,13 +137,23 @@ export const ListMaintenancePage: React.FC = () => {
                         <h2 className="text-lg font-bold text-slate-800">Lista de Mantenimientos</h2>
                         <p className="text-sm text-gray-500">Gestiona todas los mantenimientos registrados en el sistema</p>
                     </div>
-                    <button
-                        className="inline-flex items-center justify-center gap-2 bg-[#1e5f8a] hover:bg-[#154666] text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer"
-                        onClick={() => navigate("create")}
-                    >
-                        <Plus className="h-4 w-4 stroke-3" />
-                        Nuevo Mantenimiento
-                    </button>
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            className="inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-gray-200 font-semibold text-sm px-4 py-2.5 rounded-xl transition-colors shadow-xs cursor-pointer"
+                            onClick={() => setIsCalendarModalOpen(true)}
+                        >
+                            <Calendar className="h-4 w-4 text-[#1e5f8a]" />
+                            Ver Calendario
+                        </button>
+                        <button
+                            className="inline-flex items-center justify-center gap-2 bg-[#1e5f8a] hover:bg-[#154666] text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer"
+                            onClick={() => navigate("create")}
+                        >
+                            <Plus className="h-4 w-4 stroke-3" />
+                            Nuevo Mantenimiento
+                        </button>
+                    </div>
                 </div>
 
                 {/* ─── BARRA DE 5 FILTROS ─── */}
@@ -265,7 +288,7 @@ export const ListMaintenancePage: React.FC = () => {
                                 </tr>
                             ) : (
                                 maintenances.map((item, index) => {
-                                    const itemNumber = (page - 1) * pageSize + index + 1;
+                                    const itemNumber = (page - 1) * pageSize + index + 1;   
 
                                     return (
                                         <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
@@ -279,6 +302,17 @@ export const ListMaintenancePage: React.FC = () => {
                                             </td>
                                             <td className="p-3.5">
                                                 <div className="flex items-center justify-center gap-3 text-gray-400">
+                                                    <button
+                                                        type="button"
+                                                        className="hover:text-emerald-600 transition-colors cursor-pointer"
+                                                        onClick={() => {
+                                                            setSelectedMaintenanceForRenew(item);
+                                                            setIsRenewModalOpen(true);
+                                                        }}
+                                                        title="Renovar mantenimiento"
+                                                    >
+                                                        <RotateCw className="h-4 w-4" />
+                                                    </button>
                                                     <button type="button" className="hover:text-slate-600 transition-colors cursor-pointer" onClick={() => navigate(`details/${item.id}`)} title="Ver detalle"><Eye className="h-4 w-4" /></button>
                                                     <button type="button" className="hover:text-red-500 transition-colors cursor-pointer" onClick={() => { setSelectedMaintenance(item); setIsDeleteModalOpen(true); }} title="Eliminar"><Trash2 className="h-4 w-4" /></button>
                                                     <button type="button" className="hover:text-[#1e5f8a] transition-colors cursor-pointer" onClick={() => navigate(`edit/${item.id}`)} title="Editar"><Edit className="h-4 w-4" /></button>
@@ -405,6 +439,21 @@ export const ListMaintenancePage: React.FC = () => {
                 }}
                 onConfirm={handleConfirmDelete}
                 maintenance={selectedMaintenance}
+            />
+            {/* MODAL DE CALENDARIO */}
+            <MaintenanceCalendarModal
+                isOpen={isCalendarModalOpen}
+                onClose={() => setIsCalendarModalOpen(false)}
+            />
+            <MaintenanceRenewModal
+                key={`${selectedMaintenanceForRenew?.id ?? 'new'}-${isRenewModalOpen ? 'open' : 'closed'}`}
+                isOpen={isRenewModalOpen}
+                onClose={() => {
+                    setIsRenewModalOpen(false);
+                    setSelectedMaintenanceForRenew(null);
+                }}
+                maintenance={selectedMaintenanceForRenew}
+                onConfirmRenew={handleConfirmRenew}
             />
         </div>
     );

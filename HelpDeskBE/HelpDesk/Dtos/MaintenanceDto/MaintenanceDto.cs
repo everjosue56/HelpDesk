@@ -26,5 +26,9 @@ namespace HelpDesk.Dtos.MaintenanceDto
 
         // Propiedad calculada para mostrar en la lista
         public string DeviceFullDescription => $"{DeviceBrand} ({DeviceCode})";
+
+        // Frecuencia de mantenimiento 
+        public long IdMaintenanceFrequency { get; set; }
+        public string Name { get; set; } = string.Empty;
     }
 }

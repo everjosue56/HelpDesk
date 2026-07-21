@@ -80,7 +80,7 @@ export const TypeMaintenanceForm: React.FC<TypeMaintenanceFormProps> = ({
                             name="name"
                             rules={{
                                 required: 'El nombre del tipo de mantenimiento es obligatorio.',
-                                maxLength: { value: 100, message: 'El nombre no puede exceder los 100 caracteres.' }
+                                maxLength: { value: 60, message: 'El nombre no puede exceder los 60 caracteres.' }
                             }}
                             render={({ field }) => (
                                 <FormItem>

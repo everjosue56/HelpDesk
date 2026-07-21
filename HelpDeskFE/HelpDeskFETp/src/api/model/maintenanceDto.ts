@@ -26,4 +26,7 @@ export interface MaintenanceDto {
   deviceBrand?: string | null;
   /** @nullable */
   readonly deviceFullDescription?: string | null;
+  idMaintenanceFrequency?: number;
+  /** @nullable */
+  name?: string | null;
 }

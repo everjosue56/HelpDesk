@@ -1,11 +1,13 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useResolutions } from '../hooks/useResolutions';
 import { ResolutionForm } from '../components/ResolutionForm';
 import { toast } from 'sonner';
 
 export const CreateResolutionPage: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const preselectedTicketId = (location.state as { idTicket?: number } | null)?.idTicket;
     const { createResolution, isLoading } = useResolutions('', 1, 5);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleSubmit = async (values: any) => {
@@ -50,6 +52,7 @@ export const CreateResolutionPage: React.FC = () => {
             </div>
 
             <ResolutionForm
+                initialData={preselectedTicketId ? { idTicket: preselectedTicketId } : undefined}
                 onSubmit={handleSubmit}
                 onCancel={() => navigate('/dashboard/resolutions')}
                 isSubmitting={isLoading}

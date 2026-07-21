@@ -17,9 +17,9 @@ import type { OrganizationItem } from '../hooks/useOrganizations';
 
 
 const organizationSchema = z.object({
-    name: z.string().min(1, { message: "El nombre es obligatorio" }),
-    contact: z.string().min(1, { message: "El contacto o teléfono es obligatorio" }),
-    address: z.string().min(1, { message: "La dirección es obligatoria" }),
+    name: z.string().min(1, { message: "El nombre es obligatorio" }).max(60, { message: "El nombre no puede exceder los 60 caracteres" }),
+    contact: z.string().min(1, { message: "El contacto o teléfono es obligatorio" }).max(13, { message: "El contacto no puede exceder los 13 caracteres" }),
+    address: z.string().min(1, { message: "La dirección es obligatoria" }).max(240, { message: "La dirección no puede exceder los 240 caracteres" }),
     description: z.string().optional(),
     logo: z.string().optional(),
 });

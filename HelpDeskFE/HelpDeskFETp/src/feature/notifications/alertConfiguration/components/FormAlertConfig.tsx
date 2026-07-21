@@ -160,7 +160,9 @@ export const AlertConfigForm: React.FC<AlertConfigFormProps> = ({
                         <FormField
                             control={form.control}
                             name="subject"
-                            rules={{ required: 'El asunto del mensaje es obligatorio.' }}
+                            rules={{ required: 'El asunto del mensaje es obligatorio.',
+                                     maxLength: { value: 200, message: 'El asunto no puede exceder los 200 caracteres.' }
+                            }}
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className="text-sm font-bold text-slate-700">Asunto del Correo / Alerta</FormLabel>
@@ -176,7 +178,9 @@ export const AlertConfigForm: React.FC<AlertConfigFormProps> = ({
                         <FormField
                             control={form.control}
                             name="description"
-                            rules={{ required: 'El cuerpo del mensaje es obligatorio.' }}
+                            rules={{ required: 'El cuerpo del mensaje es obligatorio.' ,
+                                     maxLength: { value: 1000, message: 'El cuerpo del mensaje no puede exceder los 1000 caracteres.' }
+                            }}
                             render={({ field }) => (
                                 <FormItem className="md:col-span-2">
                                     <FormLabel className="text-sm font-bold text-slate-700">Cuerpo de la Notificación</FormLabel>

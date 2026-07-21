@@ -25,5 +25,7 @@ namespace HelpDesk.Dtos.MaintenanceDto
 
         // Se puede enviar desde el front o calcular en el service
         public decimal ExecutionTime { get; set; }
+        [Required (ErrorMessage = "La frecuencia es obligatoria.")]
+        public long IdMaintenanceFrequency { get; set; }
     }
 }

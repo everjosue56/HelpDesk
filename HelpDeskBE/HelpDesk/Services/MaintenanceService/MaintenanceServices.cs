@@ -1,17 +1,23 @@
 ﻿using AutoMapper;
 using HelpDesk.Database;
 using HelpDesk.Database.Entities;
+using HelpDesk.Dtos.AlertConfigurationDto;
 using HelpDesk.Dtos.Common;
 using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.MaintenanceDto;
+using HelpDesk.Dtos.NotificationDto;
+using HelpDesk.Helpers;
+using HelpDesk.Services.AlertConfigurationService;
 using HelpDesk.Services.AuthService;
+using HelpDesk.Services.EmailService;
+using HelpDesk.Services.NotificationServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Linq;
-using HelpDesk.Helpers;
+using System.Threading.Tasks;
+
 
 namespace HelpDesk.Services.MaintenanceService
 {
@@ -20,14 +26,26 @@ namespace HelpDesk.Services.MaintenanceService
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
         private readonly IAuthService _authService;
-        private readonly ILogger _logger;
+        private readonly IAlertConfigurationService _alertConfigService;
+        private readonly IEmailService _emailService;
+        private readonly INotificationService _notificationService;
+        private readonly ILogger<MaintenanceService> _logger;
 
-        public MaintenanceService(ApplicationDbContext context, IMapper mapper, IAuthService authService, ILogger<MaintenanceService> logger)
+        public MaintenanceService(
+            ApplicationDbContext context,
+            IMapper mapper,
+            IAlertConfigurationService alertConfigService,
+            IEmailService emailService,
+            INotificationService notificationService,
+            IAuthService authService,
+            ILogger<MaintenanceService> logger)
         {
             _context = context;
             _mapper = mapper;
             _authService = authService;
             _logger = logger;
+            _notificationService = notificationService;
+            _emailService = emailService;
         }
 
         public async Task<PagedResponseDto<MaintenanceDto>> GetAllAsync(MaintenanceFilterDto filter)
@@ -36,6 +54,7 @@ namespace HelpDesk.Services.MaintenanceService
             {
                 var query = _context.Maintenances
                     .Include(m => m.TypeMaintenance)
+                    .Include(m => m.MaintenanceFrequencies) 
                     .Include(m => m.Area)
                     .Include(m => m.Device)
                     .OrderByDescending(m => m.CreatedDate)
@@ -106,9 +125,10 @@ namespace HelpDesk.Services.MaintenanceService
         {
             var entity = await _context.Maintenances
                 .Include(m => m.TypeMaintenance)
+                .Include(m => m.MaintenanceFrequencies)  
                 .Include(m => m.Area)
                 .Include(m => m.Device)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.Id == id && !m.IsDeleted);
 
             if (entity == null)
             {
@@ -128,9 +148,8 @@ namespace HelpDesk.Services.MaintenanceService
             };
         }
 
-        public async Task<ResponseDto<MaintenanceDto>> CreateAsync(CreateMaintenanceDto dto)
+         public async Task<ResponseDto<MaintenanceDto>> CreateAsync(CreateMaintenanceDto dto)
         {
-            // Iniciamos una transacción para asegurar que ambos registros se guarden o ninguno
             using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
@@ -138,29 +157,30 @@ namespace HelpDesk.Services.MaintenanceService
                 var currentUserId = _authService.GetUserId();
                 var currentDate = DateTime.Now;
 
-                // 1. Mapear y crear la entidad principal (Mantenimiento)
+                // 1. Guardar Mantenimiento principal
                 var maintenanceEntity = _mapper.Map<MaintenanceEntity>(dto);
                 maintenanceEntity.CreatedBy = currentUserId;
                 maintenanceEntity.CreatedDate = currentDate;
 
-                // Calcular el tiempo de ejecución si no viene explícito
-                if (maintenanceEntity.ExecutionTime <= 0)
+                if (maintenanceEntity.ExecutionTime <= 0 && maintenanceEntity.CompletionDate > maintenanceEntity.NotificationDate)
                 {
                     var duration = maintenanceEntity.CompletionDate - maintenanceEntity.NotificationDate;
                     maintenanceEntity.ExecutionTime = (decimal)duration.TotalHours;
                 }
 
                 _context.Maintenances.Add(maintenanceEntity);
-                await _context.SaveChangesAsync(); // Guardamos para obtener el ID generado
+                await _context.SaveChangesAsync();
 
                 var device = await _context.Devices.FindAsync(maintenanceEntity.IdDevice);
-                // 2. CREACIÓN AUTOMÁTICA DEL HISTORIAL
+                var deviceName = device?.BrandName ?? "Equipo de cómputo";
+
+                // 2. Historial de Mantenimiento
                 var historyEntity = new MaintenanceHistoryEntity
                 {
-                    IdMaintenance = maintenanceEntity.Id, 
+                    IdMaintenance = maintenanceEntity.Id,
                     IdDevice = maintenanceEntity.IdDevice,
-                    IdUser = maintenanceEntity.CreatedBy,  // El técnico que operó el sistema
-                    IdTypeDevice = device!.IdDeviceType,
+                    IdUser = currentUserId,
+                    IdTypeDevice = device?.IdDeviceType ?? 1,
                     SolutionTime = maintenanceEntity.ExecutionTime,
                     CreatedBy = currentUserId,
                     CreatedDate = currentDate,
@@ -170,8 +190,86 @@ namespace HelpDesk.Services.MaintenanceService
                 _context.MaintenanceHistories.Add(historyEntity);
                 await _context.SaveChangesAsync();
 
-                // Confirmamos la transacción de forma segura
+                // 3. PROGRAMAR ALERTAS FUTURAS
+                var maintenanceDate = maintenanceEntity.CompletionDate;
+                var twoDaysBefore = maintenanceDate.AddDays(-2).Date.AddHours(8);
+
+                if (_alertConfigService != null && twoDaysBefore >= DateTime.Today)
+                {
+                    await _alertConfigService.CreateAsync(new CreateAlertConfigurationDto
+                    {
+                        Title = "Mantenimiento Preventivo Próximo",
+                        Subject = $"Recordatorio: Mantenimiento para {deviceName} en 2 días",
+                        Description = $"El equipo '{deviceName}' tiene mantenimiento programado para el {maintenanceDate:dd/MM/yyyy}.",
+                        IsGlobal = false,
+                        IsActive = true,
+                        IdArea = maintenanceEntity.IdArea > 0 ? maintenanceEntity.IdArea : null,
+                        ScheduledDate = twoDaysBefore
+                    });
+                }
+
+                // 4. DISPARAR NOTIFICACIÓN INTERNA INMEDIATA 
+                var createNotificationDto = new CreateNotificationDto
+                {
+                    IdUser = currentUserId,
+                    IdAlertType = 2, 
+                    TextMessage = $"El mantenimiento preventivo para el equipo {deviceName} ha sido programado con éxito.",
+                    IdReference = maintenanceEntity.Id
+                };
+                await _notificationService.CreateAsync(createNotificationDto);
+
+                // --------------------------------
+                // 5. CONFIRMAR TODO EN SQL SERVER
+                // --------------------------------
                 await transaction.CommitAsync();
+
+                // =========================================================================
+                // 6. FLUJO DE CORREOS AUTOMÁTICOS INMEDIATOS (FUERA DE LA TRANSACCIÓN)
+                // =========================================================================
+                try
+                {
+                    var maintenanceInfo = await _context.Maintenances
+                        .IgnoreQueryFilters()
+                        .Include(m => m.Area)
+                        .Include(m => m.Device)
+                        .FirstOrDefaultAsync(m => m.Id == maintenanceEntity.Id);
+
+                    if (maintenanceInfo != null)
+                    {
+                        // Extraer correos de los técnicos (Roles 1 y 2)
+                        var tiEmails = await _context.Users
+                            .Where(u => u.IdRol == 1 || u.IdRol == 2)
+                            .Select(u => u.Email)
+                            .ToListAsync();
+
+                        deviceName = maintenanceInfo.Device?.BrandName ?? deviceName;
+                        string areaName = maintenanceInfo.Area?.NameArea ?? "Área General";
+                        string frequencyName = maintenanceInfo.MaintenanceFrequencies?.Name ?? "No Especificada";
+                        string formattedDate = maintenanceEntity.CompletionDate.ToString("dd/MM/yyyy hh:mm tt");
+
+                        string emailHtml = HelpDesk.Helpers.EmailTemplates.GetMaintenanceScheduledTemplate(
+                            maintenanceInfo.Id,
+                            deviceName,
+                            areaName,
+                            frequencyName,
+                            formattedDate,
+                            maintenanceEntity.ExecutionTime.ToString("0.0"),
+                            maintenanceEntity.Details
+                        );
+
+                        string emailSubject = $"🔧 [HelpDesk] Mantenimiento Preventivo Programado: {deviceName} (#{maintenanceInfo.Id})";   
+
+                        foreach (var tiEmail in tiEmails)
+                        {
+                            await _emailService.SendEmailAsync(tiEmail, emailSubject, emailHtml);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "El mantenimiento #{MaintenanceId} se guardó, pero falló el envío del correo electrónico de confirmación.", maintenanceEntity.Id);
+                }
+                // =========================================================================
 
                 return await GetByIdAsync(maintenanceEntity.Id);
             }
@@ -186,14 +284,13 @@ namespace HelpDesk.Services.MaintenanceService
         {
             var entity = await _context.Maintenances.FindAsync(id);
 
-            if (entity == null)
+            if (entity == null || entity.IsDeleted)
             {
-                return new ResponseDto<MaintenanceDto> { Status = false, StatusCode = 404 };
+                return new ResponseDto<MaintenanceDto> { Status = false, StatusCode = 404, Message = "Registro no encontrado." };
             }
 
             _mapper.Map(dto, entity);
 
-            // Auditoría de actualización
             entity.UpdatedBy = _authService.GetUserId();
             entity.UpdatedDate = DateTime.Now;
 
@@ -209,18 +306,20 @@ namespace HelpDesk.Services.MaintenanceService
             {
                 var entity = await _context.Maintenances.FindAsync(id);
 
-                if (entity == null)
+                if (entity == null || entity.IsDeleted)
                 {
                     return new ResponseDto<bool>
                     {
                         Status = false,
-                        StatusCode = 404, // 🚀 Agregado: Not Found
+                        StatusCode = 404,
                         Message = "Mantenimiento no encontrado.",
                         Data = false
                     };
                 }
 
                 entity.IsDeleted = true;
+                entity.UpdatedBy = _authService.GetUserId();
+                entity.UpdatedDate = DateTime.Now;
 
                 _context.Maintenances.Update(entity);
                 await _context.SaveChangesAsync();
@@ -228,7 +327,7 @@ namespace HelpDesk.Services.MaintenanceService
                 return new ResponseDto<bool>
                 {
                     Status = true,
-                    StatusCode = 200, // 🚀 Agregado: OK
+                    StatusCode = 200,
                     Message = "Mantenimiento eliminado correctamente.",
                     Data = true
                 };
@@ -239,9 +338,205 @@ namespace HelpDesk.Services.MaintenanceService
                 return new ResponseDto<bool>
                 {
                     Status = false,
-                    StatusCode = 500, // 🚀 Agregado: Internal Server Error
+                    StatusCode = 500,
                     Message = "Error al procesar la eliminación.",
                     Data = false
+                };
+            }
+        }
+
+        public async Task ProcessUpcomingMaintenanceAlertsAsync()
+        {
+            var targetDate1 = DateTime.Today.AddDays(2); 
+            var targetDate2 = DateTime.Today;         
+
+            var upcomingMaintenances = await _context.Maintenances
+                .Include(m => m.Device)
+                .Where(m => !m.IsDeleted &&
+                           (m.NotificationDate.Date == targetDate1 || m.NotificationDate.Date == targetDate2))
+                .ToListAsync();
+
+            foreach (var maintenance in upcomingMaintenances)
+            {
+                 
+            }
+        }
+
+        public async Task<ResponseDto<MaintenanceDto>> RenewAsync(long maintenanceId, RenewMaintenanceDto dto)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                // 1. Buscamos el mantenimiento original (Mismo ID)
+                var maintenance = await _context.Maintenances
+                    .Include(m => m.Device)
+                    .FirstOrDefaultAsync(m => m.Id == maintenanceId && !m.IsDeleted);
+
+                if (maintenance == null)
+                {
+                    return new ResponseDto<MaintenanceDto> { Status = false, StatusCode = 404, Message = "Mantenimiento no encontrado." };
+                }
+
+                var currentUserId = _authService.GetUserId();
+                var currentDate = DateTime.Now;
+
+                // 2. GUARDAMOS LA EJECUCIÓN EN EL "ARREGLO" (Historial)
+                // Esto deja el registro inmutable de que hoy se le hizo trabajo
+                var historyEntity = new MaintenanceHistoryEntity
+                {
+                    IdMaintenance = maintenance.Id, // Se amarra al mismo ID maestro
+                    IdDevice = maintenance.IdDevice,
+                    IdUser = currentUserId,
+                    IdTypeDevice = maintenance.Device?.IdDeviceType ?? 1,
+                    SolutionTime = dto.ExecutionTime,
+                    CreatedBy = currentUserId,
+                    CreatedDate = currentDate,
+                    IsDeleted = false
+                };
+                _context.MaintenanceHistories.Add(historyEntity);
+
+                // 3. ACTUALIZAMOS EL REGISTRO MAESTRO PARA LA PRÓXIMA VEZ
+                maintenance.NotificationDate = dto.NotificationDate;
+                maintenance.CompletionDate = dto.CompletionDate;
+                maintenance.Details = dto.Details;
+                maintenance.ExecutionTime = dto.ExecutionTime;
+                maintenance.UpdatedBy = currentUserId;
+                maintenance.UpdatedDate = currentDate;
+
+                _context.Maintenances.Update(maintenance);
+                await _context.SaveChangesAsync();
+
+                // 4. CREAR LAS NUEVAS ALERTAS FUTURAS PARA EL WORKER
+                var twoDaysBefore = dto.CompletionDate.AddDays(-2).Date.AddHours(8);
+                if (twoDaysBefore >= DateTime.Today && _alertConfigService != null)
+                {
+                    await _alertConfigService.CreateAsync(new CreateAlertConfigurationDto
+                    {
+                        Title = "Mantenimiento Preventivo Próximo",
+                        Subject = $"Recordatorio: Mantenimiento para {maintenance.Device?.BrandName} en 2 días",
+                        Description = $"El equipo '{maintenance.Device?.BrandName}' tiene mantenimiento el {dto.CompletionDate:dd/MM/yyyy}.",
+                        IsGlobal = false,
+                        IsActive = true,
+                        IdArea = maintenance.IdArea > 0 ? maintenance.IdArea : null,
+                        ScheduledDate = twoDaysBefore
+                    });
+                }
+
+                await transaction.CommitAsync();
+
+                // Retornamos el MISMO mantenimiento, pero con las fechas y datos actualizados
+                return await GetByIdAsync(maintenance.Id);
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<ResponseDto<List<MaintenanceCalendarDto>>> GetMaintenanceCalendarAsync(int? year, int? month)
+        {
+            try
+            {
+                var targetYear = year ?? DateTime.Now.Year;
+                var targetMonth = month ?? DateTime.Now.Month;
+                var today = DateTime.Today;
+
+                // 1. Obtener mantenimientos de la base de datos
+                var maintenances = await _context.Maintenances
+                    .IgnoreQueryFilters()
+                    .Include(m => m.Device)
+                    .Include(m => m.MaintenanceFrequencies)
+                    .Where(m => !m.IsDeleted)
+                    .ToListAsync();
+
+                var events = new List<MaintenanceCalendarDto>();
+
+                foreach (var m in maintenances)
+                {
+                    // 2. Determinar la cantidad de meses según la frecuencia
+                    int monthsToAdd = m.IdMaintenanceFrequency switch
+                    {
+                        1 => 1,  // Mensual
+                        2 => 3,  // Trimestral
+                        3 => 6,  // Semestral
+                        4 => 12, // Anual
+                        _ => 1
+                    };
+
+                    // 3. Proyectar la fecha hacia el mes y año consultados
+                    DateTime projectedDate = m.CompletionDate;
+
+                    // Si la fecha original es anterior al mes/año que estamos viendo en el calendario,
+                    // avanzamos en saltos de la frecuencia hasta alcanzar o superar el mes objetivo.
+                    while (projectedDate.Year < targetYear || (projectedDate.Year == targetYear && projectedDate.Month < targetMonth))
+                    {
+                        projectedDate = projectedDate.AddMonths(monthsToAdd);
+                    }
+
+                    // 4. Si la fecha (original o proyectada) cae exactamente en el mes y año que el usuario está viendo
+                    if (projectedDate.Year == targetYear && projectedDate.Month == targetMonth)
+                    {
+                        int daysDiff = (projectedDate.Date - today).Days;
+
+                        string status = "Normal";
+                        string color = "blue"; // Por defecto AZUL (Programado con tiempo)
+
+                        if (projectedDate.Date < today && m.UpdatedDate.HasValue && m.UpdatedDate.Value.Date == projectedDate.Date)
+                        {
+                            status = "Realizado";
+                            color = "green"; //  VERDE: Ya se ejecutó y renovó
+                        }
+                        else if (daysDiff < 0)
+                        {
+                            status = "Vencido";
+                            color = "red";   //  ROJO: Pasó la fecha sin renovar
+                        }
+                        else if (daysDiff >= 0 && daysDiff <= 7)
+                        {
+                            status = "Proximo";
+                            color = "yellow"; // AMARILLO: Entre 0 y 7 días
+                        }
+                        else
+                        {
+                            status = "Programado";
+                            color = "blue";   // 🟦 AZUL: A más de 7 días
+                        }
+
+                        var executionHours = m.ExecutionTime > 0 ? (double)m.ExecutionTime : 1.0;
+
+                        events.Add(new MaintenanceCalendarDto
+                        {
+                            Id = m.Id,
+                            Title = $"{m.Device?.BrandName ?? "Equipo"} ({m.MaintenanceFrequencies?.Name ?? "Mantenimiento"})",
+                            Start = projectedDate,
+                            End = projectedDate.AddHours(executionHours),
+                            Details = m.Details ?? string.Empty,
+                            DeviceName = m.Device?.BrandName ?? "N/A",
+                            FrequencyName = m.MaintenanceFrequencies?.Name ?? "Regular",
+                            Status = status,
+                            Color = color
+                        });
+                    }
+                }
+
+                return new ResponseDto<List<MaintenanceCalendarDto>>
+                {
+                    Status = true,
+                    StatusCode = 200,
+                    Message = "Eventos de calendario obtenidos correctamente.",
+                    Data = events
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al recuperar los eventos del calendario de mantenimiento.");
+                return new ResponseDto<List<MaintenanceCalendarDto>>
+                {
+                    Status = false,
+                    StatusCode = 500,
+                    Message = "Error al obtener los datos para el calendario."
                 };
             }
         }

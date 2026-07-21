@@ -27,6 +27,13 @@ namespace HelpDesk.Api.Controllers
             var response = await _maintenanceService.GetAllAsync(filter);
             return StatusCode(response.StatusCode, response);
         }
+ 
+        [HttpGet("calendar")]
+        public async Task<ActionResult<ResponseDto<List<MaintenanceCalendarDto>>>> GetCalendar([FromQuery] int? year, [FromQuery] int? month)
+        {
+            var response = await _maintenanceService.GetMaintenanceCalendarAsync(year, month);
+            return StatusCode(response.StatusCode, response);
+        }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<ResponseDto<MaintenanceDto>>> GetById(long id)
@@ -50,10 +57,17 @@ namespace HelpDesk.Api.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Administrador")] 
+        [Authorize(Roles = "Administrador, TI")]
         public async Task<ActionResult<ResponseDto<bool>>> Delete(long id)
         {
             var response = await _maintenanceService.DeleteAsync(id);
+            return StatusCode(response.StatusCode, response);
+        }
+
+        [HttpPost("{id}/renew")]
+        public async Task<ActionResult<ResponseDto<MaintenanceDto>>> Renew(long id, [FromBody] RenewMaintenanceDto dto)
+        {
+            var response = await _maintenanceService.RenewAsync(id, dto);
             return StatusCode(response.StatusCode, response);
         }
     }

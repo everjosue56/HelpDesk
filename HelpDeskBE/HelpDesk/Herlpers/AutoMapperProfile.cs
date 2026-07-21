@@ -8,6 +8,7 @@ using HelpDesk.Dtos.AreaDto;
 using HelpDesk.Dtos.DeviceDto;
 using HelpDesk.Dtos.ImpactDto;
 using HelpDesk.Dtos.MaintenanceDto;
+using HelpDesk.Dtos.MaintenanceFrequencyDto;
 using HelpDesk.Dtos.MaintenanceHistoryDto;
 using HelpDesk.Dtos.NotificationDto;
 using HelpDesk.Dtos.NotificationHistoryDto;
@@ -53,6 +54,7 @@ namespace HelpDesk.Herlpers
             MapsForAlertConfiguration();
             MapsForNotificationHistory();
             MapsForAlerHistory();
+            MapsForMaintenanceFrequency();
 
         }
 
@@ -228,7 +230,9 @@ namespace HelpDesk.Herlpers
                 .ForMember(dest => dest.MaintenanceTypeName, opt => opt.MapFrom(src => src.TypeMaintenance.Name))
                 .ForMember(dest => dest.AreaName, opt => opt.MapFrom(src => src.Area.NameArea))
                 .ForMember(dest => dest.DeviceCode, opt => opt.MapFrom(src => src.Device.Code))
-                .ForMember(dest => dest.DeviceBrand, opt => opt.MapFrom(src => src.Device.BrandName));
+                .ForMember(dest => dest.DeviceBrand, opt => opt.MapFrom(src => src.Device.BrandName))
+                .ForMember(dest => dest.IdMaintenanceFrequency, opt => opt.MapFrom(src => src.IdMaintenanceFrequency))
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.MaintenanceFrequencies.Name));
             CreateMap<CreateMaintenanceDto, MaintenanceEntity>();
             CreateMap<UpdateMaintenanceDto, MaintenanceEntity>();
         }
@@ -300,6 +304,13 @@ namespace HelpDesk.Herlpers
                 .ForMember(dest => dest.UserEmail, opt => opt.MapFrom(src => src.User.Email))
                 .ForMember(dest => dest.ExecutionDate, opt => opt.MapFrom(src => src.ActionDate));
             CreateMap<CreateAlerHistoryDto, AlertHistoryEntity>();
+        }
+
+        private void MapsForMaintenanceFrequency ()
+        {
+            CreateMap<MaintenanceFrequencyEntity, MaintenanceFrequencyDto>();
+            CreateMap<CreateMaintenanceFrequencyDto, MaintenanceFrequencyEntity>();
+            CreateMap<UpdateMaintenanceFrequecyDto, MaintenanceFrequencyEntity>(); 
         }
    
     }

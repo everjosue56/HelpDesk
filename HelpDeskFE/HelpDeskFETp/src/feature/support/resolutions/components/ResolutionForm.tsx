@@ -195,7 +195,9 @@ export const ResolutionForm: React.FC<ResolutionFormProps> = ({
                         <FormField
                             control={form.control}
                             name="actionTaken"
-                            rules={{ required: 'La acción tomada es obligatoria.' }}
+                            rules={{ required: 'La acción tomada es obligatoria.',
+                                     maxLength: { value: 500, message: 'La acción tomada no puede exceder los 500 caracteres.' }
+                             }}
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className="text-sm font-bold text-slate-700">Acción Tomada</FormLabel>
@@ -211,7 +213,9 @@ export const ResolutionForm: React.FC<ResolutionFormProps> = ({
                         <FormField
                             control={form.control}
                             name="rootCause"
-                            rules={{ required: 'La causa raíz es obligatoria.' }}
+                            rules={{ required: 'La causa raíz es obligatoria.',
+                                     maxLength: { value: 500, message: 'La causa raíz no puede exceder los 500 caracteres.' }
+                             }}
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className="text-sm font-bold text-slate-700">Problema Raíz / Causa</FormLabel>
@@ -227,7 +231,9 @@ export const ResolutionForm: React.FC<ResolutionFormProps> = ({
                         <FormField
                             control={form.control}
                             name="preventiveMeasures"
-                            rules={{ required: 'La medida preventiva es obligatoria.' }}
+                            rules={{ required: 'La medida preventiva es obligatoria.',
+                                     maxLength: { value: 500, message: 'La medida preventiva no puede exceder los 500 caracteres.' }
+                             }}
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className="text-sm font-bold text-slate-700">Medida Preventiva</FormLabel>
@@ -243,7 +249,9 @@ export const ResolutionForm: React.FC<ResolutionFormProps> = ({
                         <FormField
                             control={form.control}
                             name="observation"
-                            rules={{ required: 'La observacion es obligatoria.' }}
+                            rules={{ required: 'La observacion es obligatoria.',
+                                     maxLength: { value: 500, message: 'La observación no puede exceder los 500 caracteres.' }
+                             }}
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className="text-sm font-bold text-slate-700">Observación</FormLabel>
@@ -259,6 +267,7 @@ export const ResolutionForm: React.FC<ResolutionFormProps> = ({
                         <FormField
                             control={form.control}
                             name="secondObservation"
+                            rules={{ maxLength: { value: 500, message: 'La segunda observación no puede exceder los 500 caracteres.' } }}
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className="text-sm font-bold text-slate-700">Segunda Observación</FormLabel>

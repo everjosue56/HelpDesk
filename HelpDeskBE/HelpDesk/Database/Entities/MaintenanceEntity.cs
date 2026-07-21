@@ -19,11 +19,17 @@ namespace HelpDesk.Database.Entities
         public DateTime NotificationDate { get; set; }
         [Column("id_device")]
         [Required]
-        public long IdDevice {  get; set; }
+        public long IdDevice { get; set; }
         [Column("details")]
         public string Details { get; set; } = string.Empty;
-        [Column("execution_time")] 
+        [Column("execution_time")]
         public decimal ExecutionTime { get; set; }
+        [Column("id_maintenance_frequency")]
+        [Required]
+        public long IdMaintenanceFrequency { get; set; }
+        [Column("solution_time")]
+        [Required]
+        public decimal SolutionTime { get; set; }
 
         // --- Propiedades de Navegación ---
 
@@ -35,6 +41,8 @@ namespace HelpDesk.Database.Entities
 
         [ForeignKey(nameof(IdDevice))]
         public virtual DeviceEntity Device { get; set; } = null!;
+        [ForeignKey(nameof(IdMaintenanceFrequency))]
+        public virtual MaintenanceFrequencyEntity MaintenanceFrequencies { get; set; } = null!;
     }
 
 }

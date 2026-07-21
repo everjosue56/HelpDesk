@@ -79,7 +79,7 @@ export const TypeDeviceForm: React.FC<TypeDeviceFormProps> = ({
                             name="name"
                             rules={{
                                 required: 'El nombre del tipo de dispositivo es obligatorio.',
-                                maxLength: { value: 100, message: 'El nombre no puede exceder los 100 caracteres.' }
+                                maxLength: { value: 60, message: 'El nombre no puede exceder los 60 caracteres.' }
                             }}
                             render={({ field }) => (
                                 <FormItem>
@@ -101,7 +101,7 @@ export const TypeDeviceForm: React.FC<TypeDeviceFormProps> = ({
                             control={form.control}
                             name="description"
                             rules={{
-                                maxLength: { value: 250, message: 'La descripción no puede exceder los 250 caracteres.' }
+                                maxLength: { value: 240, message: 'La descripción no puede exceder los 240 caracteres.' }
                             }}
                             render={({ field }) => (
                                 <FormItem>

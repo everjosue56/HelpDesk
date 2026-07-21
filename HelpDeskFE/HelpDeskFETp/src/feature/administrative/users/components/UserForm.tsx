@@ -112,7 +112,9 @@ export const UserForm: React.FC<UserFormProps> = ({
 
                         {/* Campo: Primer Nombre */}
                         <FormField<UserFormValues>
-                            rules={{ required: "El nombre es obligatorio" }}
+                            rules={{ required: "El nombre es obligatorio" 
+                                    ,maxLength: { value: 60, message: "El nombre no puede exceder los 60 caracteres" }
+                            }}
                             name="firstName"
                             render={({ field }) => (
                                 <FormItem>
@@ -132,7 +134,8 @@ export const UserForm: React.FC<UserFormProps> = ({
 
                         {/* Campo: Apellido */}
                         <FormField<UserFormValues>
-                            rules={{ required: "El apellido es obligatorio" }}
+                            rules={{ required: "El apellido es obligatorio", 
+                                maxLength: { value: 60, message: "El apellido no puede exceder los 60 caracteres" } }}
                             name="lastName"
                             render={({ field }) => (
                                 <FormItem>
@@ -152,7 +155,9 @@ export const UserForm: React.FC<UserFormProps> = ({
 
                         {/* Campo: Nombre de Usuario */}
                         <FormField<UserFormValues>
-                            rules={{ required: "El nombre de usuario es obligatorio" }}
+                            rules={{ required: "El nombre de usuario es obligatorio"
+                                , maxLength: { value: 50, message: "El nombre de usuario no puede exceder los 50 caracteres" }
+                             }}
                             name="userName"
                             render={({ field }) => (
                                 <FormItem>
@@ -173,6 +178,7 @@ export const UserForm: React.FC<UserFormProps> = ({
 
                         {/* Campo: Teléfono */}
                         <FormField<UserFormValues>
+                            rules={{ maxLength: { value: 13, message: "El teléfono no puede exceder los 13 caracteres" } }}
                             name="phoneNumber"
                             render={({ field }) => (
                                 <FormItem>
@@ -194,6 +200,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                         <FormField<UserFormValues>
                             rules={{
                                 required: "El correo es obligatorio",
+                                maxLength: { value: 240, message: "El correo no puede exceder los 240 caracteres" },
                                 pattern: {
                                     value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                                     message: "Formato de correo inválido"

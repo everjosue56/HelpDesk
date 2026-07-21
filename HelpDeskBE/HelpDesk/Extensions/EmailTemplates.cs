@@ -146,5 +146,59 @@ namespace HelpDesk.Helpers
                 </div>
             </div>";
         }
+
+        // 4. Plantilla para Mantenimiento Preventivo Programado (TI)
+        public static string GetMaintenanceScheduledTemplate(long maintenanceId, string deviceName, string area, string frequency, string scheduledDate, string executionTime, string details)
+        {
+            return $@"
+    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;'>
+        <div style='background-color: #2563eb; padding: 20px; text-align: center;'>
+            <h1 style='color: #ffffff; margin: 0; font-size: 24px;'>Financiera Codimersa HelpDesk</h1>
+            <p style='color: #bfdbfe; margin: 5px 0 0 0;'>Mantenimiento Preventivo Programado</p>
+        </div>
+        <div style='padding: 20px; background-color: #ffffff;'>
+            <h2 style='color: #333333; margin-top: 0;'>🔧 Registro de Mantenimiento</h2>
+            <p style='color: #555555; line-height: 1.6;'>Se ha programado una nueva intervención preventiva en la plataforma para <strong>Financiera Codimersa</strong>.</p>
+            
+            <div style='background-color: #f8fafc; padding: 15px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #2563eb;'>
+                <table style='width: 100%; border-collapse: collapse;'>
+                    <tr>
+                        <td style='padding: 5px 0; color: #64748b; font-weight: bold;'>Código Mantenimiento:</td>
+                        <td style='padding: 5px 0; color: #0f172a;'>#{maintenanceId}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 5px 0; color: #64748b; font-weight: bold;'>Equipo / Dispositivo:</td>
+                        <td style='padding: 5px 0; color: #0f172a;'><strong>{deviceName}</strong></td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 5px 0; color: #64748b; font-weight: bold;'>Área / Ubicación:</td>
+                        <td style='padding: 5px 0; color: #0f172a;'>{area}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 5px 0; color: #64748b; font-weight: bold;'>Frecuencia:</td>
+                        <td style='padding: 5px 0; color: #0f172a;'><span style='background-color: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;'>{frequency}</span></td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 5px 0; color: #64748b; font-weight: bold;'>Fecha Programada:</td>
+                        <td style='padding: 5px 0; color: #0f172a; font-weight: bold;'>{scheduledDate}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 5px 0; color: #64748b; font-weight: bold;'>Tiempo Estimado:</td>
+                        <td style='padding: 5px 0; color: #0f172a;'>{executionTime} hrs</td>
+                    </tr>
+                </table>
+            </div>
+
+            <h3 style='color: #333333; margin-bottom: 5px;'>Detalles de la Intervención:</h3>
+            <p style='background-color: #fafafa; padding: 12px; border-left: 4px solid #64748b; color: #475569; margin: 0; font-style: italic;'>""{details}""</p>
+            
+            <p style='color: #555555; line-height: 1.6; margin-top: 25px;'>El departamento de TI coordinará el acceso al equipo en la fecha estipulada para evitar interrupciones operativas.</p>
+        </div>
+        <div style='background-color: #f9fafb; padding: 15px; text-align: center; border-top: 1px solid #e5e7eb;'>
+            <p style='color: #9ca3af; font-size: 12px; margin: 0;'>Este es un aviso automático del sistema HelpDesk.</p>
+            <p style='color: #2563eb; font-size: 12px; font-weight: bold; margin: 5px 0 0 0;'>Powered by TI — Financiera Codimersa</p>
+        </div>
+    </div>";
+        }
     }
 }

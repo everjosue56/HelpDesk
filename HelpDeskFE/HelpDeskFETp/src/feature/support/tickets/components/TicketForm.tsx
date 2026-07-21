@@ -115,7 +115,10 @@ export const TicketForm: React.FC<TicketFormProps> = ({
                         <FormField
                             control={form.control}
                             name="description"
-                            rules={{ required: 'La descripción es obligatoria.' }}
+                            rules={{
+                                required: 'La descripción es obligatoria.',
+                                maxLength: { value: 360, message: 'La descripción no puede exceder los 360 caracteres.' }
+                            }}
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className="text-sm font-bold text-slate-700">Descripción</FormLabel>

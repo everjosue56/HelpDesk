@@ -709,6 +709,10 @@ namespace HelpDesk.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("id_device");
 
+                    b.Property<long>("IdMaintenanceFrequency")
+                        .HasColumnType("bigint")
+                        .HasColumnName("id_maintenance_frequency");
+
                     b.Property<long>("IdMaintenanceType")
                         .HasColumnType("bigint")
                         .HasColumnName("id_maintenance_type");
@@ -719,6 +723,10 @@ namespace HelpDesk.Migrations
                     b.Property<DateTime>("NotificationDate")
                         .HasColumnType("datetime2")
                         .HasColumnName("notification_date");
+
+                    b.Property<decimal>("SolutionTime")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("solution_time");
 
                     b.Property<long?>("UpdatedBy")
                         .HasColumnType("bigint")
@@ -733,6 +741,8 @@ namespace HelpDesk.Migrations
                     b.HasIndex("IdArea");
 
                     b.HasIndex("IdDevice");
+
+                    b.HasIndex("IdMaintenanceFrequency");
 
                     b.HasIndex("IdMaintenanceType");
 
@@ -749,9 +759,11 @@ namespace HelpDesk.Migrations
                             ExecutionTime = 2.0m,
                             IdArea = 1L,
                             IdDevice = 1L,
+                            IdMaintenanceFrequency = 1L,
                             IdMaintenanceType = 1L,
                             IsDeleted = false,
-                            NotificationDate = new DateTime(2026, 5, 10, 8, 0, 0, 0, DateTimeKind.Unspecified)
+                            NotificationDate = new DateTime(2026, 5, 10, 8, 0, 0, 0, DateTimeKind.Unspecified),
+                            SolutionTime = 0m
                         },
                         new
                         {
@@ -763,9 +775,92 @@ namespace HelpDesk.Migrations
                             ExecutionTime = 3.5m,
                             IdArea = 2L,
                             IdDevice = 2L,
+                            IdMaintenanceFrequency = 2L,
                             IdMaintenanceType = 2L,
                             IsDeleted = false,
-                            NotificationDate = new DateTime(2026, 5, 12, 14, 0, 0, 0, DateTimeKind.Unspecified)
+                            NotificationDate = new DateTime(2026, 5, 12, 14, 0, 0, 0, DateTimeKind.Unspecified),
+                            SolutionTime = 0m
+                        });
+                });
+
+            modelBuilder.Entity("HelpDesk.Database.Entities.MaintenanceFrequencyEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CreatedBy")
+                        .HasColumnType("bigint")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("created_date");
+
+                    b.Property<int>("DaysInterval")
+                        .HasColumnType("int")
+                        .HasColumnName("days_interval");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)")
+                        .HasColumnName("name");
+
+                    b.Property<long?>("UpdatedBy")
+                        .HasColumnType("bigint")
+                        .HasColumnName("updated_by");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("updated_date");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("maintenance_frequency", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1L,
+                            CreatedBy = 0L,
+                            CreatedDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            DaysInterval = 30,
+                            IsDeleted = false,
+                            Name = "Mensual"
+                        },
+                        new
+                        {
+                            Id = 2L,
+                            CreatedBy = 0L,
+                            CreatedDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            DaysInterval = 90,
+                            IsDeleted = false,
+                            Name = "Trimestral"
+                        },
+                        new
+                        {
+                            Id = 3L,
+                            CreatedBy = 0L,
+                            CreatedDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            DaysInterval = 180,
+                            IsDeleted = false,
+                            Name = "Semestral"
+                        },
+                        new
+                        {
+                            Id = 4L,
+                            CreatedBy = 0L,
+                            CreatedDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            DaysInterval = 365,
+                            IsDeleted = false,
+                            Name = "Anual"
                         });
                 });
 
@@ -2260,6 +2355,12 @@ namespace HelpDesk.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("HelpDesk.Database.Entities.MaintenanceFrequencyEntity", "MaintenanceFrequencies")
+                        .WithMany()
+                        .HasForeignKey("IdMaintenanceFrequency")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("HelpDesk.Database.Entities.TypeMaintenanceEntity", "TypeMaintenance")
                         .WithMany()
                         .HasForeignKey("IdMaintenanceType")
@@ -2269,6 +2370,8 @@ namespace HelpDesk.Migrations
                     b.Navigation("Area");
 
                     b.Navigation("Device");
+
+                    b.Navigation("MaintenanceFrequencies");
 
                     b.Navigation("TypeMaintenance");
                 });

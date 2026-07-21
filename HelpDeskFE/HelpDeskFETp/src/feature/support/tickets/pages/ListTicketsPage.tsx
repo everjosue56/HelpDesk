@@ -442,8 +442,7 @@ export const ListTicketsPage: React.FC = () => {
                                                                 Tomar Ticket
                                                             </button>
                                                         )}
-
-                                                        {/* 🚀 BOTÓN DINÁMICO: "Resolver" */}
+ 
                                                         {esSoporte && item.idSolutionState === 2 && item.idUserAssigned === user?.id && (
                                                             <button
                                                                 type="button"
