@@ -2,39 +2,18 @@ import React, { useState } from 'react';
 import { X, RotateCw, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { MaintenanceItem } from '../hooks/useMaintenances';
-import type { RenewMaintenanceDto } from '@/api/model';
 
 interface MaintenanceRenewModalProps {
     isOpen: boolean;
     onClose: () => void;
     maintenance: MaintenanceItem | null;
-    onConfirmRenew: (id: number, dto: RenewMaintenanceDto) => Promise<void>;
+    onConfirmRenew: (id: number, dto: any) => Promise<void>;
 }
 
-const getInitialFormData = (currentMaintenance: MaintenanceItem | null) => {
-    if (!currentMaintenance) {
-        return {
-            notificationDate: '',
-            completionDate: '',
-            details: '',
-            executionTime: '1.0'
-        };
-    }
-
-    const formatDateTimeForInput = (value?: string) => {
-        if (!value || value.startsWith('0001-01-01')) return '';
-        const date = new Date(value);
-        if (Number.isNaN(date.getTime())) return '';
-        const offset = date.getTimezoneOffset();
-        const localDate = new Date(date.getTime() - offset * 60000);
-        return localDate.toISOString().slice(0, 16);
-    };
-
+const getInitialFormData = () => {
     return {
-        notificationDate: formatDateTimeForInput(currentMaintenance.notificationDate),
-        completionDate: formatDateTimeForInput(currentMaintenance.completionDate),
-        details: currentMaintenance.details || '',
-        executionTime: currentMaintenance.executionTime ? String(currentMaintenance.executionTime) : '1.0'
+        details: '',
+        executionTime: '60'
     };
 };
 
@@ -44,8 +23,15 @@ export const MaintenanceRenewModal: React.FC<MaintenanceRenewModalProps> = ({
     maintenance,
     onConfirmRenew
 }) => {
-    const [formData, setFormData] = useState(() => getInitialFormData(maintenance));
+    const [formData, setFormData] = useState(getInitialFormData);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Reiniciar formulario al abrir con un nuevo mantenimiento
+    React.useEffect(() => {
+        if (isOpen) {
+            setFormData(getInitialFormData());
+        }
+    }, [isOpen, maintenance]);
 
     if (!isOpen || !maintenance) return null;
 
@@ -60,22 +46,9 @@ export const MaintenanceRenewModal: React.FC<MaintenanceRenewModalProps> = ({
         try {
             setIsSubmitting(true);
 
-            const preserveHistoricalDetails = (existingDetails?: string, newDetails?: string) => {
-                const trimmedExisting = (existingDetails || '').trim();
-                const trimmedNew = (newDetails || '').trim();
-
-                if (!trimmedExisting) return trimmedNew;
-                if (!trimmedNew) return trimmedExisting;
-
-                return `${trimmedExisting}\n\n[Renovación]\n${trimmedNew}`;
-            };
-
-            const payload: RenewMaintenanceDto = {
-                notificationDate: new Date(formData.notificationDate).toISOString(),
-                completionDate: new Date(formData.completionDate).toISOString(),
-                details: preserveHistoricalDetails(maintenance.details, formData.details),
-                executionTime: parseFloat(formData.executionTime) || 1,
-                idMaintenanceFrequency: maintenance.idMaintenanceFrequency || undefined
+            const payload = {
+                details: formData.details,
+                executionTime: parseFloat(formData.executionTime) || 1.0
             };
 
             await onConfirmRenew(maintenance.id, payload);
@@ -118,44 +91,17 @@ export const MaintenanceRenewModal: React.FC<MaintenanceRenewModalProps> = ({
                 <form onSubmit={handleSubmit} className="p-6 space-y-4 text-left">
                     <div>
                         <label className="block text-xs font-bold text-slate-700 mb-1">
-                            Fecha de Notificación <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                            type="datetime-local"
-                            name="notificationDate"
-                            value={formData.notificationDate}
-                            onChange={handleChange}
-                            required
-                            className="w-full h-9.5 px-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1e5f8a]/20 focus:border-[#1e5f8a] transition-all"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1">
-                            Fecha de Ejecución Programada <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                            type="datetime-local"
-                            name="completionDate"
-                            value={formData.completionDate}
-                            onChange={handleChange}
-                            required
-                            className="w-full h-9.5 px-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1e5f8a]/20 focus:border-[#1e5f8a] transition-all"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1">
-                            Tiempo Estimado (Minutos) <span className="text-red-500">*</span>
+                            Tiempo Invertido (Minutos) <span className="text-red-500">*</span>
                         </label>
                         <input
                             type="number"
                             min="1"
+                            step="1"
                             name="executionTime"
                             value={formData.executionTime}
                             onChange={handleChange}
                             required
-                            placeholder="Ej. 2.5"
+                            placeholder="Ej. 60"
                             className="w-full h-9.5 px-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1e5f8a]/20 focus:border-[#1e5f8a] transition-all"
                         />
                     </div>
@@ -170,8 +116,8 @@ export const MaintenanceRenewModal: React.FC<MaintenanceRenewModalProps> = ({
                             onChange={handleChange}
                             required
                             minLength={5}
-                            rows={3}
-                            placeholder="Escriba los detalles del mantenimiento realizado..."
+                            rows={4}
+                            placeholder="Escriba los detalles específicos del mantenimiento realizado..."
                             className="w-full p-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1e5f8a]/20 focus:border-[#1e5f8a] transition-all resize-none"
                         />
                     </div>

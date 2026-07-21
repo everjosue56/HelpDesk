@@ -6,6 +6,7 @@ import {
     Building2, 
     MapPin, 
     UserCheck,
+    Wrench,
 } from 'lucide-react';
 
 export const SidebarDashboard: React.FC = () => {
@@ -45,6 +46,11 @@ export const SidebarDashboard: React.FC = () => {
                     name: "Rendimiento Tecnicos",
                     path: "/dashboard/technicialkpi",
                     icon: UserCheck
+                },
+                {
+                    name: "Mantenimientos",
+                    path: "/dashboard/maintenancekpi",
+                    icon: Wrench
                 },
             ]
         }

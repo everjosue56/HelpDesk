@@ -24,6 +24,7 @@ import { LayoutDashboard } from "../../dashboard/dashboardMenu/DashboardLayout";
 import { AgencyDashboardRouter } from "../../dashboard/agencyDashboard/routes/AgencyDashboardRouter";
 import { AreaDashboardRouter } from "../../dashboard/areaDashboard/routes/AreaDashboardRouter";
 import { TechnicialDashboardRouter } from "../../dashboard/PerfomanceDashboard/routes/TechnicianDashboardRouter";
+import { MaintenanceDashboardRouter } from "../../dashboard/maintenanceDashboard/routes/MaintenanceDashboardRouter";
 import { DashboardLayoutNotifications } from "../../notifications/notificationMenu/DashboardLayoutNotifications";
 import { NotificationRouter } from "../../notifications/routes/NotificationsRouter";
 import { AlertConfigurationRouter } from "../../notifications/alertConfiguration/routes/AlertConfigurationRoute";
@@ -84,6 +85,7 @@ export const DashBoardRouter = () => {
                     <Route path="agencieskpi/*" element={<AgencyDashboardRouter />} />
                     <Route path="areaskpi/*" element={<AreaDashboardRouter />} />
                     <Route path="technicialkpi/*" element={<TechnicialDashboardRouter />} />
+                    <Route path="maintenancekpi/*" element={<MaintenanceDashboardRouter />} />
                 </Route>
             </Route>
 
