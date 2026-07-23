@@ -19,6 +19,8 @@ using HelpDesk.Services.DeviceService;
 using HelpDesk.Services.DeviceServices;
 using HelpDesk.Services.EmailService;
 using HelpDesk.Services.ImpactServices;
+using HelpDesk.Services.Implementations;
+using HelpDesk.Services.Interfaces;
 using HelpDesk.Services.MaintenanceFrequencyService;
 using HelpDesk.Services.MaintenanceFrequncyService;
 using HelpDesk.Services.MaintenanceHistoryService;
@@ -101,6 +103,7 @@ builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<ISlaGoalService, SlaGoalService>();
 builder.Services.AddScoped<IMaintenanceFrequencyService, MaintenanceFrequencyService>();
 builder.Services.AddScoped<IAlertConfigurationService, AlertConfigurationService>();
+builder.Services.AddScoped<IMaintenanceExportService, MaintenanceExportService>();
 
 // Inyeccion de email 
 // Mapear la sección del appsettings.json a la clase EmailSettings

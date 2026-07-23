@@ -1,4 +1,5 @@
 ﻿using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.DashboardDto;
 using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.MaintenanceDto;
 using HelpDesk.Dtos.OrganizationsDto;
@@ -16,5 +17,6 @@ namespace HelpDesk.Services.MaintenanceService
         Task<ResponseDto<bool>> DeleteAsync(long id);
         Task<ResponseDto<List<MaintenanceCalendarDto>>> GetMaintenanceCalendarAsync(int? year, int? month);
         Task<ResponseDto<MaintenanceDto>> RenewAsync(long previousMaintenanceId, RenewMaintenanceDto dto);
+        Task<ResponseDto<MaintenanceDashboardDataDto>> GetDashboardStatsAsync(int year, int? month);
     }
 }

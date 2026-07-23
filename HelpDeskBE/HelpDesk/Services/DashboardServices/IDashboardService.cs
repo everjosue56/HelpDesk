@@ -1,4 +1,5 @@
-﻿using HelpDesk.Dtos.DashboardDto;
+﻿using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.DashboardDto;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

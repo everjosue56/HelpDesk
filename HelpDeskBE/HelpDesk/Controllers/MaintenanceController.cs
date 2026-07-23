@@ -1,11 +1,13 @@
 ﻿using HelpDesk.Dtos.Common;
 using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.MaintenanceDto;
+
 using HelpDesk.Services.MaintenanceService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+ 
 
 namespace HelpDesk.Api.Controllers
 {
@@ -16,9 +18,11 @@ namespace HelpDesk.Api.Controllers
     {
         private readonly IMaintenanceService _maintenanceService;
 
-        public MaintenanceController(IMaintenanceService maintenanceService)
+
+        public MaintenanceController(IMaintenanceService maintenanceService )
         {
             _maintenanceService = maintenanceService;
+          
         }
 
         [HttpGet]
@@ -70,5 +74,7 @@ namespace HelpDesk.Api.Controllers
             var response = await _maintenanceService.RenewAsync(id, dto);
             return StatusCode(response.StatusCode, response);
         }
+
+   
     }
 }

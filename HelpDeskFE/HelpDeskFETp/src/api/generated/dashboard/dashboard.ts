@@ -14,7 +14,9 @@ import type {
 import type {
   GetApiDashboardCargaAgenciasParams,
   GetApiDashboardCargaAreasParams,
-  GetApiDashboardRendimientoTecnicosParams
+  GetApiDashboardDashboardStatsParams,
+  GetApiDashboardRendimientoTecnicosParams,
+  MaintenanceDashboardDataDtoResponseDto
 } from '../../model';
 
 
@@ -55,8 +57,18 @@ const getApiDashboardRendimientoTecnicos = (
         params: {...params, ...options?.params},}
     );
   }
-return {getApiDashboardSlaMensualYear,getApiDashboardCargaAgencias,getApiDashboardCargaAreas,getApiDashboardRendimientoTecnicos}};
+const getApiDashboardDashboardStats = (
+    params?: GetApiDashboardDashboardStatsParams, options?: AxiosRequestConfig
+ ): Promise<AxiosResponse<MaintenanceDashboardDataDtoResponseDto>> => {
+    return axiosInstance.get(
+      `/api/dashboard/dashboard-stats`,{
+    ...options,
+        params: {...params, ...options?.params},}
+    );
+  }
+return {getApiDashboardSlaMensualYear,getApiDashboardCargaAgencias,getApiDashboardCargaAreas,getApiDashboardRendimientoTecnicos,getApiDashboardDashboardStats}};
 export type GetApiDashboardSlaMensualYearResult = AxiosResponse<void>
 export type GetApiDashboardCargaAgenciasResult = AxiosResponse<void>
 export type GetApiDashboardCargaAreasResult = AxiosResponse<void>
 export type GetApiDashboardRendimientoTecnicosResult = AxiosResponse<void>
+export type GetApiDashboardDashboardStatsResult = AxiosResponse<MaintenanceDashboardDataDtoResponseDto>

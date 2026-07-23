@@ -1,8 +1,9 @@
-﻿using AutoMapper;
+using AutoMapper;
 using HelpDesk.Database;
 using HelpDesk.Database.Entities;
 using HelpDesk.Dtos.AlertConfigurationDto;
 using HelpDesk.Dtos.Common;
+using HelpDesk.Dtos.DashboardDto;
 using HelpDesk.Dtos.FiltersDto;
 using HelpDesk.Dtos.MaintenanceDto;
 using HelpDesk.Dtos.NotificationDto;
@@ -232,6 +233,7 @@ namespace HelpDesk.Services.MaintenanceService
                         .IgnoreQueryFilters()
                         .Include(m => m.Area)
                         .Include(m => m.Device)
+                        .Include(m => m.MaintenanceFrequencies)
                         .FirstOrDefaultAsync(m => m.Id == maintenanceEntity.Id);
 
                     if (maintenanceInfo != null)
@@ -253,7 +255,7 @@ namespace HelpDesk.Services.MaintenanceService
                             areaName,
                             frequencyName,
                             formattedDate,
-                            maintenanceEntity.ExecutionTime.ToString("0.0"),
+                            maintenanceEntity.ExecutionTime.ToString("0"),
                             maintenanceEntity.Details
                         );
 
@@ -362,15 +364,18 @@ namespace HelpDesk.Services.MaintenanceService
             }
         }
 
+
+
         public async Task<ResponseDto<MaintenanceDto>> RenewAsync(long maintenanceId, RenewMaintenanceDto dto)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
             {
-                // 1. Buscamos el mantenimiento original (Mismo ID)
+             
                 var maintenance = await _context.Maintenances
-                    .Include(m => m.Device)
+                    .Include(m => m.Device) 
+                    .Include(m => m.Area)  
                     .FirstOrDefaultAsync(m => m.Id == maintenanceId && !m.IsDeleted);
 
                 if (maintenance == null)
@@ -380,12 +385,12 @@ namespace HelpDesk.Services.MaintenanceService
 
                 var currentUserId = _authService.GetUserId();
                 var currentDate = DateTime.Now;
+                
 
                 // 2. GUARDAMOS LA EJECUCIÓN EN EL "ARREGLO" (Historial)
-                // Esto deja el registro inmutable de que hoy se le hizo trabajo
                 var historyEntity = new MaintenanceHistoryEntity
                 {
-                    IdMaintenance = maintenance.Id, // Se amarra al mismo ID maestro
+                    IdMaintenance = maintenance.Id,
                     IdDevice = maintenance.IdDevice,
                     IdUser = currentUserId,
                     IdTypeDevice = maintenance.Device?.IdDeviceType ?? 1,
@@ -407,6 +412,7 @@ namespace HelpDesk.Services.MaintenanceService
                 _context.Maintenances.Update(maintenance);
                 await _context.SaveChangesAsync();
 
+
                 // 4. CREAR LAS NUEVAS ALERTAS FUTURAS PARA EL WORKER
                 var twoDaysBefore = dto.CompletionDate.AddDays(-2).Date.AddHours(8);
                 if (twoDaysBefore >= DateTime.Today && _alertConfigService != null)
@@ -424,6 +430,70 @@ namespace HelpDesk.Services.MaintenanceService
                 }
 
                 await transaction.CommitAsync();
+
+                // =========================================================================
+                // 5. FLUJO DE CORREOS AUTOMÁTICOS INMEDIATOS (FUERA DE LA TRANSACCIÓN)
+                // =========================================================================
+                try
+                {
+                    var maintenanceInfo = await _context.Maintenances
+                        .IgnoreQueryFilters()
+                        .Include(m => m.Area)
+                        .Include(m => m.Device)
+                        .Include(m => m.MaintenanceFrequencies) 
+                        .FirstOrDefaultAsync(m => m.Id == maintenance.Id);
+
+                    if (maintenanceInfo != null)
+                    {
+                        // Extraer correos de los técnicos (Roles 1 y 2)
+                        var tiEmails = await _context.Users
+                            .Where(u => u.IdRol == 1 || u.IdRol == 2)
+                            .Select(u => u.Email)
+                            .ToListAsync();
+
+                    
+                        string deviceName = maintenanceInfo.Device?.BrandName ?? "Equipo de Cómputo";
+                        string areaName = maintenanceInfo.Area?.NameArea ?? "Área General";
+                        string frequencyName = maintenanceInfo.MaintenanceFrequencies?.Name ?? "No Especificada";
+                        string formattedDate = maintenanceInfo.CompletionDate.ToString("dd/MM/yyyy hh:mm tt");
+
+
+                        var createNotificationDto = new CreateNotificationDto
+                        {
+                            IdUser = currentUserId,
+                            IdAlertType = 2,
+                            TextMessage = $"El mantenimiento preventivo para el equipo {deviceName} ha sido programado con éxito.",
+                            IdReference = maintenance.Id
+                        };
+                        await _notificationService.CreateAsync(createNotificationDto);
+
+                        // --------------------------------
+                        // 5. CONFIRMAR TODO EN SQL SERVER
+                        // --------------------------------
+
+                        string emailHtml = HelpDesk.Helpers.EmailTemplates.GetMaintenanceScheduledTemplate(
+                            maintenanceInfo.Id,
+                            deviceName,
+                            areaName,
+                            frequencyName,
+                            formattedDate,
+                            maintenanceInfo.ExecutionTime.ToString("0"), 
+                            maintenanceInfo.Details
+                        );
+
+                        string emailSubject = $"🔄 [HelpDesk] Mantenimiento Renovado y Programado: {deviceName} (#{maintenanceInfo.Id})";
+
+                        foreach (var tiEmail in tiEmails)
+                        {
+                            await _emailService.SendEmailAsync(tiEmail, emailSubject, emailHtml);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "La renovación del mantenimiento #{MaintenanceId} se guardó, pero falló el envío del correo electrónico.", maintenance.Id);
+                }
+                // =========================================================================
 
                 // Retornamos el MISMO mantenimiento, pero con las fechas y datos actualizados
                 return await GetByIdAsync(maintenance.Id);
@@ -540,5 +610,112 @@ namespace HelpDesk.Services.MaintenanceService
                 };
             }
         }
+
+        public async Task<ResponseDto<MaintenanceDashboardDataDto>> GetDashboardStatsAsync(int year, int? month)
+        {
+            try
+            {
+                var today = DateTime.Today;
+
+                // 1. OBTENER EJECUCIONES REALES (Historial)
+                var historyQuery = _context.MaintenanceHistories
+                    .IgnoreQueryFilters()
+                    .Include(mh => mh.Maintenances)  
+                        .ThenInclude(m => m.Area)
+                    .Include(mh => mh.Maintenances)
+                        .ThenInclude(m => m.MaintenanceFrequencies)
+                    .Where(mh => !mh.IsDeleted && mh.CreatedDate.Year == year);
+
+                if (month.HasValue && month.Value > 0)
+                {
+                    historyQuery = historyQuery.Where(mh => mh.CreatedDate.Month == month.Value);
+                }
+
+                var completedList = await historyQuery.ToListAsync();
+
+                // 2. OBTENER PLAN MAESTRO ACTIVO (Programados/Vencidos)
+                var maintenanceQuery = _context.Maintenances
+                    .IgnoreQueryFilters()
+                    .Include(m => m.Area)
+                    .Include(m => m.MaintenanceFrequencies)
+                    .Where(m => !m.IsDeleted && m.CompletionDate.Year == year);
+
+                if (month.HasValue && month.Value > 0)
+                {
+                    maintenanceQuery = maintenanceQuery.Where(m => m.CompletionDate.Month == month.Value);
+                }
+
+                var scheduledList = await maintenanceQuery.ToListAsync();
+
+                // 3. CÁLCULOS ESTRICTAMENTE SEPARADOS
+                int realizados = completedList.Count; // Total de intervenciones físicas reales
+                int programados = scheduledList.Count(m => m.CompletionDate.Date >= today); // Plan a futuro
+                int vencidos = scheduledList.Count(m => m.CompletionDate.Date < today); // Plan atrasado
+                int totalProgramados = scheduledList.Count; // El universo total de equipos en el plan
+
+                double tiempoTotal = completedList.Sum(mh => (double)mh.SolutionTime) / 60.0;
+
+                // 4. GRÁFICOS DE ÁREA Y FRECUENCIA (Basado SOLO en el plan maestro para NO duplicar)
+                var porFrecuencia = scheduledList
+                    .GroupBy(m => m.MaintenanceFrequencies?.Name ?? "No Especificada")
+                    .Select(g => new MaintenanceFrequencyChartDto { Frecuencia = g.Key, Cantidad = g.Count() })
+                    .ToList();
+
+                var porArea = scheduledList
+                    .GroupBy(m => m.Area?.NameArea ?? "Área General")
+                    .Select(g => new MaintenanceAreaChartDto { Area = g.Key, Cantidad = g.Count() })
+                    .ToList();
+
+                // 5. HISTORIAL MENSUAL (Basado SOLO en el trabajo ejecutado)
+                var historialMensual = completedList
+                    .GroupBy(mh => mh.CreatedDate.Month)
+                    .OrderBy(g => g.Key)
+                    .Select(g => new MaintenanceMonthlyHistoryDto
+                    {
+                        MesNumero = g.Key,
+                        MesNombre = new DateTime(year, (int)g.Key, 1)
+                            .ToString("MMMM", new System.Globalization.CultureInfo("es-ES")),
+                        Cantidad = g.Count()
+                    })
+                    .ToList();
+
+                // 6. DTO FINAL
+                var dashboardData = new MaintenanceDashboardDataDto
+                {
+                    TotalProgramados = totalProgramados, // Lo que debe hacerse
+                    TotalRealizados = realizados,        // Lo que ya se hizo
+                    TotalVencidos = vencidos,            // Lo que se olvidó hacer
+                    TiempoTotalEjecucion = tiempoTotal,
+                    PorFrecuencia = porFrecuencia,
+                    PorArea = porArea,
+                    HistorialMensual = historialMensual,
+                    PorEstado = new List<MaintenanceStatusDto>
+            {
+                new MaintenanceStatusDto { Estado = "Realizado", Cantidad = realizados, Color = "green" },
+                new MaintenanceStatusDto { Estado = "Vencido", Cantidad = vencidos, Color = "red" },
+                new MaintenanceStatusDto { Estado = "Programado", Cantidad = programados, Color = "blue" }
+            }
+                };
+
+                return new ResponseDto<MaintenanceDashboardDataDto>
+                {
+                    Status = true,
+                    StatusCode = 200,
+                    Data = dashboardData,
+                    Message = "Dashboard generado con éxito"
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al generar métricas del dashboard de mantenimiento.");
+                return new ResponseDto<MaintenanceDashboardDataDto>
+                {
+                    Status = false,
+                    StatusCode = 500,
+                    Message = "Error interno al generar las métricas del dashboard."
+                };
+            }
+        }
+
     }
 }

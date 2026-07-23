@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { useMaintenanceDashboard } from '../hooks/useMaintenanceDashboard';
 import { Bar, Doughnut, Pie } from 'react-chartjs-2';
 import {
@@ -14,9 +14,11 @@ import {
     ArcElement,
     Filler
 } from 'chart.js';
-import { Wrench, Calendar, Clock, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Wrench, Calendar, Clock, AlertTriangle, RefreshCw, FileSpreadsheet, FileText } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../../@/components/ui/select';
 import { useNavigate } from 'react-router-dom';
+import { toPng } from 'html-to-image';
+import jsPDF from 'jspdf';
 
 ChartJS.register(
     CategoryScale,
@@ -41,8 +43,13 @@ export const MaintenanceDashboardPage: React.FC = () => {
         setSelectedMonth,
         data,
         isLoading,
-        refresh
+        refresh,
+        downloadExcel,
     } = useMaintenanceDashboard(currentYear);
+
+    const dashboardRef = useRef<HTMLDivElement>(null);
+    const [isExportingPdf, setIsExportingPdf] = useState(false);
+    const [isExportingExcel, setIsExportingExcel] = useState(false);
 
     const yearsOptions = Array.from({ length: 5 }, (_, index) => currentYear - index);
 
@@ -52,6 +59,61 @@ export const MaintenanceDashboardPage: React.FC = () => {
         { num: 7, name: "Julio" }, { num: 8, name: "Agosto" }, { num: 9, name: "Septiembre" },
         { num: 10, name: "Octubre" }, { num: 11, name: "Noviembre" }, { num: 12, name: "Diciembre" }
     ];
+
+    const selectedMonthName = mesesOpciones.find(m => m.num === selectedMonth)?.name ?? 'Todo el año';
+    const reportObjective = 'Este reporte ejecutivo consolida la situación del programa de mantenimiento preventivo para evaluar el cumplimiento del plan e identificar riesgos operativos.';
+
+    // 📄 EXPORTAR PDF
+    const handleExportPDF = async () => {
+        if (!dashboardRef.current) return;
+        setIsExportingPdf(true);
+
+        const pdfHeader = document.getElementById('pdf-header');
+        const pdfFooter = document.getElementById('pdf-footer');
+
+        try {
+            // 1. Mostrar temporalmente encabezado y pie corporativos
+            if (pdfHeader) pdfHeader.classList.remove('hidden');
+            if (pdfFooter) pdfFooter.classList.remove('hidden');
+
+            // 2. Generar la imagen desde el contenedor visible
+            const imgData = await toPng(dashboardRef.current, {
+                quality: 1,
+                backgroundColor: '#ffffff',
+                pixelRatio: 2,
+                cacheBust: true,
+            });
+
+            // 3. Crear el documento PDF
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const elementWidth = dashboardRef.current.offsetWidth;
+            const elementHeight = dashboardRef.current.offsetHeight;
+            const pdfHeight = (elementHeight * pdfWidth) / elementWidth;
+
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save(`Reporte_Mantenimientos_${year}_${selectedMonth || 'Anual'}.pdf`);
+        } catch (error) {
+            console.error('Error al generar el PDF:', error);
+        } finally {
+            // 4. Ocultar nuevamente para la pantalla
+            if (pdfHeader) pdfHeader.classList.add('hidden');
+            if (pdfFooter) pdfFooter.classList.add('hidden');
+            setIsExportingPdf(false);
+        }
+    };
+
+    // 📊 EXPORTAR EXCEL
+    const handleExportExcel = async () => {
+        setIsExportingExcel(true);
+        try {
+            await downloadExcel();
+        } catch (error) {
+            console.error("Error al descargar Excel:", error);
+        } finally {
+            setIsExportingExcel(false);
+        }
+    };
 
     if (isLoading && !data) {
         return (
@@ -88,7 +150,7 @@ export const MaintenanceDashboardPage: React.FC = () => {
 
     const histLabels = data?.historialMensual.map(h => h.mesNombre.charAt(0).toUpperCase() + h.mesNombre.slice(1)) || [];
     const histData = data?.historialMensual.map(h => h.cantidad) || [];
-    
+
     const barChartData = {
         labels: histLabels,
         datasets: [{
@@ -102,7 +164,7 @@ export const MaintenanceDashboardPage: React.FC = () => {
 
     const freqLabels = data?.porFrecuencia.map(f => f.frecuencia) || [];
     const freqData = data?.porFrecuencia.map(f => f.cantidad) || [];
-    
+
     const pieChartData = {
         labels: freqLabels,
         datasets: [{
@@ -165,17 +227,66 @@ export const MaintenanceDashboardPage: React.FC = () => {
                     </h1>
                 </div>
 
-                <button
-                    onClick={refresh}
-                    className="rounded-xl bg-[#1a558b] hover:bg-[#15436f] text-white font-bold flex items-center gap-2 shadow-sm h-10 px-4 self-start sm:self-auto border-none cursor-pointer transition-colors"
-                >
-                    <RefreshCw className="w-4 h-4" />
-                    Actualizar Datos
-                </button>
+                {/* BOTONES DE ACCIÓN */}
+                <div className="flex flex-wrap items-center gap-3">
+                    <button
+                        onClick={handleExportExcel}
+                        disabled={isExportingExcel}
+                        className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-2 shadow-sm h-10 px-4 cursor-pointer transition-colors text-sm disabled:opacity-50 border-none"
+                    >
+                        <FileSpreadsheet className="w-4 h-4" />
+                        {isExportingExcel ? 'Exportando...' : 'Exportar Excel'}
+                    </button>
+
+                    <button
+                        onClick={handleExportPDF}
+                        disabled={isExportingPdf}
+                        className="rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold flex items-center gap-2 shadow-sm h-10 px-4 cursor-pointer transition-colors text-sm disabled:opacity-50 border-none"
+                    >
+                        <FileText className="w-4 h-4" />
+                        {isExportingPdf ? 'Generando...' : 'Exportar PDF'}
+                    </button>
+
+                    <button
+                        onClick={refresh}
+                        className="rounded-xl bg-[#1a558b] hover:bg-[#15436f] text-white font-bold flex items-center gap-2 shadow-sm h-10 px-4 border-none cursor-pointer transition-colors text-sm"
+                    >
+                        <RefreshCw className="w-4 h-4" />
+                        Actualizar
+                    </button>
+                </div>
             </div>
 
-            {/* CONTENEDOR PRINCIPAL */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-6">
+            {/* CONTENEDOR PRINCIPAL DE REPORTES */}
+            <div ref={dashboardRef} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-6">
+                
+                {/* 🏢 ENCABEZADO EXCLUSIVO PARA EL PDF */}
+                <div id="pdf-header" className="hidden p-4 border-b border-gray-200 mb-2">
+                    <div className="flex items-start justify-between gap-6">
+                        <div className="flex items-center gap-3">
+                            <div className="bg-[#1a558b] text-white font-black px-3 py-2 rounded-xl text-lg">
+                                HD
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-black text-[#1a558b] uppercase tracking-wide">
+                                    Sistema HelpDesk
+                                </h2>
+                                <p className="text-xs text-slate-500 font-semibold">
+                                    Reporte Oficial de Mantenimiento Preventivo
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="text-right text-xs text-slate-500 space-y-1 max-w-95">
+                            <p className="text-[11px] uppercase tracking-[0.25em] text-[#1a558b] font-black">Reporte ejecutivo</p>
+                            <p className="font-bold text-slate-700">{reportObjective}</p>
+                            <p><span className="font-bold">Fecha de Emisión:</span> {new Date().toLocaleDateString('es-HN')}</p>
+                            <p><span className="font-bold">Periodo:</span> {selectedMonth ? `${selectedMonthName} ${year}` : `Anual ${year}`}</p>
+                            <p><span className="font-bold">Clasificación:</span> Confidencial / Auditoría Interna</p>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Filtros */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
@@ -198,8 +309,8 @@ export const MaintenanceDashboardPage: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-2 w-full sm:max-w-xs">
-                            <Select 
-                                onValueChange={(val) => setSelectedMonth(val === 'todos' ? undefined : Number(val))} 
+                            <Select
+                                onValueChange={(val) => setSelectedMonth(val === 'todos' ? undefined : Number(val))}
                                 value={selectedMonth === undefined ? 'todos' : String(selectedMonth)}
                             >
                                 <SelectTrigger className="rounded-xl border-gray-200 h-9.5 pl-4 pr-3 text-sm text-slate-700 focus:ring-[#1e5f8a]/20 focus:border-[#1e5f8a] w-full sm:w-36 bg-white select-none shadow-none">
@@ -269,8 +380,8 @@ export const MaintenanceDashboardPage: React.FC = () => {
                         <div className="relative flex-1 flex items-center justify-center">
                             {estadoData.length > 0 ? (
                                 <div className="w-56 h-56">
-                                    <Doughnut 
-                                        data={doughnutChartData} 
+                                    <Doughnut
+                                        data={doughnutChartData}
                                         options={{
                                             responsive: true,
                                             maintainAspectRatio: false,
@@ -281,7 +392,7 @@ export const MaintenanceDashboardPage: React.FC = () => {
                                                     labels: { boxWidth: 12, font: { size: 10, weight: 'bold' } }
                                                 }
                                             }
-                                        }} 
+                                        }}
                                     />
                                 </div>
                             ) : (
@@ -313,8 +424,8 @@ export const MaintenanceDashboardPage: React.FC = () => {
                         <div className="relative flex-1 flex items-center justify-center">
                             {freqData.length > 0 ? (
                                 <div className="w-56 h-56">
-                                    <Pie 
-                                        data={pieChartData} 
+                                    <Pie
+                                        data={pieChartData}
                                         options={{
                                             responsive: true,
                                             maintainAspectRatio: false,
@@ -325,7 +436,7 @@ export const MaintenanceDashboardPage: React.FC = () => {
                                                     labels: { boxWidth: 12, font: { size: 10, weight: 'bold' } }
                                                 }
                                             }
-                                        }} 
+                                        }}
                                     />
                                 </div>
                             ) : (
@@ -348,6 +459,20 @@ export const MaintenanceDashboardPage: React.FC = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* ✍️ PIE DE PÁGINA / FIRMAS EXCLUSIVO PARA EL PDF */}
+                <div id="pdf-footer" className="hidden pt-8 border-t border-gray-200 mt-8 text-xs text-slate-500">
+                    <div className="flex justify-between items-end">
+                        <div>
+                            <p className="font-bold text-slate-700">Generado por: Administrador del Sistema</p>
+                            <p className="text-[10px]">Este documento es un reporte consolidado generado automáticamente.</p>
+                        </div>
+                        <div className="text-center w-48 border-t border-slate-300 pt-1">
+                            <p className="font-semibold text-slate-600">Firma de Conformidad</p>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     );

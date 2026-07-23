@@ -74,7 +74,7 @@ namespace HelpDesk.Helpers
             </div>
 
             <div style='text-align: center; margin-top: 30px;'>
-                <a href='http://servidor-local/dashboard/tickets' style='background-color: #1e5f8a; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; display: inline-block;'>
+                <a href='http://localhost:8081/dashboard/tickets' style='background-color: #1e5f8a; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold; display: inline-block;'>
                     Ir al Dashboard para Resolver
                 </a>
             </div>
@@ -148,7 +148,7 @@ namespace HelpDesk.Helpers
         }
 
         // 4. Plantilla para Mantenimiento Preventivo Programado (TI)
-        public static string GetMaintenanceScheduledTemplate(long maintenanceId, string deviceName, string area, string frequency, string scheduledDate, string executionTime, string details)
+        public static string GetMaintenanceScheduledTemplate(long maintenanceId, string deviceName, string area, string frequencyName, string scheduledDate, string executionTime, string details)
         {
             return $@"
     <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;'>
@@ -176,7 +176,7 @@ namespace HelpDesk.Helpers
                     </tr>
                     <tr>
                         <td style='padding: 5px 0; color: #64748b; font-weight: bold;'>Frecuencia:</td>
-                        <td style='padding: 5px 0; color: #0f172a;'><span style='background-color: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;'>{frequency}</span></td>
+                        <td style='padding: 5px 0; color: #0f172a;'><span style='background-color: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;'>{frequencyName}</span></td>
                     </tr>
                     <tr>
                         <td style='padding: 5px 0; color: #64748b; font-weight: bold;'>Fecha Programada:</td>
@@ -184,7 +184,7 @@ namespace HelpDesk.Helpers
                     </tr>
                     <tr>
                         <td style='padding: 5px 0; color: #64748b; font-weight: bold;'>Tiempo Estimado:</td>
-                        <td style='padding: 5px 0; color: #0f172a;'>{executionTime} hrs</td>
+                        <td style='padding: 5px 0; color: #0f172a;'>{executionTime} Mn</td>
                     </tr>
                 </table>
             </div>

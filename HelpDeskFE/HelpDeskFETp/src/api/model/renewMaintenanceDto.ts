@@ -11,5 +11,4 @@ export interface RenewMaintenanceDto {
   /** @minLength 1 */
   details: string;
   executionTime: number;
-  idMaintenanceFrequency?: number;
 }
