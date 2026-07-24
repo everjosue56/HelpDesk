@@ -15,6 +15,7 @@ using HelpDesk.Services.AuditServices;
 using HelpDesk.Services.AuthService;
 using HelpDesk.Services.Common;
 using HelpDesk.Services.DashboardServices;
+using HelpDesk.Services.DeviceExportService;
 using HelpDesk.Services.DeviceService;
 using HelpDesk.Services.DeviceServices;
 using HelpDesk.Services.EmailService;
@@ -36,6 +37,7 @@ using HelpDesk.Services.RolServices;
 using HelpDesk.Services.SlaService;
 using HelpDesk.Services.SoftwareSystemServices;
 using HelpDesk.Services.SolutionStateServices;
+using HelpDesk.Services.TicketExportService;
 using HelpDesk.Services.TicketHistoryService;
 using HelpDesk.Services.TicketHistoryServices;
 using HelpDesk.Services.TicketService;
@@ -104,6 +106,8 @@ builder.Services.AddScoped<ISlaGoalService, SlaGoalService>();
 builder.Services.AddScoped<IMaintenanceFrequencyService, MaintenanceFrequencyService>();
 builder.Services.AddScoped<IAlertConfigurationService, AlertConfigurationService>();
 builder.Services.AddScoped<IMaintenanceExportService, MaintenanceExportService>();
+builder.Services.AddScoped<IDeviceExportService, DeviceExportService>();
+builder.Services.AddScoped<ITicketExportService, TicketExportService>();
 
 // Inyeccion de email 
 // Mapear la sección del appsettings.json a la clase EmailSettings

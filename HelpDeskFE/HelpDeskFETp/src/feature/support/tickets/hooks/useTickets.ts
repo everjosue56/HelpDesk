@@ -6,6 +6,7 @@ import type {
   CreateTicketDto,
   UpdateTicketDto,
 } from "../../../../api/model";
+import { getTicketExport } from "@/api/generated/ticket-export/ticket-export";
 
 export interface TicketItem {
   id: number;
@@ -52,6 +53,7 @@ export const useTickets = (
   const [isLoading, setIsLoading] = useState(false);
 
   const service = useMemo(() => getTicket(AXIOS_INSTANCE), []);
+  const exportService = useMemo(() => getTicketExport(AXIOS_INSTANCE), []);
 
   const filterTypeError = filters?.idTypeError;
   const filterArea = filters?.idArea;
@@ -163,6 +165,41 @@ export const useTickets = (
     [service],
   );
 
+    // 4. Exportación de Dispositivos a Excel
+  const downloadExcel = async () => {
+    try {
+      const response = await exportService.getExportTicketExcel({
+        responseType: "blob",
+      });
+
+      // Crear y forzar descarga del Blob binario (.xlsx)
+      const blob = new Blob([response.data as unknown as BlobPart], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+
+      // Generar sufijo con la fecha actual (YYYYMMDD)
+      const now = new Date();
+      const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
+      
+      link.setAttribute("download", `Inventario_Dispositivos_${dateStr}.xlsx`);
+
+      document.body.appendChild(link);
+      link.click();
+
+      // Limpieza en memoria DOM
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error al exportar inventario de dispositivos a Excel:", error);
+      throw error;
+    }
+  };
+
+
   const refresh = useCallback(() => {
     fetchTickets(true);
   }, [fetchTickets]);
@@ -178,5 +215,6 @@ export const useTickets = (
     updateTicket,
     deleteTicket,
     getTicketById,
+    downloadExcel,
   };
 };

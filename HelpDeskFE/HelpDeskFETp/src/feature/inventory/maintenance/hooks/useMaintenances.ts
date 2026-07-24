@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "../../../../context/AuthContext";
 import { AXIOS_INSTANCE } from "../../../../api/axios-instance";
 import { getMaintenance } from "../../../../api/generated/maintenance/maintenance";
+import { getMaintenanceExport } from "../../../../api/generated/maintenance-export/maintenance-export";
 import type { 
   CreateMaintenanceDto, 
   UpdateMaintenanceDto, 
@@ -26,9 +27,9 @@ export interface MaintenanceItem {
   deviceBrand: string;
   deviceFullDescription: string;
   createdDate: string;
+  title?: string; 
 }
 
-// 🚀 Tipo para los eventos del calendario
 export interface MaintenanceCalendarEvent {
   id: number;
   title: string;
@@ -37,6 +38,13 @@ export interface MaintenanceCalendarEvent {
   details?: string;
   deviceName?: string;
   frequencyName?: string;
+}
+
+export interface MaintenanceFrequencyItem {
+  id: number;
+  name: string;
+  daysInterval: number;
+  createdDate?: string;
 }
 
 export const useMaintenances = (
@@ -59,12 +67,17 @@ export const useMaintenances = (
   const [maintenance, setMaintenance] = useState<MaintenanceItem | null>(null);
   const [isFetching, setIsFetching] = useState<boolean>(false);
 
+  // Estado para el catálogo de Frecuencias de Mantenimiento
+  const [frequencies, setFrequencies] = useState<MaintenanceFrequencyItem[]>([]);
+  const [isLoadingFrequencies, setIsLoadingFrequencies] = useState<boolean>(false);
+
   void idFrequency;
 
-  // Inicializar el servicio Orval
+  
   const maintenanceService = useMemo(() => getMaintenance(AXIOS_INSTANCE), []);
+  const exportService = useMemo(() => getMaintenanceExport(AXIOS_INSTANCE), []);
 
-  // 1. Obtener listado paginado
+  // 1. Obtener listado paginado de mantenimientos
   const fetchMaintenances = useCallback(async () => {
     if (!isAuthenticated) return;
     try {
@@ -89,10 +102,10 @@ export const useMaintenances = (
       const serverTotalItems = backendResponse?.totalItems || 0;
 
       const formattedData: MaintenanceItem[] = Array.isArray(rawData)
-       // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ? rawData.map((item: any) => ({
             id: item.id || 0,
-            details: item.details || "Sin detalles",
+            details: item.details || item.detail || item.description || item.observation || "Sin detalles",
             notificationDate: item.notificationDate || "",
             completionDate: item.completionDate || "",
             executionTime: item.executionTime || 0,
@@ -101,12 +114,17 @@ export const useMaintenances = (
             idArea: item.idArea || 0,
             areaName: item.areaName || "N/A",
             idMaintenanceFrequency: item.idMaintenanceFrequency ?? item.idFrequency ?? 0,
-            frequencyName: item.frequencyName || "N/A",
+            frequencyName: 
+              item.frequencyName || 
+              item.maintenanceFrequencyName || 
+              item.maintenanceFrequency?.name || 
+              item.frequency?.name || 
+              "N/A",
             idDevice: item.idDevice || 0,
             deviceCode: item.deviceCode || "N/A",
             deviceBrand: item.deviceBrand || "N/A",
             deviceFullDescription: item.deviceFullDescription || "N/A",
-            createdDate: item.createdDate  || "N/A"
+            createdDate: item.createdDate || "N/A"
           }))
         : [];
 
@@ -119,12 +137,41 @@ export const useMaintenances = (
     }
   }, [isAuthenticated, keyword, page, pageSize, idMaintenanceType, idArea, idDevice, dateFrom, dateTo, maintenanceService]);
 
-  // 2. Obtener un mantenimiento individual
+  // 2. Obtener catálogo de Frecuencias de Mantenimiento
+  const fetchFrequencies = useCallback(async () => {
+    if (!isAuthenticated) return;
+    try {
+      setIsLoadingFrequencies(true);
+      const response = await AXIOS_INSTANCE.get('/api/maintenance-frequencies');
+  
+      const rawData = response.data?.data || response.data || [];
+
+      if (Array.isArray(rawData)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const formatted: MaintenanceFrequencyItem[] = rawData.map((item: any) => ({
+          id: item.id || 0,
+          name: item.name || "Sin nombre",
+          daysInterval: item.daysInterval || 0,
+          createdDate: item.createdDate,
+        }));
+        setFrequencies(formatted);
+      } else {
+        setFrequencies([]);
+      }
+    } catch (error) {
+      console.error("Error al obtener las frecuencias de mantenimiento:", error);
+      setFrequencies([]);
+    } finally {
+      setIsLoadingFrequencies(false);
+    }
+  }, [isAuthenticated]);
+
+  // 3. Obtener un mantenimiento individual por ID
   const getMaintenanceById = useCallback(async (id: number): Promise<MaintenanceItem | null> => {
     try {
       setIsFetching(true);
       const response = await maintenanceService.getApiMaintenancesId(id);
-       // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const backendResponse = response.data as any;
       const item = backendResponse?.data || backendResponse;
 
@@ -135,7 +182,7 @@ export const useMaintenances = (
 
       const formatted: MaintenanceItem = {
         id: item.id || 0,
-        details: item.details || "",
+        details: item.details || item.detail || item.description || item.observation || "",
         notificationDate: item.notificationDate || "",
         completionDate: item.completionDate || "",
         executionTime: item.executionTime || 0,
@@ -144,7 +191,13 @@ export const useMaintenances = (
         idArea: item.idArea || 0,
         areaName: item.areaName || "",
         idMaintenanceFrequency: item.idMaintenanceFrequency ?? item.idFrequency ?? 0,
-        frequencyName: item.frequencyName || "N/A",
+        frequencyName: 
+          item.title || 
+          item.frequencyName || 
+          item.maintenanceFrequencyName || 
+          item.maintenanceFrequency?.name || 
+          item.frequency?.name || 
+          "N/A",
         idDevice: item.idDevice || 0,
         deviceCode: item.deviceCode || "",
         deviceBrand: item.deviceBrand || "",
@@ -163,21 +216,39 @@ export const useMaintenances = (
     }
   }, [maintenanceService]);
 
-  // 3. Obtener eventos para la vista de Calendario
+  // 4. Obtener eventos para la vista de Calendario
   const getMaintenanceCalendar = useCallback(async (year?: number, month?: number): Promise<MaintenanceCalendarEvent[]> => {
     try {
       const response = await AXIOS_INSTANCE.get('/api/maintenances/calendar', {
         params: { year, month }
       });
-    
-      return response.data?.data || [];
+ 
+      const rawData = response.data?.data || response.data || [];
+
+      if (!Array.isArray(rawData)) return [];
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return rawData.map((event: any) => ({
+        id: event.id || 0,
+        title: event.title || event.details || event.deviceName || "Mantenimiento Preventivo",
+        start: event.start || event.notificationDate || "",
+        end: event.end || event.completionDate || "",
+        details: event.details || event.title || event.description || "Sin detalles adicionales",
+        deviceName: event.deviceName || event.deviceCode || "Dispositivo N/A",
+        frequencyName: 
+          event.frequencyName || 
+          event.maintenanceFrequencyName || 
+          event.frequency?.name || 
+          "N/A",
+      }));
+
     } catch (error) {
       console.error("Error al obtener el calendario de mantenimientos:", error);
       return [];
     }
   }, []);
 
-  // 4. Mutaciones CRUD y Acciones Especiales
+  // 5. Mutaciones CRUD y Acciones Especiales
   const createMaintenance = async (dto: CreateMaintenanceDto) => {
     try {
       setIsLoading(true);
@@ -204,7 +275,6 @@ export const useMaintenances = (
     }
   };
 
-  // 🚀 Función para renovar el mantenimiento (Mismo ID, guarda historial y recalcula alertas)
   const renewMaintenance = async (id: number, dto: RenewMaintenanceDto) => {
     try {
       setIsLoading(true);
@@ -230,12 +300,51 @@ export const useMaintenances = (
       setIsLoading(false);
     }
   };
+ 
+  const downloadExcel = async () => {
+    try {
+      const response = await exportService.getApiMaintenancesExportExportExcel(
+        {}, // Si tu endpoint en C# no exige filtros obligatorios pasa objeto vacío o los params de búsqueda
+        {
+          responseType: "blob",
+        },
+      );
 
-  // Efecto reactivo 
+      // Crear y forzar descarga del Blob binario (.xlsx)
+      const blob = new Blob([response.data as unknown as BlobPart], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+
+      // Nombre dinámico con la fecha del día (YYYYMMDD)
+      const now = new Date();
+      const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
+
+      link.setAttribute("download", `Historial_Mantenimientos_${dateStr}.xlsx`);
+
+      document.body.appendChild(link);
+      link.click();
+
+      // Limpieza en memoria DOM
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error al exportar Excel desde el cliente de Orval:", error);
+      throw error;
+    }
+  };
+  
+  // Efecto reactivo para refrescar datos al cambiar filtros
   useEffect(() => {
     let isMounted = true;
     const executeFetch = async () => {
-      if (isMounted) await fetchMaintenances();
+      if (isMounted) {
+        await fetchMaintenances();
+        await fetchFrequencies();
+      }
     };
 
     const timeoutId = setTimeout(executeFetch, 300);
@@ -243,7 +352,7 @@ export const useMaintenances = (
       isMounted = false;
       clearTimeout(timeoutId);
     };
-  }, [fetchMaintenances]);
+  }, [fetchMaintenances, fetchFrequencies]);
 
   return {
     maintenances,
@@ -251,12 +360,16 @@ export const useMaintenances = (
     isLoading,
     maintenance,
     isFetching,
+    frequencies,
+    isLoadingFrequencies,
     getMaintenanceById,
     getMaintenanceCalendar,
     createMaintenance,
     updateMaintenance,
     renewMaintenance,
     deleteMaintenance,
+    downloadExcel,
+    refreshFrequencies: fetchFrequencies,
     refresh: fetchMaintenances,
   };
 };

@@ -3,6 +3,7 @@ import { useAuth } from "../../../../context/AuthContext";
 import { AXIOS_INSTANCE } from "../../../../api/axios-instance";
 import { getDevice } from "../../../../api/generated/device/device"; 
 import type { CreateDeviceDto, UpdateDeviceDto, GetApiDevicesParams } from "../../../../api/model";
+import { getDeviceExport } from "@/api/generated/device-export/device-export"; 
 
 export interface DeviceItem {
   id: number;
@@ -37,8 +38,9 @@ export const useDevices = (
   const [isFetching, setIsFetching] = useState<boolean>(false);
 
   const deviceService = useMemo(() => getDevice(AXIOS_INSTANCE), []);
+  const exportService = useMemo(() => getDeviceExport(AXIOS_INSTANCE), []);
 
-  // 2. Obtener listado con el mapeo del JSON
+  // 1. Obtener listado con el mapeo del JSON
   const fetchDevices = useCallback(async () => {
     if (!isAuthenticated) return;
     try {
@@ -89,7 +91,7 @@ export const useDevices = (
 
   }, [isAuthenticated, searchTerm, page, pageSize, idUser, idArea, idDeviceType, deviceService]);
 
-  // 3. Obtener un dispositivo individual por ID 
+  // 2. Obtener un dispositivo individual por ID 
   const getDeviceById = useCallback(async (id: number): Promise<DeviceItem | null> => {
     try {
       setIsFetching(true);
@@ -131,7 +133,7 @@ export const useDevices = (
     }
   }, [deviceService]);
 
-  // 4. Mutaciones CRUD
+  // 3. Mutaciones CRUD
   const createDevice = async (dto: CreateDeviceDto) => {
     try {
       setIsLoading(true);
@@ -171,21 +173,55 @@ export const useDevices = (
     }
   };
 
- useEffect(() => {
-  let isMounted = true;
-  
-  const executeFetch = async () => {
-    if (isMounted) {
-      await fetchDevices();
+  // 4. Exportación de Dispositivos a Excel
+  const downloadExcel = async () => {
+    try {
+      const response = await exportService.getApiDeviceExportExportExcel({
+        responseType: "blob",
+      });
+
+      // Crear y forzar descarga del Blob binario (.xlsx)
+      const blob = new Blob([response.data as unknown as BlobPart], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+
+      // Generar sufijo con la fecha actual (YYYYMMDD)
+      const now = new Date();
+      const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
+      
+      link.setAttribute("download", `Inventario_Dispositivos_${dateStr}.xlsx`);
+
+      document.body.appendChild(link);
+      link.click();
+
+      // Limpieza en memoria DOM
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error al exportar inventario de dispositivos a Excel:", error);
+      throw error;
     }
   };
 
-  const timeoutId = setTimeout(executeFetch, 300);
-  return () => {
-    isMounted = false;
-    clearTimeout(timeoutId);
-  };
-}, [fetchDevices]);
+  useEffect(() => {
+    let isMounted = true;
+    
+    const executeFetch = async () => {
+      if (isMounted) {
+        await fetchDevices();
+      }
+    };
+
+    const timeoutId = setTimeout(executeFetch, 300);
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, [fetchDevices]);
 
   return {
     devices,
@@ -197,6 +233,7 @@ export const useDevices = (
     createDevice,
     updateDevice,
     deleteDevice,
+    downloadExcel, 
     refresh: fetchDevices,
   };
 };

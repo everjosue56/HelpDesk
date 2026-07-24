@@ -571,7 +571,7 @@ namespace HelpDesk.Services.MaintenanceService
                         else
                         {
                             status = "Programado";
-                            color = "blue";   // 🟦 AZUL: A más de 7 días
+                            color = "blue";   //  AZUL: A más de 7 días
                         }
 
                         var executionHours = m.ExecutionTime > 0 ? (double)m.ExecutionTime : 1.0;

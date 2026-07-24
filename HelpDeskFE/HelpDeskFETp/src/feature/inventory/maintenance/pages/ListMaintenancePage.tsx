@@ -14,7 +14,8 @@ import {
     X,
     Settings,
     Calendar,
-    RotateCw
+    RotateCw,
+    FileSpreadsheet
 } from 'lucide-react';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '../../../../../@/components/ui/pagination';
 import { toast } from 'sonner';
@@ -41,7 +42,8 @@ export const ListMaintenancePage: React.FC = () => {
         totalCount,
         isLoading,
         deleteMaintenance,
-        renewMaintenance
+        renewMaintenance,
+        downloadExcel,
     } = useMaintenances(searchTerm, page, pageSize, selectedType, selectedArea, selectedDevice, undefined, filterDate || null, filterDate || null);
 
     // ─── CONSUMO DE HOOKS RELACIONALES PARA FILTROS ───
@@ -80,6 +82,8 @@ export const ListMaintenancePage: React.FC = () => {
     const [selectedMaintenance, setSelectedMaintenance] = useState<MaintenanceItem | null>(null);
     const [isRenewModalOpen, setIsRenewModalOpen] = useState(false);
     const [selectedMaintenanceForRenew, setSelectedMaintenanceForRenew] = useState<MaintenanceItem | null>(null);
+        const [isExportingExcel, setIsExportingExcel] = useState(false);
+    
 
     const handleConfirmDelete = async (id: number) => {
         try {
@@ -96,6 +100,18 @@ export const ListMaintenancePage: React.FC = () => {
     const handleConfirmRenew = async (id: number, dto: RenewMaintenanceDto) => {
         await renewMaintenance(id, dto);
     };
+
+      const handleExportExcel = async () => {
+        setIsExportingExcel(true);
+        try {
+            await downloadExcel();
+        } catch (error) {
+            console.error("Error al descargar Excel:", error);
+        } finally {
+            setIsExportingExcel(false);
+        }
+    };
+
 
     return (
         <div className="p-6 space-y-6 bg-[#f8f9fa] min-h-screen font-sans animate-fadeIn text-left select-none">
@@ -138,6 +154,14 @@ export const ListMaintenancePage: React.FC = () => {
                         <p className="text-sm text-gray-500">Gestiona todas los mantenimientos registrados en el sistema</p>
                     </div>
                     <div className="flex items-center gap-3">
+                    <button
+                        onClick={handleExportExcel}
+                        disabled={isExportingExcel}
+                        className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-2 shadow-sm h-10 px-4 cursor-pointer transition-colors text-sm disabled:opacity-50 border-none"
+                    >
+                        <FileSpreadsheet  className="w-4 h-4" />
+                        {isExportingExcel ? 'Exportando...' : 'Exportar Excel'}
+                    </button>
                         <button
                             type="button"
                             className="inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-gray-200 font-semibold text-sm px-4 py-2.5 rounded-xl transition-colors shadow-xs cursor-pointer"

@@ -22,6 +22,7 @@ import jsPDF from 'jspdf';
 
 ChartJS.register(
     CategoryScale,
+
     LinearScale,
     BarElement,
     LineElement,
@@ -63,7 +64,7 @@ export const MaintenanceDashboardPage: React.FC = () => {
     const selectedMonthName = mesesOpciones.find(m => m.num === selectedMonth)?.name ?? 'Todo el año';
     const reportObjective = 'Este reporte ejecutivo consolida la situación del programa de mantenimiento preventivo para evaluar el cumplimiento del plan e identificar riesgos operativos.';
 
-    // 📄 EXPORTAR PDF
+    //  EXPORTAR PDF
     const handleExportPDF = async () => {
         if (!dashboardRef.current) return;
         setIsExportingPdf(true);
@@ -103,7 +104,7 @@ export const MaintenanceDashboardPage: React.FC = () => {
         }
     };
 
-    // 📊 EXPORTAR EXCEL
+    //  EXPORTAR EXCEL
     const handleExportExcel = async () => {
         setIsExportingExcel(true);
         try {
@@ -229,15 +230,7 @@ export const MaintenanceDashboardPage: React.FC = () => {
 
                 {/* BOTONES DE ACCIÓN */}
                 <div className="flex flex-wrap items-center gap-3">
-                    <button
-                        onClick={handleExportExcel}
-                        disabled={isExportingExcel}
-                        className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-2 shadow-sm h-10 px-4 cursor-pointer transition-colors text-sm disabled:opacity-50 border-none"
-                    >
-                        <FileSpreadsheet className="w-4 h-4" />
-                        {isExportingExcel ? 'Exportando...' : 'Exportar Excel'}
-                    </button>
-
+                
                     <button
                         onClick={handleExportPDF}
                         disabled={isExportingPdf}
@@ -246,7 +239,14 @@ export const MaintenanceDashboardPage: React.FC = () => {
                         <FileText className="w-4 h-4" />
                         {isExportingPdf ? 'Generando...' : 'Exportar PDF'}
                     </button>
-
+                    <button
+                        onClick={handleExportExcel}
+                        disabled={isExportingExcel}
+                        className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-2 shadow-sm h-10 px-4 cursor-pointer transition-colors text-sm disabled:opacity-50 border-none"
+                    >
+                        <FileSpreadsheet className="w-4 h-4" />
+                        {isExportingExcel ? 'Exportando...' : 'Exportar Excel'}
+                    </button>
                     <button
                         onClick={refresh}
                         className="rounded-xl bg-[#1a558b] hover:bg-[#15436f] text-white font-bold flex items-center gap-2 shadow-sm h-10 px-4 border-none cursor-pointer transition-colors text-sm"
@@ -260,7 +260,7 @@ export const MaintenanceDashboardPage: React.FC = () => {
             {/* CONTENEDOR PRINCIPAL DE REPORTES */}
             <div ref={dashboardRef} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-6">
                 
-                {/* 🏢 ENCABEZADO EXCLUSIVO PARA EL PDF */}
+                {/*   ENCABEZADO EXCLUSIVO PARA EL PDF */}
                 <div id="pdf-header" className="hidden p-4 border-b border-gray-200 mb-2">
                     <div className="flex items-start justify-between gap-6">
                         <div className="flex items-center gap-3">
@@ -460,7 +460,7 @@ export const MaintenanceDashboardPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* ✍️ PIE DE PÁGINA / FIRMAS EXCLUSIVO PARA EL PDF */}
+                {/*  PIE DE PÁGINA   */}
                 <div id="pdf-footer" className="hidden pt-8 border-t border-gray-200 mt-8 text-xs text-slate-500">
                     <div className="flex justify-between items-end">
                         <div>

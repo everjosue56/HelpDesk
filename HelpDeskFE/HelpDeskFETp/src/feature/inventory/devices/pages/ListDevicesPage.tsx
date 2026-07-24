@@ -12,7 +12,8 @@ import {
     Trash2,
     Edit,
     X,
-    Laptop
+    Laptop,
+    FileSpreadsheet
 } from 'lucide-react';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '../../../../../@/components/ui/pagination';
 import { toast } from 'sonner';
@@ -25,6 +26,7 @@ export const ListDevicesPage: React.FC = () => {
     const [selectedUser, setSelectedUser] = useState<number | undefined>(undefined);
     const [selectedArea, setSelectedArea] = useState<number | undefined>(undefined);
     const [selectedType, setSelectedType] = useState<number | undefined>(undefined);
+    const [isExportingExcel, setIsExportingExcel] = useState(false);
 
     const [page, setPage] = useState(1);
     const pageSize = 5;
@@ -34,7 +36,8 @@ export const ListDevicesPage: React.FC = () => {
         devices,
         totalCount,
         isLoading,
-        deleteDevice
+        deleteDevice,
+        downloadExcel,
     } = useDevices(searchTerm, page, pageSize, selectedUser, selectedArea, selectedType);
 
     //  2. CONSUMO DE ENDPOINTS RELACIONALES (Traemos hasta 100 registros para llenar los combos)
@@ -50,6 +53,7 @@ export const ListDevicesPage: React.FC = () => {
         e.preventDefault();
         if (page > 1) setPage(page - 1);
     };
+
 
     const handleNext = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -76,6 +80,19 @@ export const ListDevicesPage: React.FC = () => {
             console.error(error);
         }
     };
+
+       //  EXPORTAR EXCEL
+    const handleExportExcel = async () => {
+        setIsExportingExcel(true);
+        try {
+            await downloadExcel();
+        } catch (error) {
+            console.error("Error al descargar Excel:", error);
+        } finally {
+            setIsExportingExcel(false);
+        }
+    };
+
 
     return (
         <div className="p-6 space-y-6 bg-[#f8f9fa] min-h-screen font-sans animate-fadeIn text-left select-none">
@@ -117,6 +134,15 @@ export const ListDevicesPage: React.FC = () => {
                         <h2 className="text-lg font-bold text-slate-800">Lista de Dispositivos</h2>
                         <p className="text-xs text-gray-400">Administración general, codificación patrimonial y asignaciones operativas</p>
                     </div>
+                    <div className="flex flex-wrap items-center gap-3">
+                    <button
+                        onClick={handleExportExcel}
+                        disabled={isExportingExcel}
+                        className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-2 shadow-sm h-10 px-4 cursor-pointer transition-colors text-sm disabled:opacity-50 border-none"
+                    >
+                        <FileSpreadsheet className="w-4 h-4" />
+                        {isExportingExcel ? 'Exportando...' : 'Exportar Excel'}
+                    </button>
                     <button
                         className="inline-flex items-center justify-center gap-2 bg-[#1e5f8a] hover:bg-[#154666] text-white font-medium text-sm px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer"
                         onClick={() => navigate("create")}
@@ -124,6 +150,7 @@ export const ListDevicesPage: React.FC = () => {
                         <Plus className="h-4 w-4" />
                         Nuevo Dispositivo
                     </button>
+                    </div>
                 </div>
 
                 {/* ─── BARRA DE FILTROS ─── */}

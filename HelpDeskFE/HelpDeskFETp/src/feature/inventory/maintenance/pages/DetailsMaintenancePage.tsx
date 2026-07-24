@@ -31,6 +31,7 @@ export const DetailsMaintenancePage: React.FC = () => {
             Fecha Notificacion: ${formatDateTime(maintenance.notificationDate)}
             Detalles: ${maintenance.details}
             Fecha Realizado: ${formatDateTime(maintenance.completionDate)}
+            Frequencia de Mantenimiento: ${maintenance.frequencyName}
         `.trim().replace(/^[ \t]+/gm, ''); 
 
         try {
@@ -192,6 +193,10 @@ export const DetailsMaintenancePage: React.FC = () => {
                     <div className="space-y-1">
                         <h3 className="text-sm font-bold text-slate-600">Fecha Realizado</h3>
                         <p className="text-sm text-gray-500 font-medium">{formatDateTime(maintenance.completionDate)}</p>
+                    </div>
+                     <div className="space-y-1">
+                        <h3 className="text-sm font-bold text-slate-600">Frecuencia de Mantenimiento</h3>
+                        <p className="text-sm text-gray-500 font-medium">{maintenance.frequencyName}</p>
                     </div>
 
                 </div>
