@@ -45,7 +45,7 @@ export const useTickets = (
     dateFrom?: string | null;
     dateTo?: string | null;
   },
-) => {
+) => { 
   const [tickets, setTickets] = useState<TicketItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [activeTicketsCount, setTotalActiveTicketsCount] = useState(0);
@@ -185,7 +185,7 @@ export const useTickets = (
       const now = new Date();
       const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
       
-      link.setAttribute("download", `Inventario_Dispositivos_${dateStr}.xlsx`);
+      link.setAttribute("download", `Soporte_Tickets_${dateStr}.xlsx`);
 
       document.body.appendChild(link);
       link.click();
@@ -194,7 +194,7 @@ export const useTickets = (
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Error al exportar inventario de dispositivos a Excel:", error);
+      console.error("Error al exportar resumen de tickets a Excel:", error);
       throw error;
     }
   };

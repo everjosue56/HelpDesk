@@ -40,6 +40,7 @@ export * from './getApiAlertConfigurationsParams';
 export * from './getApiAlertHistoriesParams';
 export * from './getApiAlertTypesParams';
 export * from './getApiAreasParams';
+export * from './getApiAuditLogExportExportExcelParams';
 export * from './getApiAuditParams';
 export * from './getApiDashboardCargaAgenciasParams';
 export * from './getApiDashboardCargaAreasParams';

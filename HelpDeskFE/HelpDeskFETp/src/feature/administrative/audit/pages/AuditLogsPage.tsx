@@ -7,7 +7,8 @@ import {
     Search,
     User,
     X,
-    Database
+    Database,
+    FileSpreadsheet
 } from 'lucide-react';
 import { Input } from '../../../../../@/components/ui/input';
 import { Button } from '../../../../../@/components/ui/button';
@@ -27,9 +28,10 @@ export const AuditLogsPage: React.FC = () => {
     const [page, setPage] = useState(1);
     const pageSize = 10;
 
-    const { logs, totalCount, isLoading, refresh } = useAudit(search, page, pageSize);
+    const { logs, totalCount, isLoading, refresh, downloadExcel } = useAudit(search, page, pageSize);
 
     const totalPages = Math.ceil(totalCount / pageSize) || 1;
+    const [isExportingExcel, setIsExportingExcel] = useState(false);
 
     const handlePrevious = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -45,6 +47,20 @@ export const AuditLogsPage: React.FC = () => {
         e.preventDefault();
         setPage(pageNumber);
     };
+
+
+    //  EXPORTAR EXCEL
+    const handleExportExcel = async () => {
+        setIsExportingExcel(true);
+        try {
+            await downloadExcel();
+        } catch (error) {
+            console.error("Error al descargar Excel:", error);
+        } finally {
+            setIsExportingExcel(false);
+        }
+    };
+
 
     return (
         <div className="p-6 space-y-6 bg-[#f8f9fa] min-h-screen font-sans animate-fadeIn text-left">
@@ -97,15 +113,25 @@ export const AuditLogsPage: React.FC = () => {
                         <h2 className="text-lg font-bold text-slate-800">Registros del Sistema</h2>
                         <p className="text-xs text-gray-400">Historial de acciones críticas y control de accesos de Financiera Codimersa</p>
                     </div>
-                    <Button
-                        onClick={refresh}
-                        disabled={isLoading}
-                        variant="outline"
-                        className="rounded-xl h-11 gap-2 border-gray-200 text-slate-700 bg-white hover:bg-gray-50 cursor-pointer"
-                    >
-                        <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-                        {isLoading ? 'Sincronizando...' : 'Actualizar'}
-                    </Button>
+                    <div className="flex flex-wrap items-center gap-3">
+                        <button
+                            onClick={handleExportExcel}
+                            disabled={isExportingExcel}
+                            className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-2 shadow-sm h-10 px-4 cursor-pointer transition-colors text-sm disabled:opacity-50 border-none"
+                        >
+                            <  FileSpreadsheet className="w-4 h-4" />
+                            {isExportingExcel ? 'Exportando...' : 'Exportar Excel'}
+                        </button>
+                        <Button
+                            onClick={refresh}
+                            disabled={isLoading}
+                            variant="outline"
+                            className="rounded-xl h-11 gap-2 border-gray-200 text-slate-700 bg-white hover:bg-gray-50 cursor-pointer"
+                        >
+                            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                            {isLoading ? 'Sincronizando...' : 'Actualizar'}
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Filtro interactivo de Búsqueda */}
@@ -170,7 +196,7 @@ export const AuditLogsPage: React.FC = () => {
                                             </td>
                                             <td className="p-3">
                                                 <span className={`inline-flex items-center justify-center px-2.5 py-1 rounded-md text-xs font-bold ${log.action === 'CREATE' ? 'bg-green-50 text-green-700' :
-                                                        log.action === 'UPDATE' ? 'bg-blue-50 text-blue-700' : 'bg-red-50 text-red-700'
+                                                    log.action === 'UPDATE' ? 'bg-blue-50 text-blue-700' : 'bg-red-50 text-red-700'
                                                     }`}>
                                                     {log.action}
                                                 </span>

@@ -20,14 +20,18 @@ namespace HelpDesk.Services.DashboardServices
 
         public async Task<List<DashboardDto>> GetSlaReportAsync(int year)
         {
+            // Si year viene en 0, asignamos el año actual
+            if (year <= 0) year = DateTime.UtcNow.Year;
+
             var resolutions = await _context.Resolutions
                 .IgnoreQueryFilters()
                 .Where(r => r.ResolutionDate.Year == year)
                 .ToListAsync();
 
+   
             var tickets = await _context.Tickets
                 .IgnoreQueryFilters()
-                .Where(t => t.ReportDate.Year == year)
+                .Where(t => t.CreatedDate.Year == year)  
                 .ToListAsync();
 
             var goalsDictionary = await _context.SlaGoals
@@ -38,7 +42,8 @@ namespace HelpDesk.Services.DashboardServices
 
             for (int m = 1; m <= 12; m++)
             {
-                var ticketsDelMes = tickets.Where(t => t.ReportDate.Month == m).ToList();
+          
+                var ticketsDelMes = tickets.Where(t => t.CreatedDate.Month == m).ToList();
                 var resolucionesDelMes = resolutions.Where(r => r.ResolutionDate.Month == m).ToList();
 
                 int incidentesCount = ticketsDelMes.Count;
@@ -48,10 +53,11 @@ namespace HelpDesk.Services.DashboardServices
                     : 0;
 
                 double metaAlcanzada = 0;
-                if (resolucionesDelMes.Any())
+
+                if (incidentesCount > 0)
                 {
                     var aTiempo = resolucionesDelMes.Count(r => r.SolutionTime <= 24);
-                    metaAlcanzada = Math.Round((double)aTiempo / resolucionesDelMes.Count * 100, 2);
+                    metaAlcanzada = Math.Round((double)aTiempo / incidentesCount * 100, 2);
                 }
 
                 double metaFija = goalsDictionary.TryGetValue(m, out var customGoal) ? customGoal : 95.0;

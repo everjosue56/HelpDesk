@@ -14,11 +14,12 @@ import {
     ArcElement,
     Filler
 } from 'chart.js';
-import { Wrench, Calendar, Clock, AlertTriangle, RefreshCw, FileSpreadsheet, FileText } from 'lucide-react';
+import { Wrench, Calendar, Clock, AlertTriangle, RefreshCw, FileSpreadsheet, FileText,  } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../../@/components/ui/select';
 import { useNavigate } from 'react-router-dom';
-import { toPng } from 'html-to-image';
-import jsPDF from 'jspdf';
+import { downloadMaintenanceDashboardPdf } from '../utils/generateMaintenanceDashboardPdf';
+import { toast } from 'sonner';
+
 
 ChartJS.register(
     CategoryScale,
@@ -49,8 +50,8 @@ export const MaintenanceDashboardPage: React.FC = () => {
     } = useMaintenanceDashboard(currentYear);
 
     const dashboardRef = useRef<HTMLDivElement>(null);
-    const [isExportingPdf, setIsExportingPdf] = useState(false);
     const [isExportingExcel, setIsExportingExcel] = useState(false);
+    const [isExportingPdf, setIsExportingPdf] = useState(false);
 
     const yearsOptions = Array.from({ length: 5 }, (_, index) => currentYear - index);
 
@@ -65,45 +66,20 @@ export const MaintenanceDashboardPage: React.FC = () => {
     const reportObjective = 'Este reporte ejecutivo consolida la situación del programa de mantenimiento preventivo para evaluar el cumplimiento del plan e identificar riesgos operativos.';
 
     //  EXPORTAR PDF
-    const handleExportPDF = async () => {
-        if (!dashboardRef.current) return;
-        setIsExportingPdf(true);
 
-        const pdfHeader = document.getElementById('pdf-header');
-        const pdfFooter = document.getElementById('pdf-footer');
-
+    const handleExportPDF = () => {
+        if (!data) return;
         try {
-            // 1. Mostrar temporalmente encabezado y pie corporativos
-            if (pdfHeader) pdfHeader.classList.remove('hidden');
-            if (pdfFooter) pdfFooter.classList.remove('hidden');
-
-            // 2. Generar la imagen desde el contenedor visible
-            const imgData = await toPng(dashboardRef.current, {
-                quality: 1,
-                backgroundColor: '#ffffff',
-                pixelRatio: 2,
-                cacheBust: true,
-            });
-
-            // 3. Crear el documento PDF
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const elementWidth = dashboardRef.current.offsetWidth;
-            const elementHeight = dashboardRef.current.offsetHeight;
-            const pdfHeight = (elementHeight * pdfWidth) / elementWidth;
-
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save(`Reporte_Mantenimientos_${year}_${selectedMonth || 'Anual'}.pdf`);
+            setIsExportingPdf(true);
+            downloadMaintenanceDashboardPdf(year, data, selectedMonth);
+            toast.success("Informe de mantenimientos generado en PDF con éxito");
         } catch (error) {
-            console.error('Error al generar el PDF:', error);
+            console.error('Error al generar el PDF de Mantenimiento:', error);
+            toast.error("Ocurrió un error al construir el informe PDF.");
         } finally {
-            // 4. Ocultar nuevamente para la pantalla
-            if (pdfHeader) pdfHeader.classList.add('hidden');
-            if (pdfFooter) pdfFooter.classList.add('hidden');
             setIsExportingPdf(false);
         }
     };
-
     //  EXPORTAR EXCEL
     const handleExportExcel = async () => {
         setIsExportingExcel(true);
@@ -230,7 +206,7 @@ export const MaintenanceDashboardPage: React.FC = () => {
 
                 {/* BOTONES DE ACCIÓN */}
                 <div className="flex flex-wrap items-center gap-3">
-                
+
                     <button
                         onClick={handleExportPDF}
                         disabled={isExportingPdf}

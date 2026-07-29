@@ -10,10 +10,13 @@ import {
     Tooltip,
     Legend
 } from 'chart.js';
-import { MapPin, Info, RefreshCw, X } from 'lucide-react';
+import { MapPin, Info, RefreshCw, X, FileText } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../../@/components/ui/select';
 import { useNavigate } from 'react-router-dom';
 import { useAgencies } from '../../../administrative/agencies/hooks/useAgencies';
+import { downloadAreasDashboardPdf } from '../utils/generateAreasDashboardPdf';
+import { toast } from 'sonner';
+import { useState } from 'react';
 
 ChartJS.register(
     CategoryScale,
@@ -40,6 +43,10 @@ export const AreasDashboardPage: React.FC = () => {
 
     // --- CONFIGURACIÓN DE DATA  ---
     const labels = areasRecords.map(a => a.areaNombre);
+        // catálogo de agencias
+    const { agencies } = useAgencies('', '', 1, 100);
+    
+    const currentAgencyName = agencies?.find(a => a.id === idAgency)?.name || "Todas las agencias";
 
     const chartData = {
         labels,
@@ -80,6 +87,7 @@ export const AreasDashboardPage: React.FC = () => {
     const navigate = useNavigate();
     const currentYear = new Date().getFullYear();
     const yearsOptions = Array.from({ length: 5 }, (_, index) => currentYear - index);
+    const [isExportingPdf, setIsExportingPdf] = useState(false);
 
     const mesesOpciones = [
         { num: 1, name: "Enero" }, { num: 2, name: "Febrero" }, { num: 3, name: "Marzo" },
@@ -88,8 +96,20 @@ export const AreasDashboardPage: React.FC = () => {
         { num: 10, name: "Octubre" }, { num: 11, name: "Noviembre" }, { num: 12, name: "Diciembre" }
     ];
 
-    // catálogo de agencias
-    const { agencies } = useAgencies('', '', 1, 100);
+    const handleDownloadPdf = () => {
+        try {
+            setIsExportingPdf(true);
+            downloadAreasDashboardPdf(year, areasRecords, kpis, month, currentAgencyName);
+            toast.success("Informe de carga por áreas generado en PDF con éxito");
+        } catch (error) {
+            console.error('Error al generar el PDF de Áreas:', error);
+            toast.error("Ocurrió un error al construir el informe PDF.");
+        } finally {
+            setIsExportingPdf(false);
+        }
+    };
+
+
 
     if (isLoading && areasRecords.length === 0) {
         return (
@@ -106,17 +126,31 @@ export const AreasDashboardPage: React.FC = () => {
         <div className="p-6 space-y-6 bg-[#f8f9fa] min-h-screen font-sans animate-fadeIn text-left">
 
             {/* Breadcrumbs */}
-            <div className="flex flex-col gap-0.5">
-                <div className="text-[13px] font-semibold text-neutral-400 flex items-center gap-1.5 tracking-wide select-none">
-                    <span className="hover:text-[#1a558b] hover:underline cursor-pointer transition-colors" onClick={() => navigate("/dashboard")}>Inicio</span>
-                    <span className="text-neutral-300 font-normal">&gt;</span>
-                    <span className="hover:text-[#1a558b] text-neutral-400 font-semibold select-none" onClick={() => navigate("/dashboard/sla")}>Dashboard</span>
-                    <span className="text-neutral-300 font-normal">&gt;</span>
-                    <span className="text-neutral-400 font-semibold">Áreas</span>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex flex-col gap-0.5">
+                    <div className="text-[13px] font-semibold text-neutral-400 flex items-center gap-1.5 tracking-wide select-none">
+                        <span className="hover:text-[#1a558b] hover:underline cursor-pointer transition-colors" onClick={() => navigate("/dashboard")}>Inicio</span>
+                        <span className="text-neutral-300 font-normal">&gt;</span>
+                        <span className="hover:text-[#1a558b] text-neutral-400 font-semibold select-none" onClick={() => navigate("/dashboard/sla")}>Dashboard</span>
+                        <span className="text-neutral-300 font-normal">&gt;</span>
+                        <span className="text-neutral-400 font-semibold">Áreas</span>
+                    </div>
+                    <h1 className="text-2xl font-black text-neutral-800 tracking-tight mt-1">
+                        Áreas
+                    </h1>
                 </div>
-                <h1 className="text-2xl font-black text-neutral-800 tracking-tight mt-1">
-                    Áreas
-                </h1>
+
+                {/* 📄 BOTÓN EXPORTAR PDF ALINEADO A LA DERECHA */}
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={handleDownloadPdf}
+                        disabled={isExportingPdf}
+                        className="rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold flex items-center gap-2 shadow-sm h-10 px-4 cursor-pointer transition-colors text-sm disabled:opacity-50 border-none shrink-0"
+                    >
+                        <FileText className="w-4 h-4" />
+                        {isExportingPdf ? 'Generando...' : 'Exportar PDF'}
+                    </button>
+                </div>
             </div>
 
             {/* CONTENEDOR PRINCIPAL */}

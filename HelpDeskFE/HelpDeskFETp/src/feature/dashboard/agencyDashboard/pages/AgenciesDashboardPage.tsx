@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAgenciesDashboard } from '../hooks/useAgenciesDashboard';
 import { Bar } from 'react-chartjs-2';
 import {
@@ -10,9 +10,11 @@ import {
     Tooltip,
     Legend
 } from 'chart.js';
-import { Building2, Info, RefreshCw } from 'lucide-react';
+import { Building2, FileText, Info, RefreshCw } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../../@/components/ui/select';
 import { useNavigate } from 'react-router-dom';
+import { downloadAgenciesDashboardPdf } from '../utils/generateAgenciesDashboardPdf';
+import { toast } from 'sonner';
 
 ChartJS.register(
     CategoryScale,
@@ -81,6 +83,7 @@ export const AgenciesDashboardPage: React.FC = () => {
     const navigate = useNavigate()
     const currentYear = new Date().getFullYear();
     const yearsOptions = Array.from({ length: 5 }, (_, index) => currentYear - index);
+    const [isExportingPdf, setIsExportingPdf] = useState(false);
 
     const mesesOpciones = [
         { num: 1, name: "Enero" }, { num: 2, name: "Febrero" }, { num: 3, name: "Marzo" },
@@ -88,6 +91,19 @@ export const AgenciesDashboardPage: React.FC = () => {
         { num: 7, name: "Julio" }, { num: 8, name: "Agosto" }, { num: 9, name: "Septiembre" },
         { num: 10, name: "Octubre" }, { num: 11, name: "Noviembre" }, { num: 12, name: "Diciembre" }
     ];
+
+    const handleDownloadPdf = () => {
+        try {
+            setIsExportingPdf(true);
+            downloadAgenciesDashboardPdf(year, agenciesRecords, kpis, month);
+            toast.success("Informe de carga por agencias generado en PDF con éxito");
+        } catch (error) {
+            console.error('Error al generar el PDF de Agencias:', error);
+            toast.error("Ocurrió un error al construir el informe PDF.");
+        } finally {
+            setIsExportingPdf(false);
+        }
+    };
 
     if (isLoading && agenciesRecords.length === 0) {
         return (
@@ -98,23 +114,37 @@ export const AgenciesDashboardPage: React.FC = () => {
                 </div>
             </div>
         );
-    }
+    }   
 
     return (
         <div className="p-6 space-y-6 bg-[#f8f9fa] min-h-screen font-sans animate-fadeIn text-left">
 
             {/* Historial superior (Breadcrumbs) */}
-            <div className="flex flex-col gap-0.5">
-                <div className="text-[13px] font-semibold text-neutral-400 flex items-center gap-1.5 tracking-wide select-none">
-                    <span className="hover:text-[#1a558b] hover:underline cursor-pointer transition-colors" onClick={() => navigate("/dashboard")}>Inicio</span>
-                    <span className="text-neutral-300 font-normal">&gt;</span>
-                    <span className="hover:text-[#1a558b] text-neutral-400 font-semibold select-none" onClick={() => navigate("/dashboard/sla")}>Dashboard</span>
-                    <span className="text-neutral-300 font-normal">&gt;</span>
-                    <span className="text-neutral-400 font-semibold">Agencias</span>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex flex-col gap-0.5">
+                    <div className="text-[13px] font-semibold text-neutral-400 flex items-center gap-1.5 tracking-wide select-none">
+                        <span className="hover:text-[#1a558b] hover:underline cursor-pointer transition-colors" onClick={() => navigate("/dashboard")}>Inicio</span>
+                        <span className="text-neutral-300 font-normal">&gt;</span>
+                        <span className="hover:text-[#1a558b] text-neutral-400 font-semibold select-none" onClick={() => navigate("/dashboard/sla")}>Dashboard</span>
+                        <span className="text-neutral-300 font-normal">&gt;</span>
+                        <span className="text-neutral-400 font-semibold">Agencias</span>
+                    </div>
+                    <h1 className="text-2xl font-black text-neutral-800 tracking-tight mt-1">
+                        Agencias
+                    </h1>
                 </div>
-                <h1 className="text-2xl font-black text-neutral-800 tracking-tight mt-1">
-                    Agencias
-                </h1>
+
+        
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={handleDownloadPdf}
+                        disabled={isExportingPdf}
+                        className="rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold flex items-center gap-2 shadow-sm h-10 px-4 cursor-pointer transition-colors text-sm disabled:opacity-50 border-none shrink-0"
+                    >
+                        <FileText className="w-4 h-4" />
+                        {isExportingPdf ? 'Generando...' : 'Exportar PDF'}
+                    </button>
+                </div>
             </div>
 
             {/* CONTENEDOR PRINCIPAL DEL LISTADO */}

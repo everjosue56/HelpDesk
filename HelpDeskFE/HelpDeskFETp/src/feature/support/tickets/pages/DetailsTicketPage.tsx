@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTickets } from '../hooks/useTickets';
-import { Copy, Edit3, ArrowLeft, Loader2, Tag, Calendar, Settings } from 'lucide-react';
+import { Copy, Edit3, ArrowLeft, Loader2, Tag, Calendar, Settings, FileText } from 'lucide-react';
 import { toast } from 'sonner';
+import { downloadTicketPdf } from '../utils/generateTicketPdf';
 
 export const DetailsTicketPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -12,7 +13,6 @@ export const DetailsTicketPage: React.FC = () => {
     const [isLoadingData, setIsLoadingData] = useState(true);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [ticket, setTicket] = useState<any | null>(null);
-
     // Consumimos las acciones del hook de tickets
     const { getTicketById } = useTickets('', 1, 1);
 
@@ -28,7 +28,7 @@ export const DetailsTicketPage: React.FC = () => {
         const fetchTicket = async () => {
             if (!ticketId) return;
             try {
-                setIsLoadingData(true); 
+                setIsLoadingData(true);
                 const res = await getTicketById(ticketId);
 
                 if (isMounted && res) {
@@ -48,6 +48,7 @@ export const DetailsTicketPage: React.FC = () => {
         fetchTicket();
         return () => { isMounted = false; };
     }, [ticketId, getTicketById]);
+
 
     // Copiar Ficha técnica
     const handleCopyClipboard = async () => {
@@ -81,6 +82,18 @@ export const DetailsTicketPage: React.FC = () => {
             month: '2-digit',
             year: 'numeric'
         }).format(fecha);
+    };
+
+    // funcion para descargar el PDF 
+    const handleDownloadPdf = () => {
+        if (!ticket) return;
+        try {
+            downloadTicketPdf(ticket);
+            toast.success("Documento PDF formal generado con éxito");
+        } catch (error) {
+            console.error("Error al generar PDF formal:", error);
+            toast.error("Ocurrió un error al construir el archivo PDF.");
+        }
     };
 
     // Renderizado dinámico para las etiquetas de Impacto
@@ -158,6 +171,13 @@ export const DetailsTicketPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-3">
+                        <button
+                            onClick={handleDownloadPdf}
+                            className="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer uppercase tracking-wider"
+                        >
+                            <FileText className="h-3.5 w-3.5" />
+                            Exportar PDF
+                        </button>   
                         {tienePermisoTI && (
                             <button
                                 onClick={() => navigate('/dashboard/resolutions/create', { state: { idTicket: ticket.id } })}
@@ -167,6 +187,7 @@ export const DetailsTicketPage: React.FC = () => {
                                 Resolver Ticket
                             </button>
                         )}
+                    
                         <button
                             onClick={handleCopyClipboard}
                             className="inline-flex items-center justify-center gap-2 bg-[#1e5f8a] hover:bg-[#154666] text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer uppercase tracking-wider"

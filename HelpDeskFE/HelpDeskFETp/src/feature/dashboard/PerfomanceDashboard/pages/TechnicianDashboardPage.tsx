@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTechnicianDashboard } from '../hooks/useTechnicianDashboard';
 import { useUsers } from '../../../administrative/users/hooks/useUser';
 import { Bar } from 'react-chartjs-2';
@@ -11,9 +11,11 @@ import {
     Tooltip,
     Legend
 } from 'chart.js';
-import { UserCheck, Activity, Clock, RefreshCw, X } from 'lucide-react';
+import { UserCheck, Activity, Clock, RefreshCw, X, FileText } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../../@/components/ui/select';
 import { useNavigate } from 'react-router-dom';
+import { downloadTechnicianDashboardPdf } from '../utils/generateTechnicianDashboardPdf';
+import { toast } from 'sonner';
 
 ChartJS.register(
     CategoryScale,
@@ -40,6 +42,7 @@ export const TechnicianDashboardPage: React.FC = () => {
     const { users } = useUsers('', null, null, null, null, 1, 100);
     const idRolTI = 2;
     const techniciansOnly = users?.filter(u => u.idRol === idRolTI) || [];
+    const [isExportingPdf, setIsExportingPdf] = useState(false);
 
     const labels = techRecords.map(t => t.tecnicoNombre);
 
@@ -93,6 +96,20 @@ export const TechnicianDashboardPage: React.FC = () => {
     // Encontrar el nombre del técnico seleccionado para mostrar en la tarjeta de KPI
     const currentTechName = techniciansOnly.find(u => u.id === selectedUser)?.userName || "Todos";
 
+    // Funcion para exportar PDF 
+    const handleDownloadPdf = () => {
+        try {
+            setIsExportingPdf(true);
+            downloadTechnicianDashboardPdf(year, techRecords, kpis, month, currentTechName);
+            toast.success("Informe de rendimiento técnico generado en PDF con éxito");
+        } catch (error) {
+            console.error('Error al generar el PDF de Rendimiento Técnico:', error);
+            toast.error("Ocurrió un error al construir el informe PDF.");
+        } finally {
+            setIsExportingPdf(false);
+        }
+    };
+
     if (isLoading && techRecords.length === 0) {
         return (
             <div className="p-6 bg-[#f8f9fa] min-h-screen flex items-center justify-center">
@@ -108,17 +125,30 @@ export const TechnicianDashboardPage: React.FC = () => {
         <div className="p-6 space-y-6 bg-[#f8f9fa] min-h-screen font-sans animate-fadeIn text-left">
 
             {/* Historial superior   */}
-            <div className="flex flex-col gap-0.5">
-                <div className="text-[13px] font-semibold text-neutral-400 flex items-center gap-1.5 tracking-wide select-none">
-                    <span className="hover:text-[#1a558b] hover:underline cursor-pointer transition-colors" onClick={() => navigate("/dashboard")}>Inicio</span>
-                    <span className="text-neutral-300 font-normal">&gt;</span>
-                    <span className="hover:text-[#1a558b] text-neutral-400 font-semibold select-none" onClick={() => navigate("/dashboard/sla")}>Dashboard</span>
-                    <span className="text-neutral-300 font-normal">&gt;</span>
-                    <span className="text-neutral-400 font-semibold">Técnicos</span>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex flex-col gap-0.5">
+                    <div className="text-[13px] font-semibold text-neutral-400 flex items-center gap-1.5 tracking-wide select-none">
+                        <span className="hover:text-[#1a558b] hover:underline cursor-pointer transition-colors" onClick={() => navigate("/dashboard")}>Inicio</span>
+                        <span className="text-neutral-300 font-normal">&gt;</span>
+                        <span className="hover:text-[#1a558b] text-neutral-400 font-semibold select-none" onClick={() => navigate("/dashboard/sla")}>Dashboard</span>
+                        <span className="text-neutral-300 font-normal">&gt;</span>
+                        <span className="text-neutral-400 font-semibold">Técnicos</span>
+                    </div>
+                    <h1 className="text-2xl font-black text-neutral-800 tracking-tight mt-1">
+                        Rendimiento Técnicos
+                    </h1>
                 </div>
-                <h1 className="text-2xl font-black text-neutral-800 tracking-tight mt-1">
-                    Rendimiento Técnicos
-                </h1>
+ 
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={handleDownloadPdf}
+                        disabled={isExportingPdf}
+                        className="rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold flex items-center gap-2 shadow-sm h-10 px-4 cursor-pointer transition-colors text-sm disabled:opacity-50 border-none shrink-0"
+                    >
+                        <FileText className="w-4 h-4" />
+                        {isExportingPdf ? 'Generando...' : 'Exportar PDF'}
+                    </button>
+                </div>
             </div>
 
             {/* CONTENEDOR PRINCIPAL */}

@@ -10,6 +10,7 @@ using HelpDesk.Services.AlertHistoryServices;
 using HelpDesk.Services.AlertTypeService;
 using HelpDesk.Services.AlertTypeServices;
 using HelpDesk.Services.AreaServices;
+using HelpDesk.Services.AuditLogExportService;
 using HelpDesk.Services.AuditService;
 using HelpDesk.Services.AuditServices;
 using HelpDesk.Services.AuthService;
@@ -32,6 +33,7 @@ using HelpDesk.Services.NotificationService;
 using HelpDesk.Services.NotificationServices;
 using HelpDesk.Services.Organizations;
 using HelpDesk.Services.PriorityServices;
+using HelpDesk.Services.ResolutionExportService;
 using HelpDesk.Services.ResolutionService;
 using HelpDesk.Services.RolServices;
 using HelpDesk.Services.SlaService;
@@ -46,6 +48,7 @@ using HelpDesk.Services.TypeDeviceServices;
 using HelpDesk.Services.TypeError;
 using HelpDesk.Services.TypeMaintenanceService;
 using HelpDesk.Services.TypeMaintenanceServices;
+using HelpDesk.Services.UserExportService;
 using HelpDesk.Services.UserServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -108,6 +111,9 @@ builder.Services.AddScoped<IAlertConfigurationService, AlertConfigurationService
 builder.Services.AddScoped<IMaintenanceExportService, MaintenanceExportService>();
 builder.Services.AddScoped<IDeviceExportService, DeviceExportService>();
 builder.Services.AddScoped<ITicketExportService, TicketExportService>();
+builder.Services.AddScoped<IExportResolutionService, ResolutionExportService>();
+builder.Services.AddScoped<IAuditLogExportService, AuditLogExportService>();
+builder.Services.AddScoped<IUserExportService, UserExportService>();
 
 // Inyeccion de email 
 // Mapear la sección del appsettings.json a la clase EmailSettings

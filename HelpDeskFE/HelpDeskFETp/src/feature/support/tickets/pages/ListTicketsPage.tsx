@@ -68,7 +68,7 @@ export const ListTicketsPage: React.FC = () => {
 
     const totalPages = Math.ceil(totalCount / pageSize) || 1;
     const navigate = useNavigate();
-      const [isExportingExcel, setIsExportingExcel] = useState(false);
+    const [isExportingExcel, setIsExportingExcel] = useState(false);
 
     // ─── CONSUMO DE ENDPOINTS RELACIONALES PARA LOS COMBOS ───
     const { users } = useUsers('', null, null, null, null, 1, 100);
@@ -202,8 +202,8 @@ export const ListTicketsPage: React.FC = () => {
         setPage(pageNumber);
     };
 
-       //  EXPORTAR EXCEL
-    const handleExportExcel = async () => { 
+    //  EXPORTAR EXCEL
+    const handleExportExcel = async () => {
         setIsExportingExcel(true);
         try {
             await downloadExcel();
@@ -214,6 +214,9 @@ export const ListTicketsPage: React.FC = () => {
         }
     };
 
+    const canExportExcel = Array.isArray(user?.roles)
+        ? user.roles.some((r) => r === "Administrador" || r === "TI")
+        : false;
 
     return (
         <div className="p-6 space-y-6 bg-[#f8f9fa] min-h-screen font-sans animate-fadeIn text-left select-none">
@@ -263,22 +266,24 @@ export const ListTicketsPage: React.FC = () => {
                         <h2 className="text-lg font-bold text-slate-800">Lista de Tickets</h2>
                         <p className="text-xs text-gray-400">Gestiona todos los reportes e incidencias técnicas en el sistema</p>
                     </div>
-                      <div className="flex flex-wrap items-center gap-3">
-                    <button
-                        onClick={handleExportExcel}
-                        disabled={isExportingExcel}
-                        className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-2 shadow-sm h-10 px-4 cursor-pointer transition-colors text-sm disabled:opacity-50 border-none"
-                    >
-                        <  FileSpreadsheet className="w-4 h-4" />
-                        {isExportingExcel ? 'Exportando...' : 'Exportar Excel'}
-                    </button>
-                    <button
-                        className="inline-flex items-center justify-center gap-2 bg-[#1e5f8a] hover:bg-[#154666] text-white font-medium text-sm px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer"
-                        onClick={() => navigate("create")}
-                    >
-                        <Plus className="h-4 w-4" />
-                        Nuevo Ticket
-                    </button>
+                    <div className="flex flex-wrap items-center gap-3">
+                        {canExportExcel && (
+                            <button
+                                onClick={handleExportExcel}
+                                disabled={isExportingExcel}
+                                className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-2 shadow-sm h-10 px-4 cursor-pointer transition-colors text-sm disabled:opacity-50 border-none"
+                            >
+                                <FileSpreadsheet className="w-4 h-4" />
+                                {isExportingExcel ? 'Exportando...' : 'Exportar Excel'}
+                            </button>
+                        )}
+                        <button
+                            className="inline-flex items-center justify-center gap-2 bg-[#1e5f8a] hover:bg-[#154666] text-white font-medium text-sm px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer"
+                            onClick={() => navigate("create")}
+                        >
+                            <Plus className="h-4 w-4" />
+                            Nuevo Ticket
+                        </button>
                     </div>
                 </div>
 
@@ -468,7 +473,7 @@ export const ListTicketsPage: React.FC = () => {
                                                                 Tomar Ticket
                                                             </button>
                                                         )}
- 
+
                                                         {esSoporte && item.idSolutionState === 2 && item.idUserAssigned === user?.id && (
                                                             <button
                                                                 type="button"

@@ -3,6 +3,7 @@ import { useAuth } from "../../../../context/AuthContext";
 import { AXIOS_INSTANCE } from "../../../../api/axios-instance";
 import { getAudit } from "../../../../api/generated/audit/audit";
 import type { GetApiAuditParams } from "../../../../api/model";
+import { getAuditLogExport } from "../../../../api/generated/audit-log-export/audit-log-export";
 
 export interface AuditLogItem {
   id: number;
@@ -25,6 +26,7 @@ export const useAudit = (
 
   // Inicializamos el servicio de Orval una sola vez
   const auditService = useMemo(() => getAudit(AXIOS_INSTANCE), []);
+  const exportService = useMemo(() => getAuditLogExport(AXIOS_INSTANCE), []);
 
   const fetchLogs = useCallback(async () => {
     if (!isAuthenticated) return;
@@ -69,7 +71,48 @@ export const useAudit = (
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated, searchTerm, page, pageSize, auditService]); 
+  }, [isAuthenticated, searchTerm, page, pageSize, auditService]);
+
+  const downloadExcel = async () => {
+    try {
+ 
+      const currentYear = new Date().getFullYear();
+
+      const response = await exportService.getApiAuditLogExportExportExcel(
+        {
+          year: currentYear, 
+          month: undefined,  
+        },
+        {
+          responseType: "blob",
+        },
+      );
+
+    
+      const blob = new Blob([response.data as unknown as BlobPart], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+
+ 
+      const now = new Date();
+      const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
+
+      link.setAttribute("download", `Auditoria_Logs_${dateStr}.xlsx`);
+
+      document.body.appendChild(link);
+      link.click();
+
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error al exportar resumen de logs a Excel:", error);
+      throw error;
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -92,6 +135,7 @@ export const useAudit = (
     logs,
     totalCount,
     isLoading,
+    downloadExcel,
     refresh: fetchLogs,
   };
 };

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useResolutions } from '../hooks/useResolutions'; 
-import { Copy, Edit3, ArrowLeft, Loader2, Wrench, Calendar } from 'lucide-react';
+import { Copy, Edit3, ArrowLeft, Loader2, Wrench, Calendar, FileText } from 'lucide-react';
 import { toast } from 'sonner';
+import { downloadResolutionPdf } from '../utils/generateResolutionPdf';
 
 export const DetailsResolutionPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -81,6 +82,17 @@ export const DetailsResolutionPage: React.FC = () => {
         }).format(fecha);
     };
 
+    const handleDownloadPdf = () => {
+        if (!resolution) return;
+        try {
+            downloadResolutionPdf(resolution);
+            toast.success("Acta formal de resolución generada en PDF");
+        } catch (error) {
+            console.error("Error al generar PDF de la resolución:", error);
+            toast.error("Ocurrió un error al generar el archivo PDF.");
+        }
+    };
+
     if (isLoadingData) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3 text-slate-500 animate-fadeIn text-center">
@@ -139,6 +151,13 @@ export const DetailsResolutionPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-3">
+                        <button
+                            onClick={handleDownloadPdf}
+                            className="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-800 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer uppercase tracking-wider"
+                        >
+                            <FileText className="h-3.5 w-3.5" />
+                            Exportar PDF
+                        </button>
                         <button
                             onClick={handleCopyClipboard}
                             className="inline-flex items-center justify-center gap-2 bg-[#1e5f8a] hover:bg-[#154666] text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer uppercase tracking-wider"

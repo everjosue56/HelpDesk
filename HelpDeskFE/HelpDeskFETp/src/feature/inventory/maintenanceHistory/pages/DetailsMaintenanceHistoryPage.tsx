@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMaintenanceHistory } from '../hooks/useMaintenanceHistory';
-import { Copy, ArrowLeft, Loader2, Wrench } from 'lucide-react';
+import { Copy, ArrowLeft, Loader2, Wrench, FileText } from 'lucide-react';
 import { toast } from 'sonner';
+import { downloadMaintenanceHistoryPdf } from '../utils/generateMaintenanceHistoryPdf';
 
 export const DetailsMaintenanceHistoryPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -47,7 +48,7 @@ export const DetailsMaintenanceHistoryPage: React.FC = () => {
         if (!totalMinutes) return "0 Minutos";
         const hours = Math.floor(totalMinutes / 60);
         const minutes = totalMinutes % 60;
-        
+
         if (hours === 0) return `${minutes} Minutos`;
         if (minutes === 0) return `${hours} ${hours === 1 ? 'Hora' : 'Horas'}`;
         return `${hours} ${hours === 1 ? 'Hora' : 'Horas'} y ${minutes} ${minutes === 1 ? 'Minuto' : 'Minutos'}`;
@@ -67,6 +68,19 @@ export const DetailsMaintenanceHistoryPage: React.FC = () => {
         }).format(fecha).replace(',', '');
     };
 
+    // funcion para manejar los export de pdf
+    const handleDownloadPdf = () => {
+        if (!history) return;
+        try {
+            downloadMaintenanceHistoryPdf(history);
+            toast.success("Ficha de mantenimiento generada en PDF con éxito");
+        } catch (error) {
+            console.error("Error al generar PDF del mantenimiento:", error);
+            toast.error("Ocurrió un error al construir el documento PDF.");
+        }
+    };
+
+
     if (isFetching) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3 text-slate-500 animate-fadeIn text-center">
@@ -81,7 +95,7 @@ export const DetailsMaintenanceHistoryPage: React.FC = () => {
             <div className="p-6 text-center space-y-4 animate-fadeIn">
                 <p className="text-gray-500 font-medium">No se encontraron los detalles del historial solicitado.</p>
                 <button
-                    onClick={() => navigate('/dashboard/maintenancehistory')} 
+                    onClick={() => navigate('/dashboard/maintenancehistory')}
                     className="inline-flex items-center gap-2 text-sm text-[#1e5f8a] hover:underline cursor-pointer"
                 >
                     <ArrowLeft className="h-4 w-4" /> Volver al listado
@@ -125,6 +139,13 @@ export const DetailsMaintenanceHistoryPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-3">
+                        <button
+                            onClick={handleDownloadPdf}
+                            className="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-800 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer uppercase tracking-wider"
+                        >
+                            <FileText className="h-3.5 w-3.5" />
+                            Exportar PDF
+                        </button>
                         <button
                             onClick={handleCopyClipboard}
                             className="inline-flex items-center justify-center gap-2 bg-[#1e5f8a] hover:bg-[#154666] text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer"

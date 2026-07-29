@@ -12,7 +12,8 @@ import {
     X,
     CheckCircle,
     Wrench,
-    Calendar
+    Calendar,
+    FileSpreadsheet
 } from 'lucide-react';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '../../../../../@/components/ui/pagination';
 import { toast } from 'sonner';
@@ -53,10 +54,12 @@ export const ListResolutionPage: React.FC = () => {
         isLoading,
         resolvedTodayCount,
         deleteResolution,
+        downloadExcel,
     } = useResolutions(searchTerm, page, pageSize, memoizedFilters);
 
     const totalPages = Math.ceil(totalCount / pageSize) || 1;
     const navigate = useNavigate();
+    const [isExportingExcel, setIsExportingExcel] = useState(false);
 
     // ─── CONSUMO DE ENDPOINTS RELACIONALES PARA LOS COMBOS ───
     const { users } = useUsers('', null, null, null, null, 1, 100);
@@ -93,6 +96,18 @@ export const ListResolutionPage: React.FC = () => {
     const handlePageClick = (e: React.MouseEvent, pageNumber: number) => {
         e.preventDefault();
         setPage(pageNumber);
+    };
+
+           //  EXPORTAR EXCEL
+    const handleExportExcel = async () => { 
+        setIsExportingExcel(true);
+        try {
+            await downloadExcel();
+        } catch (error) {
+            console.error("Error al descargar Excel:", error);
+        } finally {
+            setIsExportingExcel(false);
+        }
     };
 
     return (
@@ -143,6 +158,15 @@ export const ListResolutionPage: React.FC = () => {
                         <h2 className="text-lg font-bold text-slate-800">Lista de Resoluciones</h2>
                         <p className="text-xs text-gray-400">Gestiona todas las soluciones registradas en el sistema</p>
                     </div>
+                         <div className="flex flex-wrap items-center gap-3">
+                    <button
+                        onClick={handleExportExcel}
+                        disabled={isExportingExcel}
+                        className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-2 shadow-sm h-10 px-4 cursor-pointer transition-colors text-sm disabled:opacity-50 border-none"
+                    >
+                        <  FileSpreadsheet className="w-4 h-4" />
+                        {isExportingExcel ? 'Exportando...' : 'Exportar Excel'}
+                    </button>
                     <button
                         className="inline-flex items-center justify-center gap-2 bg-[#1a558b] hover:bg-[#133f67] text-white font-medium text-sm px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer"
                         onClick={() => navigate("create")}
@@ -150,6 +174,7 @@ export const ListResolutionPage: React.FC = () => {
                         <Plus className="h-4 w-4" />
                         Nueva Resolución
                     </button>
+                </div>
                 </div>
 
                 {/* ─── BARRA DE FILTROS ─── */}

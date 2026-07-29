@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useUsers } from '../hooks/useUser';  
-import { Copy, Edit3, ArrowLeft, Loader2, User } from 'lucide-react';
+import { Copy, Edit3, ArrowLeft, Loader2, User, FileText } from 'lucide-react';
 import { toast } from 'sonner';
+import { downloadUserPdf } from '../utils/generateUserPdf';
 
 export const DetailsUserPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -49,6 +50,18 @@ export const DetailsUserPage: React.FC = () => {
             month: '2-digit',
             year: 'numeric'
         }).format(fecha);
+    };
+
+    //funcion para exportar pdf
+    const handleDownloadPdf = () => {
+        if (!user) return;
+        try {
+            downloadUserPdf(user);
+            toast.success("Ficha oficial de usuario generada en PDF con éxito");
+        } catch (error) {
+            console.error("Error al generar PDF del usuario:", error);
+            toast.error("Ocurrió un error al construir el documento PDF.");
+        }
     };
 
     // ─── ESTADO DE CARGA  ───
@@ -126,6 +139,13 @@ export const DetailsUserPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-3">
+                        <button
+                            onClick={handleDownloadPdf}
+                            className="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-800 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer uppercase tracking-wider"
+                        >
+                            <FileText className="h-3.5 w-3.5" />
+                            Exportar PDF
+                        </button>
                         {/* Botón Copiar Datos */}
                         <button
                             onClick={handleCopyClipboard}

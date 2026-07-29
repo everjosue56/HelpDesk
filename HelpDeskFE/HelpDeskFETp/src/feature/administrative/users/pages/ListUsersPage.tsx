@@ -7,8 +7,9 @@ import {
     Eye,
     Trash2,
     Edit,
-    X,
-    Users
+    X, 
+    Users,
+    FileSpreadsheet
 } from 'lucide-react';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '../../../../../@/components/ui/pagination';
 import { useNavigate } from 'react-router-dom';
@@ -24,6 +25,7 @@ export const ListUsersPage: React.FC = () => {
     const [idArea, setIdArea] = useState<number | null>(null);
     const [isActiveFilter, setIsActiveFilter] = useState<boolean | null>(null);
     const [idRol, setIdRol] = useState<number | null>(null);
+     const [isExportingExcel, setIsExportingExcel] = useState(false);
 
     // Paginación continua
     const [page, setPage] = useState(1);
@@ -36,7 +38,8 @@ export const ListUsersPage: React.FC = () => {
         isLoading,
         totalActivos,
         totalInactivos,
-        deleteUser
+        deleteUser,
+        downloadExcel
     } = useUsers(keyword, idRol, null, idArea, isActiveFilter, page, pageSize);
 
     // Alimentación de los Selectores de filtros correlacionados
@@ -66,6 +69,18 @@ export const ListUsersPage: React.FC = () => {
         } catch (error) {
             toast.error("Error al intentar desactivar el usuario");
             console.error(error);
+        }
+    };
+
+       //  EXPORTAR EXCEL
+    const handleExportExcel = async () => {
+        setIsExportingExcel(true);
+        try {
+            await downloadExcel();
+        } catch (error) {
+            console.error("Error al descargar Excel:", error);
+        } finally {
+            setIsExportingExcel(false);
         }
     };
 
@@ -130,6 +145,14 @@ export const ListUsersPage: React.FC = () => {
                         <h2 className="text-lg font-bold text-slate-800">Lista de Usuarios</h2>
                         <p className="text-xs text-gray-400">Gestiona todas los usuarios registrados en el sistema</p>
                     </div>
+                     <div className="flex flex-wrap items-center gap-3">                      <button
+                                onClick={handleExportExcel}
+                                disabled={isExportingExcel}
+                                className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-2 shadow-sm h-10 px-4 cursor-pointer transition-colors text-sm disabled:opacity-50 border-none"
+                            >
+                                <FileSpreadsheet className="w-4 h-4" />
+                                {isExportingExcel ? 'Exportando...' : 'Exportar Excel'}
+                            </button>
                     <button
                         className="inline-flex items-center justify-center gap-2 bg-[#1b5e8c] hover:bg-[#134466] text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer"
                         onClick={() => navigate("create")}
@@ -137,6 +160,8 @@ export const ListUsersPage: React.FC = () => {
                         <Plus className="h-4 w-4" />
                         Nuevo Usuario
                     </button>
+                    </div>
+
                 </div>
 
                 {/* ─── CONTENEDOR DE FILTROS INTERACTIVOS ESTÁNDAR ─── */}

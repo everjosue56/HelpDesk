@@ -19,6 +19,7 @@ namespace HelpDesk.Services.TicketExportService
         public async Task<byte[]> ExportTicketToExcelAsync() 
         {
             var tickets = await _context.Tickets
+                .IgnoreQueryFilters()
                 .Include(t => t.Area)
                 .Include(t => t.User)
                 .Include(t => t.SoftwareSystem)
@@ -52,6 +53,14 @@ namespace HelpDesk.Services.TicketExportService
             int row = 4;
             foreach (var ticket in tickets)
             {
+                string estadoTexto;
+                if (ticket.IsActive) 
+                {
+                    estadoTexto = "En Espera";
+                }else 
+                {
+                    estadoTexto = "Solucionado";
+                }
 
                 worksheet.Cell(row, 1).Value = ticket.Id;
                 worksheet.Cell(row, 2).Value = ticket.Area?.NameArea ?? "N/A";
@@ -61,7 +70,7 @@ namespace HelpDesk.Services.TicketExportService
                 worksheet.Cell(row, 6).Value = ticket.Impact?.Name ?? "N/A";
                 worksheet.Cell(row, 7).Value = ticket.User?.UserName ?? "N/A";
                 worksheet.Cell(row, 8).Value = ticket.Description;
-                worksheet.Cell(row, 9).Value = ticket.IsActive;
+                worksheet.Cell(row, 9).Value = estadoTexto;
                 worksheet.Cell(row, 10).Value = ticket.CreatedDate;
 
                 row++;

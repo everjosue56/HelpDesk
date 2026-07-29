@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDevices } from '../hooks/useDevices';
-import { Copy, Edit3, ArrowLeft, Loader2, Laptop } from 'lucide-react';
+import { Copy, Edit3, ArrowLeft, Loader2, Laptop, FileText } from 'lucide-react';
 import { toast } from 'sonner';
+import { downloadDevicePdf } from '../utils/generateDevicePdf';
 
 export const DetailsDevicePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -51,6 +52,18 @@ export const DetailsDevicePage: React.FC = () => {
     }).format(fecha);
   };
 
+  // funcion para manejar los export de pdf
+  const handleDownloadPdf = () => {
+    if (!device) return;
+    try {
+      downloadDevicePdf(device);
+      toast.success("Ficha patrimonial generada en PDF con éxito");
+    } catch (error) {
+      console.error("Error al generar PDF del dispositivo:", error);
+      toast.error("Ocurrió un error al construir el documento PDF.");
+    }
+  };
+
   // Estado de carga
   if (isFetching) {
     return (
@@ -67,7 +80,7 @@ export const DetailsDevicePage: React.FC = () => {
       <div className="p-6 text-center space-y-4 animate-fadeIn">
         <p className="text-gray-500 font-medium">No se encontraron los detalles del dispositivo solicitado.</p>
         <button
-          onClick={() => navigate('/dashboard/device')} 
+          onClick={() => navigate('/dashboard/device')}
           className="inline-flex items-center gap-2 text-sm text-[#1e5f8a] hover:underline cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" /> Volver al listado
@@ -112,6 +125,13 @@ export const DetailsDevicePage: React.FC = () => {
 
           <div className="flex items-center gap-3">
             {/* Botón Copiar Datos */}
+            <button
+              onClick={handleDownloadPdf}
+              className="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-800 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer uppercase tracking-wider"
+            >
+              <FileText className="h-3.5 w-3.5" />
+              Exportar PDF
+            </button>
             <button
               onClick={handleCopyClipboard}
               className="inline-flex items-center justify-center gap-2 bg-[#1e5f8a] hover:bg-[#154666] text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer"
@@ -176,9 +196,8 @@ export const DetailsDevicePage: React.FC = () => {
           <div className="space-y-2">
             <h3 className="text-sm font-bold text-slate-600">Estado Operativo</h3>
             <div>
-              <span className={`inline-flex items-center justify-center px-6 py-1.5 rounded-full text-xs font-bold min-w-32 text-white shadow-sm ${
-                device.isActive ? 'bg-[#2ecc71]' : 'bg-[#e74c3c]'
-              }`}>
+              <span className={`inline-flex items-center justify-center px-6 py-1.5 rounded-full text-xs font-bold min-w-32 text-white shadow-sm ${device.isActive ? 'bg-[#2ecc71]' : 'bg-[#e74c3c]'
+                }`}>
                 {device.isActive ? 'Activo / Operativo' : 'Inactivo / Baja'}
               </span>
             </div>
