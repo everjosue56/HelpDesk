@@ -40,7 +40,12 @@ AXIOS_INSTANCE.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Evitamos interceptar llamadas de login y refresh-token
+    const isAuthRequest =
+      originalRequest.url?.includes("/login") ||
+      originalRequest.url?.includes("/refresh-token");
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthRequest) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -56,19 +61,22 @@ AXIOS_INSTANCE.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const currentToken = localStorage.getItem("token");
         const refreshToken = localStorage.getItem("refreshToken");
 
+        // El backend espera el refresh token como una string serializada como JSON en el body
         const response = await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/api/auth/refresh`,
+          `${import.meta.env.VITE_API_BASE_URL}/api/users/refresh-token`,
+          JSON.stringify(refreshToken),
           {
-            accessToken: currentToken,
-            refreshToken: refreshToken,
-          },
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
         );
 
+        // Extraemos los tokens del objeto 'data' dentro de la respuesta (ResponseDto<TokenDto>)
         const { token: newAccessToken, refreshToken: newRefreshToken } =
-          response.data;
+          response.data.data;
 
         localStorage.setItem("token", newAccessToken);
         if (newRefreshToken) {

@@ -224,7 +224,7 @@ export const ListResolutionPage: React.FC = () => {
                             </SelectTrigger>
                             <SelectContent className="bg-white rounded-xl border border-gray-200 select-none text-xs">
                                 {tickets?.map((t) => (
-                                    <SelectItem key={t.id} value={String(t.id)} className="cursor-pointer">#{String(t.id).padStart(3, '0')}</SelectItem>
+                                    <SelectItem key={t.id} value={String(t.id)} className="cursor-pointer">#{t.id}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>

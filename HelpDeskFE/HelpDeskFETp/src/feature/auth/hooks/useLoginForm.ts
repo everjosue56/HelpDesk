@@ -89,8 +89,8 @@ export const useLoginForm = () => {
       console.error("Error en el login:", error);
 
       if (axios.isAxiosError(error) && error.response && error.response.data) {
-        const backendError = error.response.data as { message?: string };
-        setErrorMessage(backendError.message || "Credenciales incorrectas.");
+        const backendError = error.response.data as { message?: string; Message?: string };
+        setErrorMessage(backendError.message || backendError.Message || "Credenciales incorrectas.");
       } else {
         setErrorMessage("No se pudo establecer conexión con el servidor.");
       }
