@@ -176,8 +176,8 @@ Asegúrate de contar con las siguientes herramientas instaladas:
 
 ### 🔑 Paso 3: Credenciales de Acceso de Prueba (Semilla)
 Una vez levantado el frontend y backend, puedes iniciar sesión utilizando la cuenta administrador provista en el semillero:
-* **Usuario / Email:** `admin` (o `admin@systemdeluxe.com`)
-* **Contraseña:** `Admin1234.`
+* **Usuario / Email:** `admin` (o `admin@me.com`)
+* **Contraseña:** ``
 * **Rol de Acceso:** Administrador (Acceso total)
 
 ---

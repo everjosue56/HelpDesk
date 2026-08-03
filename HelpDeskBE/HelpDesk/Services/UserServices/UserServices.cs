@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using HelpDesk.Database;
 using HelpDesk.Database.Entities;
 using HelpDesk.Dtos.Common;
@@ -237,14 +237,14 @@ namespace HelpDesk.Services
             var user = await _context.Users.Include(u => u.Roles)
                 .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
 
-            // Validamos existencia y expiración
-            if (user == null || user.TokenExpires < DateTime.UtcNow)
+            // Validamos existencia, estado activo y expiración
+            if (user == null || !user.IsActive || user.IsDeleted || user.TokenExpires < DateTime.UtcNow)
             {
                 return new ResponseDto<TokenDto>
                 {
                     Status = false,
                     StatusCode = 401,
-                    Message = "Token de refresco inválido o expirado."
+                    Message = "Token de refresco inválido, expirado o cuenta inactiva."
                 };
             }
 
@@ -287,7 +287,10 @@ namespace HelpDesk.Services
             .FirstOrDefaultAsync(u => u.Email == loginDto.Email);
 
             if (user == null || !VerifyPasswordHash(loginDto.Password, user.PasswordHash, user.PasswordSalt))
-                return new ResponseDto<UserResponseDto> { Status = false, Message = "Credenciales incorrectas." };
+                return new ResponseDto<UserResponseDto> { Status = false, StatusCode = 401, Message = "Credenciales incorrectas." };
+
+            if (!user.IsActive || user.IsDeleted)
+                return new ResponseDto<UserResponseDto> { Status = false, StatusCode = 401, Message = "Su cuenta está desactivada. Por favor, contacte al administrador." };
 
             var data = _mapper.Map<UserResponseDto>(user);
             data.Token = CreateToken(user);

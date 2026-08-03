@@ -36,6 +36,8 @@ namespace HelpDesk.Services.DashboardServices
 
             var goalsDictionary = await _context.SlaGoals
                 .Where(g => g.Year == year)
+                .GroupBy(g => g.Month)
+    .Select(g => g.OrderByDescending(x => x.UpdatedAt).First())
                 .ToDictionaryAsync(g => g.Month, g => g.GoalValue);
 
             var report = new List<DashboardDto>();
