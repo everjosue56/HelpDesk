@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HelpDesk.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260720184636_frequency")]
-    partial class frequency
+    [Migration("20260806165624_finish")]
+    partial class finish
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -727,6 +727,10 @@ namespace HelpDesk.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("notification_date");
 
+                    b.Property<decimal>("SolutionTime")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("solution_time");
+
                     b.Property<long?>("UpdatedBy")
                         .HasColumnType("bigint")
                         .HasColumnName("updated_by");
@@ -761,7 +765,8 @@ namespace HelpDesk.Migrations
                             IdMaintenanceFrequency = 1L,
                             IdMaintenanceType = 1L,
                             IsDeleted = false,
-                            NotificationDate = new DateTime(2026, 5, 10, 8, 0, 0, 0, DateTimeKind.Unspecified)
+                            NotificationDate = new DateTime(2026, 5, 10, 8, 0, 0, 0, DateTimeKind.Unspecified),
+                            SolutionTime = 0m
                         },
                         new
                         {
@@ -776,7 +781,8 @@ namespace HelpDesk.Migrations
                             IdMaintenanceFrequency = 2L,
                             IdMaintenanceType = 2L,
                             IsDeleted = false,
-                            NotificationDate = new DateTime(2026, 5, 12, 14, 0, 0, 0, DateTimeKind.Unspecified)
+                            NotificationDate = new DateTime(2026, 5, 12, 14, 0, 0, 0, DateTimeKind.Unspecified),
+                            SolutionTime = 0m
                         });
                 });
 

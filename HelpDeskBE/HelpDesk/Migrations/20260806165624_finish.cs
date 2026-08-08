@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace HelpDesk.Migrations
 {
     /// <inheritdoc />
-    public partial class frequency : Migration
+    public partial class finish : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -595,6 +595,7 @@ namespace HelpDesk.Migrations
                     details = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     execution_time = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     id_maintenance_frequency = table.Column<long>(type: "bigint", nullable: false),
+                    solution_time = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     created_by = table.Column<long>(type: "bigint", nullable: false),
                     created_date = table.Column<DateTime>(type: "datetime2", nullable: false),
                     updated_by = table.Column<long>(type: "bigint", nullable: true),
@@ -991,11 +992,11 @@ namespace HelpDesk.Migrations
 
             migrationBuilder.InsertData(
                 table: "maintenance",
-                columns: new[] { "id", "completion_date", "created_by", "created_date", "details", "execution_time", "id_area", "id_device", "id_maintenance_frequency", "id_maintenance_type", "IsDeleted", "notification_date", "updated_by", "updated_date" },
+                columns: new[] { "id", "completion_date", "created_by", "created_date", "details", "execution_time", "id_area", "id_device", "id_maintenance_frequency", "id_maintenance_type", "IsDeleted", "notification_date", "solution_time", "updated_by", "updated_date" },
                 values: new object[,]
                 {
-                    { 1L, new DateTime(2026, 5, 10, 10, 0, 0, 0, DateTimeKind.Unspecified), 1L, new DateTime(2026, 5, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), "Limpieza física de ventiladores y cambio de pasta térmica - example.", 2.0m, 1L, 1L, 1L, 1L, false, new DateTime(2026, 5, 10, 8, 0, 0, 0, DateTimeKind.Unspecified), null, null },
-                    { 2L, new DateTime(2026, 5, 12, 17, 30, 0, 0, DateTimeKind.Unspecified), 1L, new DateTime(2026, 5, 12, 0, 0, 0, 0, DateTimeKind.Unspecified), "Reemplazo de disco duro sólido por fallo en sectores - example.", 3.5m, 2L, 2L, 2L, 2L, false, new DateTime(2026, 5, 12, 14, 0, 0, 0, DateTimeKind.Unspecified), null, null }
+                    { 1L, new DateTime(2026, 5, 10, 10, 0, 0, 0, DateTimeKind.Unspecified), 1L, new DateTime(2026, 5, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), "Limpieza física de ventiladores y cambio de pasta térmica - example.", 2.0m, 1L, 1L, 1L, 1L, false, new DateTime(2026, 5, 10, 8, 0, 0, 0, DateTimeKind.Unspecified), 0m, null, null },
+                    { 2L, new DateTime(2026, 5, 12, 17, 30, 0, 0, DateTimeKind.Unspecified), 1L, new DateTime(2026, 5, 12, 0, 0, 0, 0, DateTimeKind.Unspecified), "Reemplazo de disco duro sólido por fallo en sectores - example.", 3.5m, 2L, 2L, 2L, 2L, false, new DateTime(2026, 5, 12, 14, 0, 0, 0, DateTimeKind.Unspecified), 0m, null, null }
                 });
 
             migrationBuilder.InsertData(

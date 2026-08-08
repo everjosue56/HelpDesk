@@ -191,22 +191,42 @@ namespace HelpDesk.Services.MaintenanceService
                 _context.MaintenanceHistories.Add(historyEntity);
                 await _context.SaveChangesAsync();
 
-                // 3. PROGRAMAR ALERTAS FUTURAS
+                // 3. PROGRAMAR ALERTAS FUTURAS (2 Días Antes y Mismo Día)
                 var maintenanceDate = maintenanceEntity.CompletionDate;
                 var twoDaysBefore = maintenanceDate.AddDays(-2).Date.AddHours(8);
+                var sameDayDate = maintenanceDate.Date.AddHours(8);
 
-                if (_alertConfigService != null && twoDaysBefore >= DateTime.Today)
+                if (_alertConfigService != null)
                 {
-                    await _alertConfigService.CreateAsync(new CreateAlertConfigurationDto
+                    // Alerta 1: 2 días antes
+                    if (twoDaysBefore >= DateTime.Today)
                     {
-                        Title = "Mantenimiento Preventivo Próximo",
-                        Subject = $"Recordatorio: Mantenimiento para {deviceName} en 2 días",
-                        Description = $"El equipo '{deviceName}' tiene mantenimiento programado para el {maintenanceDate:dd/MM/yyyy}.",
-                        IsGlobal = false,
-                        IsActive = true,
-                        IdArea = maintenanceEntity.IdArea > 0 ? maintenanceEntity.IdArea : null,
-                        ScheduledDate = twoDaysBefore
-                    });
+                        await _alertConfigService.CreateAsync(new CreateAlertConfigurationDto
+                        {
+                            Title = "Mantenimiento Preventivo Próximo (2 días)",
+                            Subject = $"Recordatorio: Mantenimiento para {deviceName} en 2 días",
+                            Description = $"El equipo '{deviceName}' tiene mantenimiento programado para el {maintenanceDate:dd/MM/yyyy}.",
+                            IsGlobal = false,
+                            IsActive = true,
+                            IdArea = maintenanceEntity.IdArea > 0 ? maintenanceEntity.IdArea : null,
+                            ScheduledDate = twoDaysBefore
+                        });
+                    }
+
+                    // Alerta 2: Mismo día del mantenimiento
+                    if (sameDayDate >= DateTime.Today)
+                    {
+                        await _alertConfigService.CreateAsync(new CreateAlertConfigurationDto
+                        {
+                            Title = "Mantenimiento Preventivo HOY",
+                            Subject = $"¡HOY! Mantenimiento Programado: {deviceName}",
+                            Description = $"El equipo '{deviceName}' debe recibir mantenimiento el día de hoy ({maintenanceDate:dd/MM/yyyy}).",
+                            IsGlobal = false,
+                            IsActive = true,
+                            IdArea = maintenanceEntity.IdArea > 0 ? maintenanceEntity.IdArea : null,
+                            ScheduledDate = sameDayDate
+                        });
+                    }
                 }
 
                 // 4. DISPARAR NOTIFICACIÓN INTERNA INMEDIATA 
@@ -413,20 +433,43 @@ namespace HelpDesk.Services.MaintenanceService
                 await _context.SaveChangesAsync();
 
 
-                // 4. CREAR LAS NUEVAS ALERTAS FUTURAS PARA EL WORKER
-                var twoDaysBefore = dto.CompletionDate.AddDays(-2).Date.AddHours(8);
-                if (twoDaysBefore >= DateTime.Today && _alertConfigService != null)
+                // 4. CREAR LAS NUEVAS ALERTAS FUTURAS PARA EL WORKER (2 Días Antes y Mismo Día)
+                var nextMaintenanceDate = dto.CompletionDate;
+                var twoDaysBefore = nextMaintenanceDate.AddDays(-2).Date.AddHours(8);
+                var sameDayDate = nextMaintenanceDate.Date.AddHours(8);
+                var targetDeviceName = maintenance.Device?.BrandName ?? "Equipo";
+
+                if (_alertConfigService != null)
                 {
-                    await _alertConfigService.CreateAsync(new CreateAlertConfigurationDto
+                    // Alerta 1: 2 días antes
+                    if (twoDaysBefore >= DateTime.Today)
                     {
-                        Title = "Mantenimiento Preventivo Próximo",
-                        Subject = $"Recordatorio: Mantenimiento para {maintenance.Device?.BrandName} en 2 días",
-                        Description = $"El equipo '{maintenance.Device?.BrandName}' tiene mantenimiento el {dto.CompletionDate:dd/MM/yyyy}.",
-                        IsGlobal = false,
-                        IsActive = true,
-                        IdArea = maintenance.IdArea > 0 ? maintenance.IdArea : null,
-                        ScheduledDate = twoDaysBefore
-                    });
+                        await _alertConfigService.CreateAsync(new CreateAlertConfigurationDto
+                        {
+                            Title = "Mantenimiento Preventivo Próximo (2 días)",
+                            Subject = $"Recordatorio: Mantenimiento para {targetDeviceName} en 2 días",
+                            Description = $"El equipo '{targetDeviceName}' tiene mantenimiento programado para el {nextMaintenanceDate:dd/MM/yyyy}.",
+                            IsGlobal = false,
+                            IsActive = true,
+                            IdArea = maintenance.IdArea > 0 ? maintenance.IdArea : null,
+                            ScheduledDate = twoDaysBefore
+                        });
+                    }
+
+                    // Alerta 2: Mismo día del mantenimiento
+                    if (sameDayDate >= DateTime.Today)
+                    {
+                        await _alertConfigService.CreateAsync(new CreateAlertConfigurationDto
+                        {
+                            Title = "Mantenimiento Preventivo HOY",
+                            Subject = $"¡HOY! Mantenimiento Programado: {targetDeviceName}",
+                            Description = $"El equipo '{targetDeviceName}' debe recibir mantenimiento el día de hoy ({nextMaintenanceDate:dd/MM/yyyy}).",
+                            IsGlobal = false,
+                            IsActive = true,
+                            IdArea = maintenance.IdArea > 0 ? maintenance.IdArea : null,
+                            ScheduledDate = sameDayDate
+                        });
+                    }
                 }
 
                 await transaction.CommitAsync();
@@ -513,12 +556,16 @@ namespace HelpDesk.Services.MaintenanceService
                 var targetMonth = month ?? DateTime.Now.Month;
                 var today = DateTime.Today;
 
-                // 1. Obtener mantenimientos de la base de datos
+                // 1. Obtener mantenimientos e historial de mantenimientos de la base de datos
                 var maintenances = await _context.Maintenances
                     .IgnoreQueryFilters()
                     .Include(m => m.Device)
                     .Include(m => m.MaintenanceFrequencies)
                     .Where(m => !m.IsDeleted)
+                    .ToListAsync();
+
+                var histories = await _context.MaintenanceHistories
+                    .Where(h => !h.IsDeleted)
                     .ToListAsync();
 
                 var events = new List<MaintenanceCalendarDto>();
@@ -535,33 +582,43 @@ namespace HelpDesk.Services.MaintenanceService
                         _ => 1
                     };
 
-                    // 3. Proyectar la fecha hacia el mes y año consultados
+                    // 3. Proyectar la fecha hacia el mes y año consultados (tanto hacia adelante como hacia atrás)
                     DateTime projectedDate = m.CompletionDate;
 
-                    // Si la fecha original es anterior al mes/año que estamos viendo en el calendario,
-                    // avanzamos en saltos de la frecuencia hasta alcanzar o superar el mes objetivo.
+                    // Si la fecha objetivo está en el pasado respecto a CompletionDate, retrocedemos
+                    while (projectedDate.Year > targetYear || (projectedDate.Year == targetYear && projectedDate.Month > targetMonth))
+                    {
+                        projectedDate = projectedDate.AddMonths(-monthsToAdd);
+                    }
+
+                    // Si la fecha objetivo está en el futuro respecto a CompletionDate, avanzamos
                     while (projectedDate.Year < targetYear || (projectedDate.Year == targetYear && projectedDate.Month < targetMonth))
                     {
                         projectedDate = projectedDate.AddMonths(monthsToAdd);
                     }
 
-                    // 4. Si la fecha (original o proyectada) cae exactamente en el mes y año que el usuario está viendo
+                    // 4. Si la fecha proyectada cae exactamente en el mes y año que el usuario está consultando
                     if (projectedDate.Year == targetYear && projectedDate.Month == targetMonth)
                     {
                         int daysDiff = (projectedDate.Date - today).Days;
 
-                        string status = "Normal";
-                        string color = "blue"; // Por defecto AZUL (Programado con tiempo)
+                        string status;
+                        string color;
 
-                        if (projectedDate.Date < today && m.UpdatedDate.HasValue && m.UpdatedDate.Value.Date == projectedDate.Date)
+                        // Verificar si existe historial de ejecución para este mantenimiento en este periodo
+                        bool hasHistoryForPeriod = histories.Any(h => h.IdMaintenance == m.Id &&
+                            ((h.CreatedDate.Year == projectedDate.Year && h.CreatedDate.Month == projectedDate.Month) ||
+                             Math.Abs((h.CreatedDate.Date - projectedDate.Date).Days) <= 15));
+
+                        if (hasHistoryForPeriod || (projectedDate.Date < today && m.UpdatedDate.HasValue && m.UpdatedDate.Value.Date == projectedDate.Date))
                         {
                             status = "Realizado";
-                            color = "green"; //  VERDE: Ya se ejecutó y renovó
+                            color = "green"; // VERDE: Ejecutado y registrado en el historial
                         }
                         else if (daysDiff < 0)
                         {
                             status = "Vencido";
-                            color = "red";   //  ROJO: Pasó la fecha sin renovar
+                            color = "red"; // ROJO: Pasó la fecha sin renovar
                         }
                         else if (daysDiff >= 0 && daysDiff <= 7)
                         {
@@ -571,7 +628,7 @@ namespace HelpDesk.Services.MaintenanceService
                         else
                         {
                             status = "Programado";
-                            color = "blue";   //  AZUL: A más de 7 días
+                            color = "blue"; // AZUL: A más de 7 días
                         }
 
                         var executionHours = m.ExecutionTime > 0 ? (double)m.ExecutionTime : 1.0;
