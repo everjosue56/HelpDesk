@@ -160,7 +160,7 @@ namespace HelpDesk.Services.DashboardServices
                 .Include(r => r.User)
                 .Where(r => r.ResolutionDate.Year == year);
 
-            query = query.Where(r => r.User.IdRol == 2);
+            query = query.Where(r => r.User.IdRol == 1 || r.User.IdRol == 2);
 
             if (month.HasValue)
             {

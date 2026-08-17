@@ -38,6 +38,8 @@ export interface MaintenanceCalendarEvent {
   details?: string;
   deviceName?: string;
   frequencyName?: string;
+  color?: string | null;
+  status?: string | null;
 }
 
 export interface MaintenanceFrequencyItem {
@@ -227,7 +229,6 @@ export const useMaintenances = (
 
       if (!Array.isArray(rawData)) return [];
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return rawData.map((event: any) => ({
         id: event.id || 0,
         title: event.title || event.details || event.deviceName || "Mantenimiento Preventivo",
@@ -240,6 +241,8 @@ export const useMaintenances = (
           event.maintenanceFrequencyName || 
           event.frequency?.name || 
           "N/A",
+        color: event.color || null,
+        status: event.status || null,
       }));
 
     } catch (error) {

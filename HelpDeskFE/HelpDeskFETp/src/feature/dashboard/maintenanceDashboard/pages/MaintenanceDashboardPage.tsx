@@ -174,7 +174,19 @@ export const MaintenanceDashboardPage: React.FC = () => {
         },
         scales: {
             x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 10, weight: 'bold' as const } } },
-            y: { border: { dash: [5, 5] }, grid: { color: '#f1f5f9' }, ticks: { color: '#9ca3af', font: { size: 10, weight: 'bold' as const } } }
+            y: { 
+                border: { dash: [5, 5] }, 
+                grid: { color: '#f1f5f9' }, 
+                ticks: { 
+                    color: '#9ca3af', 
+                    font: { size: 10, weight: 'bold' as const },
+                    stepSize: 1,
+                    callback: (value: any) => {
+                        if (typeof value === 'number' && value % 1 === 0) return value;
+                        return value;
+                    }
+                } 
+            }
         }
     };
 
@@ -182,7 +194,19 @@ export const MaintenanceDashboardPage: React.FC = () => {
         ...commonOptions,
         indexAxis: 'y' as const,
         scales: {
-            x: { border: { dash: [5, 5] }, grid: { color: '#f1f5f9' }, ticks: { color: '#9ca3af', font: { size: 10, weight: 'bold' as const } } },
+            x: { 
+                border: { dash: [5, 5] }, 
+                grid: { color: '#f1f5f9' }, 
+                ticks: { 
+                    color: '#9ca3af', 
+                    font: { size: 10, weight: 'bold' as const },
+                    stepSize: 1,
+                    callback: (value: any) => {
+                        if (typeof value === 'number' && value % 1 === 0) return value;
+                        return value;
+                    }
+                } 
+            },
             y: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 10, weight: 'bold' as const } } }
         }
     };

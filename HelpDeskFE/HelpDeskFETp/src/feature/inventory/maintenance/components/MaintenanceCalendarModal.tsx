@@ -115,7 +115,7 @@ export const MaintenanceCalendarModal: React.FC<MaintenanceCalendarModalProps> =
 
                 {/* DÍAS Y EVENTOS */}
                 <div className="p-6 overflow-y-auto">
-                    <div className="grid grid-cols-7 gap-2 mb-2 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    <div translate="no" className="grid grid-cols-7 gap-2 mb-2 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">
                         <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div>
                     </div>
 

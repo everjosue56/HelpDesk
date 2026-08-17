@@ -1,15 +1,18 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMaintenances } from '../hooks/useMaintenances'; 
-import { Copy, Edit3, ArrowLeft, Loader2, Wrench } from 'lucide-react';
+import { Copy, Edit3, ArrowLeft, Loader2, Wrench, RotateCw } from 'lucide-react';
 import { toast } from 'sonner';
+import { MaintenanceRenewModal } from '../components/MaintenanceRenewModal';
+import type { RenewMaintenanceDto } from '@/api/model/renewMaintenanceDto';
 
 export const DetailsMaintenancePage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const maintenanceId = Number(id);
 
-    const { maintenance, isFetching, getMaintenanceById } = useMaintenances('', 1, 1);
+    const { maintenance, isFetching, getMaintenanceById, renewMaintenance } = useMaintenances('', 1, 1);
+    const [isRenewModalOpen, setIsRenewModalOpen] = useState(false);
 
     // Cargar la información al montar o cambiar el ID
     useEffect(() => {
@@ -17,6 +20,11 @@ export const DetailsMaintenancePage: React.FC = () => {
             getMaintenanceById(maintenanceId);
         }
     }, [maintenanceId, getMaintenanceById]);
+
+    const handleConfirmRenew = async (id: number, dto: RenewMaintenanceDto) => {
+        await renewMaintenance(id, dto);
+        getMaintenanceById(id);
+    };
 
     // Función interactiva para el botón "Copiar Datos"
     const handleCopyClipboard = async () => {
@@ -139,6 +147,15 @@ export const DetailsMaintenancePage: React.FC = () => {
                             Copiar Datos
                         </button>
 
+                        {/* Botón Renovar Mantenimiento */}
+                        <button
+                            onClick={() => setIsRenewModalOpen(true)}
+                            className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer"
+                        >
+                            <RotateCw className="h-3.5 w-3.5" />
+                            Renovar Mantenimiento
+                        </button>
+
                         {/* Botón Editar Mantenimiento */}
                         <button
                             onClick={() => navigate(`/dashboard/maintenance/edit/${maintenance.id}`)}
@@ -207,6 +224,14 @@ export const DetailsMaintenancePage: React.FC = () => {
                     <span>Creado: {maintenance.createdDate ? new Date(maintenance.createdDate).toLocaleDateString('es-HN') : 'N/A'}</span>
                 </div>
             </div>
+
+            <MaintenanceRenewModal
+                key={`${maintenance?.id ?? 'new'}-${isRenewModalOpen ? 'open' : 'closed'}`}
+                isOpen={isRenewModalOpen}
+                onClose={() => setIsRenewModalOpen(false)}
+                maintenance={maintenance}
+                onConfirmRenew={handleConfirmRenew}
+            />
         </div>
     );
 };

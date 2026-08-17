@@ -695,19 +695,23 @@ namespace HelpDesk.Services.MaintenanceService
                     .IgnoreQueryFilters()
                     .Include(m => m.Area)
                     .Include(m => m.MaintenanceFrequencies)
-                    .Where(m => !m.IsDeleted && m.CompletionDate.Year == year);
+                    .Where(m => !m.IsDeleted);
 
                 if (month.HasValue && month.Value > 0)
                 {
-                    maintenanceQuery = maintenanceQuery.Where(m => m.CompletionDate.Month == month.Value);
+                    maintenanceQuery = maintenanceQuery.Where(m => m.CompletionDate.Month == month.Value && m.CompletionDate.Year == year);
                 }
 
                 var scheduledList = await maintenanceQuery.ToListAsync();
 
                 // 3. CÁLCULOS ESTRICTAMENTE SEPARADOS
                 int realizados = completedList.Count; // Total de intervenciones físicas reales
-                int programados = scheduledList.Count(m => m.CompletionDate.Date >= today); // Plan a futuro
-                int vencidos = scheduledList.Count(m => m.CompletionDate.Date < today); // Plan atrasado
+                int vencidos = scheduledList.Count(m => (m.CompletionDate.Date - today).Days < 0);
+                int proximos = scheduledList.Count(m => {
+                    int diff = (m.CompletionDate.Date - today).Days;
+                    return diff >= 0 && diff <= 7;
+                });
+                int programados = scheduledList.Count(m => (m.CompletionDate.Date - today).Days > 7);
                 int totalProgramados = scheduledList.Count; // El universo total de equipos en el plan
 
                 double tiempoTotal = completedList.Sum(mh => (double)mh.SolutionTime) / 60.0;
@@ -750,6 +754,7 @@ namespace HelpDesk.Services.MaintenanceService
             {
                 new MaintenanceStatusDto { Estado = "Realizado", Cantidad = realizados, Color = "green" },
                 new MaintenanceStatusDto { Estado = "Vencido", Cantidad = vencidos, Color = "red" },
+                new MaintenanceStatusDto { Estado = "Proximo", Cantidad = proximos, Color = "yellow" },
                 new MaintenanceStatusDto { Estado = "Programado", Cantidad = programados, Color = "blue" }
             }
                 };
