@@ -169,6 +169,8 @@ namespace HelpDesk.Database
         public DbSet<MaintenanceEntity> Maintenances { get; set; }
         public DbSet<MaintenanceHistoryEntity> MaintenanceHistories { get; set; }
         public DbSet<MaintenanceFrequencyEntity> MaintenanceFrequencies { get; set; }
+        public DbSet<SupplierEntity> Suppliers { get; set; }
+        public DbSet<SupplierMeetingEntity> SupplierMeetingEntities { get; set; }
 
         // --- Alertas y Notificaciones ---
         public DbSet<AlertTypeEntity> AlertsType { get; set; }
@@ -215,7 +217,8 @@ namespace HelpDesk.Database
             modelBuilder.Entity<NotificationHistoryEntity>().ToTable("notification_history");
             modelBuilder.Entity<AlertHistoryEntity>().ToTable("alert_history");
             modelBuilder.Entity<MaintenanceFrequencyEntity>().ToTable("maintenance_frequency");
-
+            modelBuilder.Entity<SupplierEntity>().ToTable("supplier");
+            modelBuilder.Entity<SupplierMeetingEntity>().ToTable("supplier_meeting");
             // 3. Configuración de Relaciones (Fluent API)
 
             // Relación Usuario -> Rol
@@ -505,6 +508,22 @@ namespace HelpDesk.Database
                     .WithMany()
                     .HasForeignKey(ah => ah.IdUser)
                     .OnDelete(DeleteBehavior.Restrict);
+            });
+            modelBuilder.Entity<SupplierEntity>(entity =>
+            {
+                entity.ToTable("supplier");
+                entity.HasOne(s => s.Organization)
+                .WithMany()
+                .HasForeignKey(s => s.IdOrganization)
+                .OnDelete(DeleteBehavior.Restrict);
+            });
+            modelBuilder.Entity<SupplierMeetingEntity>(entity =>
+            {
+                entity.ToTable("supplier_meeting");
+                entity.HasOne(s => s.Supplier)
+                .WithMany()
+                .HasForeignKey(s => s.IdSupplier)
+                .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<OrganizationEntity>().HasQueryFilter(o => !o.IsDeleted);

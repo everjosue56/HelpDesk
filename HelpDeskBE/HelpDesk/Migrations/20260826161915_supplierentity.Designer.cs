@@ -4,6 +4,7 @@ using HelpDesk.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HelpDesk.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260826161915_supplierentity")]
+    partial class supplierentity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1790,20 +1793,6 @@ namespace HelpDesk.Migrations
                     b.HasIndex("IdSupplier");
 
                     b.ToTable("supplier_meeting", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1L,
-                            CreatedBy = 1L,
-                            CreatedDate = new DateTime(2026, 8, 26, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Empresa de red",
-                            Evidence = "PDF",
-                            IdSupplier = 1L,
-                            IsDeleted = false,
-                            MeetingDate = new DateTime(2026, 8, 26, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            ReasonWork = "Nuevas Actualizacones en el sistema."
-                        });
                 });
 
             modelBuilder.Entity("HelpDesk.Database.Entities.TicketEntity", b =>
@@ -2679,7 +2668,7 @@ namespace HelpDesk.Migrations
                     b.HasOne("HelpDesk.Database.Entities.SupplierEntity", "Supplier")
                         .WithMany()
                         .HasForeignKey("IdSupplier")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Supplier");

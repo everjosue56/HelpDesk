@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using DocumentFormat.OpenXml.Office.CustomUI;
 using HelpDesk.Database.Entities;
 using HelpDesk.Dtos.AgenciesDto;
 using HelpDesk.Dtos.AlertConfigurationDto;
@@ -18,6 +19,8 @@ using HelpDesk.Dtos.ResolutionDto;
 using HelpDesk.Dtos.RolesDto;
 using HelpDesk.Dtos.SoftwareSystemDto;
 using HelpDesk.Dtos.SolutionStateDto;
+using HelpDesk.Dtos.SupplierDto;
+using HelpDesk.Dtos.SupplierMeetingDto;
 using HelpDesk.Dtos.TicketDto;
 using HelpDesk.Dtos.TicketHistory;
 using HelpDesk.Dtos.TypeDevicesDto;
@@ -55,7 +58,8 @@ namespace HelpDesk.Herlpers
             MapsForNotificationHistory();
             MapsForAlerHistory();
             MapsForMaintenanceFrequency();
-
+            MapsForSupplier();
+            MapsForSupplierMeeting();
         }
 
         private void MapsForOrganization()
@@ -311,6 +315,21 @@ namespace HelpDesk.Herlpers
             CreateMap<MaintenanceFrequencyEntity, MaintenanceFrequencyDto>();
             CreateMap<CreateMaintenanceFrequencyDto, MaintenanceFrequencyEntity>();
             CreateMap<UpdateMaintenanceFrequecyDto, MaintenanceFrequencyEntity>(); 
+        }
+
+        private void MapsForSupplier() 
+        {
+            CreateMap<SupplierEntity, SupplierDto>()
+                .ForMember(dest => dest.OrganizationName, opt => opt.MapFrom(src => src.Organization.Name));
+            CreateMap<CreateSupplierDto, SupplierEntity>();
+            CreateMap<UpdateSupplierDto, SupplierEntity>();
+        }
+
+        private void MapsForSupplierMeeting() 
+        {
+            CreateMap<SupplierMeetingEntity, SupplierMeetingDto>();
+            CreateMap<CreateSupplierMeetingDto, SupplierMeetingEntity>();
+            CreateMap<UpdateSupplierMeetingDto, SupplierMeetingEntity>();
         }
    
     }

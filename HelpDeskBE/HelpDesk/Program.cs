@@ -39,6 +39,8 @@ using HelpDesk.Services.RolServices;
 using HelpDesk.Services.SlaService;
 using HelpDesk.Services.SoftwareSystemServices;
 using HelpDesk.Services.SolutionStateServices;
+using HelpDesk.Services.SupplientMeetingService;
+using HelpDesk.Services.SupplierService;
 using HelpDesk.Services.TicketExportService;
 using HelpDesk.Services.TicketHistoryService;
 using HelpDesk.Services.TicketHistoryServices;
@@ -52,6 +54,8 @@ using HelpDesk.Services.UserExportService;
 using HelpDesk.Services.UserServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -62,6 +66,18 @@ using System;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+const long MaxUploadRequestSize = 55 * 1024 * 1024;
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = MaxUploadRequestSize;
+});
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = MaxUploadRequestSize;
+});
 
 // 1. SERVICIOS DEL CONTENEDOR (Inyección de Dependencias)
 builder.Services.AddControllers();
@@ -114,6 +130,8 @@ builder.Services.AddScoped<ITicketExportService, TicketExportService>();
 builder.Services.AddScoped<IExportResolutionService, ResolutionExportService>();
 builder.Services.AddScoped<IAuditLogExportService, AuditLogExportService>();
 builder.Services.AddScoped<IUserExportService, UserExportService>();
+builder.Services.AddScoped<ISupplierService, SupplierService>();
+builder.Services.AddScoped<ISupplierMeetingService, SupplierMeetingService>();
 
 // Inyeccion de email 
 // Mapear la sección del appsettings.json a la clase EmailSettings
@@ -200,6 +218,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseStaticFiles();
 
 app.UseCors("HelpDeskCorsPolicy");
 
