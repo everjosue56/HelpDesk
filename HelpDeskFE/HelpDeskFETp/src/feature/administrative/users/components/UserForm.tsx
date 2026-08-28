@@ -107,7 +107,19 @@ export const UserForm: React.FC<UserFormProps> = ({
             </div>
 
             <Form {...form}>
-                <form onSubmit={form.handleSubmit((data) => onSubmit(data))} className="space-y-6">
+                <form
+                    onSubmit={form.handleSubmit((data) => {
+                        if (isEditMode) {
+                            const userData = { ...data };
+                            delete userData.password;
+                            void onSubmit(userData as UserFormValues);
+                            return;
+                        }
+
+                        void onSubmit(data);
+                    })}
+                    className="space-y-6"
+                >
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-5">
 
                         {/* Campo: Primer Nombre */}
@@ -225,49 +237,50 @@ export const UserForm: React.FC<UserFormProps> = ({
                         />
 
                         {/* Campo: Contraseña */}
-                        <FormField<UserFormValues>
-                            rules={{
-                                // Validamos la longitud solo si el usuario escribió algo
-                                minLength: {
-                                    value: 8,
-                                    message: "La contraseña debe tener al menos 8 caracteres"
-                                },
-                                pattern: {
-                                    value: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/,
-                                    message: "Debe incluir al menos una letra y un número"
-                                }
-                            }}
-                            name="password"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className="text-sm font-bold text-slate-700">
-                                        Contraseña {isEditMode ? '(Dejar vacío para mantener)' : ''}
-                                    </FormLabel>
-                                    <FormControl>
-                                        <div className="relative">
-                                            <Input
-                                                type={showPassword ? "text" : "password"}
-                                                placeholder={isEditMode ? "••••••••••••" : "Escriba una contraseña segura"}
-                                                {...field}
-                                                value={typeof field.value === 'string' ? field.value : ""}
-                                                className="rounded-xl border-gray-200 h-11 pl-5 pr-11 placeholder:text-gray-400 placeholder:font-normal"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowPassword((prev) => !prev)}
-                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-slate-600 cursor-pointer"
-                                                tabIndex={-1}
-                                            >
-                                                {/* 
-                                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                                */}
-                                            </button>
-                                        </div>
-                                    </FormControl>
-                                    <FormMessage className="text-xs text-red-500 font-medium" />
-                                </FormItem>
-                            )}
-                        />
+                        {!isEditMode && (
+                            <FormField<UserFormValues>
+                                rules={{
+                                    minLength: {
+                                        value: 8,
+                                        message: "La contraseña debe tener al menos 8 caracteres"
+                                    },
+                                    pattern: {
+                                        value: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/,
+                                        message: "Debe incluir al menos una letra y un número"
+                                    }
+                                }}
+                                name="password"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-sm font-bold text-slate-700">
+                                            Contraseña
+                                        </FormLabel>
+                                        <FormControl>
+                                            <div className="relative">
+                                                <Input
+                                                    type={showPassword ? "text" : "password"}
+                                                    placeholder="Escriba una contraseña segura"
+                                                    {...field}
+                                                    value={typeof field.value === 'string' ? field.value : ""}
+                                                    className="rounded-xl border-gray-200 h-11 pl-5 pr-11 placeholder:text-gray-400 placeholder:font-normal"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPassword((prev) => !prev)}
+                                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-slate-600 cursor-pointer"
+                                                    tabIndex={-1}
+                                                >
+                                                    {/* 
+                                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                    */}
+                                                </button>
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage className="text-xs text-red-500 font-medium" />
+                                    </FormItem>
+                                )}
+                            />
+                        )}
 
                         {/* ─── SELECTOR: ROL INSTITUCIONAL ─── */}
                         <FormField<UserFormValues>

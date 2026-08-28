@@ -1,7 +1,13 @@
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { FiHome, FiSettings, FiClipboard, FiRepeat, FiClock } from 'react-icons/fi';
-import { Laptop } from 'lucide-react';
+import React from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import {
+  FiHome,
+  FiSettings,
+  FiClipboard,
+  FiRepeat,
+  FiClock,
+} from "react-icons/fi";
+import { Laptop, Users } from "lucide-react";
 
 export const Sidebar: React.FC = () => {
   const navigate = useNavigate();
@@ -14,9 +20,9 @@ export const Sidebar: React.FC = () => {
         {
           name: "Inicio",
           path: "/dashboard",
-          icon: FiHome
+          icon: FiHome,
         },
-      ]
+      ],
     },
     {
       title: "INVENTARIO",
@@ -24,35 +30,39 @@ export const Sidebar: React.FC = () => {
         {
           name: "Dispositivos",
           path: "/dashboard/device",
-          icon: Laptop
+          icon: Laptop,
         },
         {
           name: "Mantenimiento",
           path: "/dashboard/maintenance",
-          icon: FiSettings
+          icon: FiSettings,
         },
         {
           name: "Historial de Mantenimiento",
           path: "/dashboard/maintenancehistory",
-          icon: FiClock
+          icon: FiClock,
         },
         {
           name: "Tipo de Dispositivo",
           path: "/dashboard/typedevice",
-          icon: FiClipboard
+          icon: FiClipboard,
         },
         {
           name: "Tipo Mantenimiento",
           path: "/dashboard/typemaintenance",
-          icon: FiRepeat
+          icon: FiRepeat,
         },
-      ]
-    }
+        {
+          name: "Proveedores",
+          path: "/dashboard/supplier",
+          icon: Users,
+        },
+      ],
+    },
   ];
 
   return (
     <aside className="w-64 bg-white border-r border-neutral-200 h-full flex flex-col select-none shrink-0 pt-4 font-sans">
-
       {/* Listado de Opciones*/}
       <nav className="flex-1 overflow-y-auto p-4 space-y-6 clean-scrollbar">
         {menuGroups.map((group, gIdx) => (
@@ -65,18 +75,22 @@ export const Sidebar: React.FC = () => {
                 const Icon = item.icon;
                 const isActive =
                   location.pathname === item.path ||
-                  (item.path !== '/dashboard' && location.pathname.startsWith(`${item.path}/`));
+                  (item.path !== "/dashboard" &&
+                    location.pathname.startsWith(`${item.path}/`));
 
                 return (
                   <button
                     key={iIdx}
                     onClick={() => navigate(item.path)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all cursor-pointer text-left focus:outline-none ${isActive
-                        ? 'bg-slate-100 text-[#1a558b]'
-                        : 'text-neutral-500 hover:bg-slate-50 hover:text-neutral-800'
-                      }`}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all cursor-pointer text-left focus:outline-none ${
+                      isActive
+                        ? "bg-slate-100 text-[#1a558b]"
+                        : "text-neutral-500 hover:bg-slate-50 hover:text-neutral-800"
+                    }`}
                   >
-                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#1a558b]' : 'text-neutral-400'}`} />
+                    <Icon
+                      className={`w-4 h-4 shrink-0 ${isActive ? "text-[#1a558b]" : "text-neutral-400"}`}
+                    />
                     <span>{item.name}</span>
                   </button>
                 );
@@ -95,7 +109,6 @@ export const Sidebar: React.FC = () => {
           HelpDesk v1.0.0 • Todos los derechos reservados
         </span>
       </div>
-
     </aside>
   );
 };

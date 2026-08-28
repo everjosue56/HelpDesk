@@ -3,11 +3,11 @@ import { useAuth } from "../../../../context/AuthContext";
 import { AXIOS_INSTANCE } from "../../../../api/axios-instance";
 import { getMaintenance } from "../../../../api/generated/maintenance/maintenance";
 import { getMaintenanceExport } from "../../../../api/generated/maintenance-export/maintenance-export";
-import type { 
-  CreateMaintenanceDto, 
-  UpdateMaintenanceDto, 
+import type {
+  CreateMaintenanceDto,
+  UpdateMaintenanceDto,
   RenewMaintenanceDto,
-  GetApiMaintenancesParams 
+  GetApiMaintenancesParams,
 } from "../../../../api/model";
 
 export interface MaintenanceItem {
@@ -27,7 +27,7 @@ export interface MaintenanceItem {
   deviceBrand: string;
   deviceFullDescription: string;
   createdDate: string;
-  title?: string; 
+  title?: string;
 }
 
 export interface MaintenanceCalendarEvent {
@@ -58,10 +58,10 @@ export const useMaintenances = (
   idDevice?: number | null,
   idFrequency?: number | null,
   dateFrom?: string | null,
-  dateTo?: string | null
+  dateTo?: string | null,
 ) => {
   const { isAuthenticated } = useAuth();
-  
+
   const [maintenances, setMaintenances] = useState<MaintenanceItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [totalCount, setTotalCount] = useState<number>(0);
@@ -70,12 +70,14 @@ export const useMaintenances = (
   const [isFetching, setIsFetching] = useState<boolean>(false);
 
   // Estado para el catálogo de Frecuencias de Mantenimiento
-  const [frequencies, setFrequencies] = useState<MaintenanceFrequencyItem[]>([]);
-  const [isLoadingFrequencies, setIsLoadingFrequencies] = useState<boolean>(false);
+  const [frequencies, setFrequencies] = useState<MaintenanceFrequencyItem[]>(
+    [],
+  );
+  const [isLoadingFrequencies, setIsLoadingFrequencies] =
+    useState<boolean>(false);
 
   void idFrequency;
 
-  
   const maintenanceService = useMemo(() => getMaintenance(AXIOS_INSTANCE), []);
   const exportService = useMemo(() => getMaintenanceExport(AXIOS_INSTANCE), []);
 
@@ -97,17 +99,22 @@ export const useMaintenances = (
       };
 
       const response = await maintenanceService.getApiMaintenances(params);
-      
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const backendResponse = response.data as any;
       const rawData = backendResponse?.data || [];
       const serverTotalItems = backendResponse?.totalItems || 0;
 
       const formattedData: MaintenanceItem[] = Array.isArray(rawData)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ? rawData.map((item: any) => ({
+        ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          rawData.map((item: any) => ({
             id: item.id || 0,
-            details: item.details || item.detail || item.description || item.observation || "Sin detalles",
+            details:
+              item.details ||
+              item.detail ||
+              item.description ||
+              item.observation ||
+              "Sin detalles",
             notificationDate: item.notificationDate || "",
             completionDate: item.completionDate || "",
             executionTime: item.executionTime || 0,
@@ -115,18 +122,19 @@ export const useMaintenances = (
             maintenanceTypeName: item.maintenanceTypeName || "N/A",
             idArea: item.idArea || 0,
             areaName: item.areaName || "N/A",
-            idMaintenanceFrequency: item.idMaintenanceFrequency ?? item.idFrequency ?? 0,
-            frequencyName: 
-              item.frequencyName || 
-              item.maintenanceFrequencyName || 
-              item.maintenanceFrequency?.name || 
-              item.frequency?.name || 
+            idMaintenanceFrequency:
+              item.idMaintenanceFrequency ?? item.idFrequency ?? 0,
+            frequencyName:
+              item.frequencyName ||
+              item.maintenanceFrequencyName ||
+              item.maintenanceFrequency?.name ||
+              item.frequency?.name ||
               "N/A",
             idDevice: item.idDevice || 0,
             deviceCode: item.deviceCode || "N/A",
             deviceBrand: item.deviceBrand || "N/A",
             deviceFullDescription: item.deviceFullDescription || "N/A",
-            createdDate: item.createdDate || "N/A"
+            createdDate: item.createdDate || "N/A",
           }))
         : [];
 
@@ -137,31 +145,47 @@ export const useMaintenances = (
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated, keyword, page, pageSize, idMaintenanceType, idArea, idDevice, dateFrom, dateTo, maintenanceService]);
+  }, [
+    isAuthenticated,
+    keyword,
+    page,
+    pageSize,
+    idMaintenanceType,
+    idArea,
+    idDevice,
+    dateFrom,
+    dateTo,
+    maintenanceService,
+  ]);
 
   // 2. Obtener catálogo de Frecuencias de Mantenimiento
   const fetchFrequencies = useCallback(async () => {
     if (!isAuthenticated) return;
     try {
       setIsLoadingFrequencies(true);
-      const response = await AXIOS_INSTANCE.get('/api/maintenance-frequencies');
-  
+      const response = await AXIOS_INSTANCE.get("/api/maintenance-frequencies");
+
       const rawData = response.data?.data || response.data || [];
 
       if (Array.isArray(rawData)) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const formatted: MaintenanceFrequencyItem[] = rawData.map((item: any) => ({
-          id: item.id || 0,
-          name: item.name || "Sin nombre",
-          daysInterval: item.daysInterval || 0,
-          createdDate: item.createdDate,
-        }));
+        const formatted: MaintenanceFrequencyItem[] = rawData.map(
+          (item: any) => ({
+            id: item.id || 0,
+            name: item.name || "Sin nombre",
+            daysInterval: item.daysInterval || 0,
+            createdDate: item.createdDate,
+          }),
+        );
         setFrequencies(formatted);
       } else {
         setFrequencies([]);
       }
     } catch (error) {
-      console.error("Error al obtener las frecuencias de mantenimiento:", error);
+      console.error(
+        "Error al obtener las frecuencias de mantenimiento:",
+        error,
+      );
       setFrequencies([]);
     } finally {
       setIsLoadingFrequencies(false);
@@ -169,87 +193,119 @@ export const useMaintenances = (
   }, [isAuthenticated]);
 
   // 3. Obtener un mantenimiento individual por ID
-  const getMaintenanceById = useCallback(async (id: number): Promise<MaintenanceItem | null> => {
-    try {
-      setIsFetching(true);
-      const response = await maintenanceService.getApiMaintenancesId(id);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const backendResponse = response.data as any;
-      const item = backendResponse?.data || backendResponse;
+  const getMaintenanceById = useCallback(
+    async (id: number): Promise<MaintenanceItem | null> => {
+      try {
+        setIsFetching(true);
+        const response = await maintenanceService.getApiMaintenancesId(id);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const backendResponse = response.data as any;
+        const item = backendResponse?.data || backendResponse;
 
-      if (!item) {
+        if (!item) {
+          setMaintenance(null);
+          return null;
+        }
+
+        const formatted: MaintenanceItem = {
+          id: item.id || 0,
+          details:
+            item.details ||
+            item.detail ||
+            item.description ||
+            item.observation ||
+            "",
+          notificationDate: item.notificationDate || "",
+          completionDate: item.completionDate || "",
+          executionTime: item.executionTime || 0,
+          idMaintenanceType: item.idMaintenanceType || 0,
+          maintenanceTypeName: item.maintenanceTypeName || "",
+          idArea: item.idArea || 0,
+          areaName: item.areaName || "",
+          idMaintenanceFrequency:
+            item.idMaintenanceFrequency ?? item.idFrequency ?? 0,
+          frequencyName:
+            item.title ||
+            item.frequencyName ||
+            item.maintenanceFrequencyName ||
+            item.maintenanceFrequency?.name ||
+            item.frequency?.name ||
+            "N/A",
+          idDevice: item.idDevice || 0,
+          deviceCode: item.deviceCode || "",
+          deviceBrand: item.deviceBrand || "",
+          deviceFullDescription: item.deviceFullDescription || "",
+          createdDate: item.createdDate || "",
+        };
+
+        setMaintenance(formatted);
+        return formatted;
+      } catch (error) {
+        console.error(
+          `Error al obtener detalle del mantenimiento ${id}:`,
+          error,
+        );
         setMaintenance(null);
         return null;
+      } finally {
+        setIsFetching(false);
       }
-
-      const formatted: MaintenanceItem = {
-        id: item.id || 0,
-        details: item.details || item.detail || item.description || item.observation || "",
-        notificationDate: item.notificationDate || "",
-        completionDate: item.completionDate || "",
-        executionTime: item.executionTime || 0,
-        idMaintenanceType: item.idMaintenanceType || 0,
-        maintenanceTypeName: item.maintenanceTypeName || "",
-        idArea: item.idArea || 0,
-        areaName: item.areaName || "",
-        idMaintenanceFrequency: item.idMaintenanceFrequency ?? item.idFrequency ?? 0,
-        frequencyName: 
-          item.title || 
-          item.frequencyName || 
-          item.maintenanceFrequencyName || 
-          item.maintenanceFrequency?.name || 
-          item.frequency?.name || 
-          "N/A",
-        idDevice: item.idDevice || 0,
-        deviceCode: item.deviceCode || "",
-        deviceBrand: item.deviceBrand || "",
-        deviceFullDescription: item.deviceFullDescription || "",
-        createdDate: item.createdDate || ""
-      };
-
-      setMaintenance(formatted);
-      return formatted;
-    } catch (error) {
-      console.error(`Error al obtener detalle del mantenimiento ${id}:`, error);
-      setMaintenance(null);
-      return null;
-    } finally {
-      setIsFetching(false);
-    }
-  }, [maintenanceService]);
+    },
+    [maintenanceService],
+  );
 
   // 4. Obtener eventos para la vista de Calendario
-  const getMaintenanceCalendar = useCallback(async (year?: number, month?: number): Promise<MaintenanceCalendarEvent[]> => {
-    try {
-      const response = await AXIOS_INSTANCE.get('/api/maintenances/calendar', {
-        params: { year, month }
-      });
- 
-      const rawData = response.data?.data || response.data || [];
+  const getMaintenanceCalendar = useCallback(
+    async (
+      year?: number,
+      month?: number,
+    ): Promise<MaintenanceCalendarEvent[]> => {
+      try {
+        const response = await AXIOS_INSTANCE.get(
+          "/api/maintenances/calendar",
+          {
+            params: { year, month },
+          },
+        );
 
-      if (!Array.isArray(rawData)) return [];
+        const rawData = response.data?.data || response.data || [];
 
-      return rawData.map((event: any) => ({
-        id: event.id || 0,
-        title: event.title || event.details || event.deviceName || "Mantenimiento Preventivo",
-        start: event.start || event.notificationDate || "",
-        end: event.end || event.completionDate || "",
-        details: event.details || event.title || event.description || "Sin detalles adicionales",
-        deviceName: event.deviceName || event.deviceCode || "Dispositivo N/A",
-        frequencyName: 
-          event.frequencyName || 
-          event.maintenanceFrequencyName || 
-          event.frequency?.name || 
-          "N/A",
-        color: event.color || null,
-        status: event.status || null,
-      }));
+        if (!Array.isArray(rawData)) return [];
 
-    } catch (error) {
-      console.error("Error al obtener el calendario de mantenimientos:", error);
-      return [];
-    }
-  }, []);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return rawData.map((event: any) => ({
+          id: event.id || 0,
+          title:
+            event.title ||
+            event.details ||
+            event.deviceName ||
+            "Mantenimiento Preventivo",
+          start: event.start || event.notificationDate || "",
+          end: event.end || event.completionDate || "",
+          details:
+            event.details ||
+            event.title ||
+            event.description ||
+            "Sin detalles adicionales",
+          deviceName: event.deviceName || event.deviceCode || "Dispositivo N/A",
+          frequencyName:
+            event.frequencyName ||
+            event.maintenanceFrequencyName ||
+            event.frequency?.name ||
+            "N/A",
+          color: event.color || null,
+          status: event.status || null,
+        }));
+      } catch (error) {
+        console.error(
+          "Error al obtener el calendario de mantenimientos:",
+          error,
+        );
+        return [];
+      }
+    },
+    [],
+  );
 
   // 5. Mutaciones CRUD y Acciones Especiales
   const createMaintenance = async (dto: CreateMaintenanceDto) => {
@@ -303,7 +359,7 @@ export const useMaintenances = (
       setIsLoading(false);
     }
   };
- 
+
   const downloadExcel = async () => {
     try {
       const response = await exportService.getApiMaintenancesExportExportExcel(
@@ -335,11 +391,14 @@ export const useMaintenances = (
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Error al exportar Excel desde el cliente de Orval:", error);
+      console.error(
+        "Error al exportar Excel desde el cliente de Orval:",
+        error,
+      );
       throw error;
     }
   };
-  
+
   // Efecto reactivo para refrescar datos al cambiar filtros
   useEffect(() => {
     let isMounted = true;
