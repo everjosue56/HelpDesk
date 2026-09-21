@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { X, Save, Wrench } from 'lucide-react';
 import { Input } from '../../../../../@/components/ui/input';
 import { Button } from '../../../../../@/components/ui/button';
 import { useSupportCatalogs } from '../../tickets/hooks/useSupportCatalogs';
 import { useDevices } from '../../../inventory/devices/hooks/useDevices';
-import { AXIOS_INSTANCE } from '../../../../api/axios-instance';
 import {
     Form,
     FormControl,
@@ -47,13 +46,10 @@ export const ResolutionForm: React.FC<ResolutionFormProps> = ({
     isSubmitting = false,
 }) => {
     const isEditMode = !!initialData?.id;
-    const [isLoadingStatuses, setIsLoadingStatuses] = useState(false);
-
-
     const { priorities } = useSupportCatalogs();
     const { devices, isLoading: isLoadingDevices } = useDevices('', 1, 100);
     const { tickets } = useTickets('', 1, 100);
-    const { solutionStatuses } = useSolutionStatuses();
+    const { solutionStatuses, isLoadingStatuses } = useSolutionStatuses();
 
     const form = useForm<ResolutionFormValues>({
         mode: 'onBlur',
@@ -70,22 +66,6 @@ export const ResolutionForm: React.FC<ResolutionFormProps> = ({
             solutionTimeMinutes: initialData?.solutionTime ? String(Math.round(initialData.solutionTime * 60)) : '',
         },
     });
-
-    useEffect(() => {
-        const fetchStatuses = async () => {
-            try {
-                setIsLoadingStatuses(true);
-                const response = await AXIOS_INSTANCE.get('/api/solution-statuses');
-                const resData = response.data?.data || response.data?.Data || response.data || [];
-                setIsLoadingStatuses(resData);
-            } catch (error) {
-                console.error("Error cargando los estados de solución:", error);
-            } finally {
-                setIsLoadingStatuses(false);
-            }
-        };
-        fetchStatuses();
-    }, []);
 
     useEffect(() => {
         const isCatalogReady = priorities?.length && devices?.length && solutionStatuses?.length && tickets?.length;
@@ -106,7 +86,7 @@ export const ResolutionForm: React.FC<ResolutionFormProps> = ({
         }
     }, [initialData, form, priorities, devices, solutionStatuses, tickets]);
 
-    const handleLocalSubmit = (values: ResolutionFormValues) => {
+    const handleLocalSubmit = async (values: ResolutionFormValues) => {
         const rawDevice = values.idDevice;
         const processedPayload = {
             ...values,
@@ -116,12 +96,10 @@ export const ResolutionForm: React.FC<ResolutionFormProps> = ({
             idDevice: (rawDevice !== null && rawDevice !== undefined && String(rawDevice).trim() !== "" && String(rawDevice) !== "0" && String(rawDevice) !== "null" && Number(rawDevice) !== 0)
                 ? Number(rawDevice)
                 : null,
-            solutionTime: Number(values.solutionTimeMinutes)
+            solutionTime: Number(values.solutionTimeMinutes) 
         };
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        delete (processedPayload as any).solutionTimeMinutes;
-        onSubmit(processedPayload);
+        await onSubmit(processedPayload);
     };
 
     if (!tickets || tickets.length === 0) {

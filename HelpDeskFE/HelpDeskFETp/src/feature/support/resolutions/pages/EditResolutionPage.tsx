@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useResolutions } from '../hooks/useResolutions';
 import { ResolutionForm } from '../components/ResolutionForm';
+import type { ResolutionFormValues } from '../components/ResolutionForm';
 import { toast } from "sonner";
 
 export const EditResolutionPage: React.FC = () => {
@@ -57,11 +58,10 @@ export const EditResolutionPage: React.FC = () => {
 
         loadResolution();
     }, [id, getResolutionById, navigate]);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const handleSubmit = async (values: any) => {
+    const handleSubmit = async (values: ResolutionFormValues & { solutionTime: number }) => {
         if (!id) return;
         try {
-            await updateResolution(Number(id), {
+            const payload = {
                 idTicket: Number(values.idTicket),
                 actionTaken: values.actionTaken,
                 idSolutionStatus: Number(values.idSolutionStatus),
@@ -72,15 +72,29 @@ export const EditResolutionPage: React.FC = () => {
                 idPriority: Number(values.idPriority),
                 idDevice: (values.idDevice && values.idDevice !== 0 && values.idDevice !== "0")
                     ? Number(values.idDevice)
-                    : undefined,
+                    : null,
                 solutionTime: Number(values.solutionTime)
-            });
+            };
+
+            console.log("Payload de actualización de resolución:", payload);
+            await updateResolution(Number(id), payload);
 
             toast.success("Registro de resolución modificado con éxito");
             navigate('/dashboard/resolutions');
-        } catch (error) {
+        } catch (error: unknown) {
             console.error(error);
+            const responseData = (error as { response?: { data?: unknown } }).response?.data;
+            const serverMessage = typeof responseData === "string"
+                ? responseData
+                : responseData && typeof responseData === "object"
+                    ? String(
+                        (responseData as Record<string, unknown>).message ??
+                        (responseData as Record<string, unknown>).title ??
+                        "El servidor rechazó los datos enviados.",
+                    )
+                    : "El servidor rechazó los datos enviados.";
             toast.error("Error al guardar los cambios en la resolución");
+            toast.error(serverMessage);
         }
     };
 

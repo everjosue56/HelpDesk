@@ -289,6 +289,15 @@ namespace HelpDesk.Services
                 };
             }
 
+            entity.IdTicket = dto.IdTicket;
+            entity.ActionTaken = dto.ActionTaken;
+            entity.IdSolutionStatus = dto.IdSolutionStatus;
+            entity.RootCause = dto.RootCause;
+            entity.PreventiveMeasures = dto.PreventiveMeasures;
+            entity.Observation = dto.Observation;
+            entity.SecondObservation = dto.SecondObservation;
+            entity.IdPriority = dto.IdPriority;
+            entity.IdDevice = dto.IdDevice;
             entity.SolutionTime = dto.SolutionTime / 60m;
             entity.UpdatedDate = DateTime.Now;
             entity.UpdatedBy = currentUserId;
