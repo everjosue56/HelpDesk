@@ -19,6 +19,9 @@ import {
     SelectValue,
 } from '../../../../../@/components/ui/select';
 import type { UserFormValues } from '../hooks/userSchema';
+import { getServerFieldErrors } from '../utils/userServerErrors';
+
+type UserFieldName = 'firstName' | 'lastName' | 'userName' | 'email';
 
 interface CatalogItem {
     id: number;
@@ -31,6 +34,7 @@ interface UserFormProps {
     agencies: CatalogItem[];
     areas: CatalogItem[];
     onSubmit: (data: UserFormValues) => Promise<void>;
+    checkUserExists?: (field: 'userName' | 'email', value: string, currentId?: number) => Promise<boolean>;
     onCancel: () => void;
     isSubmitting?: boolean;
 }
@@ -41,12 +45,16 @@ export const UserForm: React.FC<UserFormProps> = ({
     agencies,
     areas,
     onSubmit,
+    checkUserExists,
     onCancel,
     isSubmitting = false,
 }) => {
     const isEditMode = !!initialData?.id;
     const [showPassword, setShowPassword] = useState(false);
     const form = useForm<UserFormValues>({
+        mode: "onBlur",
+        reValidateMode: "onChange",
+        shouldFocusError: true,
         defaultValues: {
             firstName: "",
             lastName: "",
@@ -108,15 +116,30 @@ export const UserForm: React.FC<UserFormProps> = ({
 
             <Form {...form}>
                 <form
-                    onSubmit={form.handleSubmit((data) => {
-                        if (isEditMode) {
-                            const userData = { ...data };
-                            delete userData.password;
-                            void onSubmit(userData as UserFormValues);
-                            return;
-                        }
+                    onSubmit={form.handleSubmit(async (data) => {
+                        try {
+                            if (isEditMode) {
+                                const userData = { ...data };
+                                delete userData.password;
+                                await onSubmit(userData as UserFormValues);
+                                return;
+                            }
 
-                        void onSubmit(data);
+                            await onSubmit(data);
+                        } catch (error) {
+                            const fieldErrors = getServerFieldErrors(error);
+
+                            Object.entries(fieldErrors).forEach(([field, message]) => {
+                                if (message) {
+                                    form.setError(field as UserFieldName, {
+                                        type: 'server',
+                                        message,
+                                    });
+                                }
+                            });
+
+                            throw error;
+                        }
                     })}
                     className="space-y-6"
                 >
@@ -167,13 +190,27 @@ export const UserForm: React.FC<UserFormProps> = ({
 
                         {/* Campo: Nombre de Usuario */}
                         <FormField<UserFormValues>
-                            rules={{ required: "El nombre de usuario es obligatorio"
-                                , maxLength: { value: 50, message: "El nombre de usuario no puede exceder los 50 caracteres" }
-                             }}
+                            rules={{
+                                required: "El nombre de usuario es obligatorio",
+                                minLength: { value: 4, message: "El nombre de usuario debe tener al menos 4 caracteres" },
+                                maxLength: { value: 50, message: "El nombre de usuario no puede exceder los 50 caracteres" },
+                                pattern: {
+                                    value: /^[a-zA-Z0-9_.]+$/,
+                                    message: "Solo se permiten letras, números, guion bajo y punto"
+                                },
+                                validate: async (value) => {
+                                    if (!checkUserExists || typeof value !== 'string' || !value) return true;
+                                    if (isEditMode && value.trim().toLowerCase() === initialData?.userName?.trim().toLowerCase()) {
+                                        return true;
+                                    }
+                                    const exists = await checkUserExists('userName', value, initialData?.id);
+                                    return !exists || "Este nombre de usuario ya está registrado";
+                                },
+                            }}
                             name="userName"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-sm font-bold text-slate-700">Nombre de Usuario (@)</FormLabel>
+                                    <FormLabel className="text-sm font-bold text-slate-700">Nombre de Usuario</FormLabel>
                                     <FormControl>
                                         <Input
                                             placeholder="Ej. juanPerez01"
@@ -216,7 +253,15 @@ export const UserForm: React.FC<UserFormProps> = ({
                                 pattern: {
                                     value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                                     message: "Formato de correo inválido"
-                                }
+                                },
+                                validate: async (value) => {
+                                    if (!checkUserExists || typeof value !== 'string' || !value) return true;
+                                    if (isEditMode && value.trim().toLowerCase() === initialData?.email?.trim().toLowerCase()) {
+                                        return true;
+                                    }
+                                    const exists = await checkUserExists('email', value, initialData?.id);
+                                    return !exists || "Este correo electrónico ya está registrado";
+                                },
                             }}
                             name="email"
                             render={({ field }) => (
@@ -240,13 +285,18 @@ export const UserForm: React.FC<UserFormProps> = ({
                         {!isEditMode && (
                             <FormField<UserFormValues>
                                 rules={{
+                                    required: !isEditMode ? "La contraseña es obligatoria" : false,
                                     minLength: {
                                         value: 8,
                                         message: "La contraseña debe tener al menos 8 caracteres"
                                     },
+                                    maxLength: {
+                                        value: 100,
+                                        message: "La contraseña no puede exceder los 100 caracteres"
+                                    },
                                     pattern: {
-                                        value: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/,
-                                        message: "Debe incluir al menos una letra y un número"
+                                        value: /^(?=.*[A-Za-z])(?=.*\d).{8,}$/,
+                                        message: "Debe incluir al menos una letra y un número; también puede contener símbolos"
                                     }
                                 }}
                                 name="password"

@@ -22,6 +22,7 @@ interface BackendLoginResponse {
     agencyName: string;
     isActive: boolean;
     token: string;
+    refreshToken?: string;
   };
 }
 
@@ -68,18 +69,22 @@ export const useLoginForm = () => {
         const fullName =
           `${userData.firstName || ""} ${userData.lastName || ""}`.trim();
 
-        login(userData.token, {
-          id: userData.id,
-          username: fullName || userData.userName,
-          email: userData.email || formData.email,
-          roles:
-            userData.roleName === "Administrador" ||
-            userData.roleName === "TI" ||
-            userData.roleName === "Cliente"
-              ? [userData.roleName]
-              : ["Cliente"],
-          permissions: [],
-        });
+        login(
+          userData.token,
+          {
+            id: userData.id,
+            username: fullName || userData.userName,
+            email: userData.email || formData.email,
+            roles:
+              userData.roleName === "Administrador" ||
+              userData.roleName === "TI" ||
+              userData.roleName === "Cliente"
+                ? [userData.roleName]
+                : ["Cliente"],
+            permissions: [],
+          },
+          userData.refreshToken,
+        );
 
         navigate("/dashboard");
       } else {

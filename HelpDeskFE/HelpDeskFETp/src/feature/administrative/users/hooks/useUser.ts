@@ -95,7 +95,8 @@ export const useUsers = (
       setUsers(formattedData);
       setTotalCount(serverTotalItems);
     } catch (error) {
-      console.error("Error al cargar usuarios mediante Orval:", error);
+      console.error("Error al cargar usuarios mediante Orval:");
+      throw error; 
     } finally {
       setIsLoading(false);
     }
@@ -148,7 +149,8 @@ export const useUsers = (
         setUser(formatted);
         return formatted;
       } catch (error) {
-        console.error(`Error al obtener detalle de usuario ${id}:`, error);
+        console.error(`Error al obtener detalle de usuario`,);
+        throw error;
         setUser(null);
         return null;
       } finally {
@@ -187,7 +189,7 @@ export const useUsers = (
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Error al exportar resumen de usuarios a Excel:", error);
+      console.error("Error al exportar resumen de usuarios a Excel:");
       throw error;
     }
   };
@@ -200,7 +202,7 @@ export const useUsers = (
       await userService.postApiUsersRegister(dto);
       await fetchUsers();
     } catch (error) {
-      console.error("Error al registrar el usuario:", error);
+      console.error("Error al registrar el usuario:");
       throw error;
     } finally {
       setIsLoading(false);
@@ -213,12 +215,37 @@ export const useUsers = (
       await userService.putApiUsersId(id, dto);
       await fetchUsers();
     } catch (error) {
-      console.error("Error al actualizar el usuario:", error);
+      console.error("Error al actualizar el usuario:");
       throw error;
     } finally {
       setIsLoading(false);
     }
   };
+
+  const checkUserExists = useCallback(async (field: "userName" | "email", value: string, currentId?: number) => {
+    const response = await userService.getApiUsers({
+      Keyword: value.trim(),
+      PageNumber: 1,
+      PageSize: 100,
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const backendResponse = response.data as any;
+    const results = Array.isArray(backendResponse?.data)
+      ? backendResponse.data
+      : Array.isArray(backendResponse)
+        ? backendResponse
+        : [];
+
+    return results.some((item: UserItem) => {
+      if (currentId && Number(item.id) === currentId) {
+        return false;
+      }
+
+      const itemValue = item[field];
+      return typeof itemValue === "string" && itemValue.trim().toLowerCase() === value.trim().toLowerCase();
+    });
+  }, [userService]);
 
   const deleteUser = async (id: number) => {
     try {
@@ -226,7 +253,7 @@ export const useUsers = (
       await userService.deleteApiUsersId(id);
       await fetchUsers();
     } catch (error) {
-      console.error("Error al desactivar el usuario:", error);
+      console.error("Error al desactivar el usuario:");
       throw error;
     } finally {
       setIsLoading(false);
@@ -261,6 +288,7 @@ export const useUsers = (
     getUserById,
     createUser,
     updateUser,
+    checkUserExists,
     deleteUser,
     refresh: fetchUsers,
     downloadExcel

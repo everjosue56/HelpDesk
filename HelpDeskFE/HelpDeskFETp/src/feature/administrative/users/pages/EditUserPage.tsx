@@ -14,7 +14,7 @@ export const EditUserPage: React.FC = () => {
   const navigate = useNavigate();
   const userId = Number(id);
 
-  const { user, isFetching, isLoading, getUserById, updateUser } = useUsers('', null, null, null, null, 1, 5);
+  const { user, isFetching, isLoading, getUserById, updateUser, checkUserExists } = useUsers('', null, null, null, null, 1, 5);
 
   const { roles = [] } = useRoles();
 
@@ -153,6 +153,7 @@ export const EditUserPage: React.FC = () => {
           name: item.nameArea
         }))}
         onSubmit={handleSubmit}
+        checkUserExists={checkUserExists}
         onCancel={() => navigate('/dashboard/users')}
         isSubmitting={isLoading}
       />

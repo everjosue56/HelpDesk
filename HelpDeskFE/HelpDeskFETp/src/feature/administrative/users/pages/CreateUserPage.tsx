@@ -5,13 +5,14 @@ import { useRoles } from '../../roles/hooks/useRoles';
 import { useAgencies } from '../../agencies/hooks/useAgencies';
 import { useAreas } from '../../areas/hooks/useAreas';
 import { UserForm } from '../components/UserForm';
+import { getUserServerErrorMessage } from '../utils/userServerErrors';
 import { type UserFormValues } from '../hooks/userSchema';
 import { toast } from "sonner";
 
 export const CreateUserPage: React.FC = () => {
   const navigate = useNavigate();
 
-  const { createUser, isLoading } = useUsers('', null, null, null, null, 1, 100);
+  const { createUser, checkUserExists, isLoading } = useUsers('', null, null, null, null, 1, 100);
 
   const { roles = [] } = useRoles();
   const { agencies = [] } = useAgencies('', '', 1, 100);
@@ -39,8 +40,9 @@ export const CreateUserPage: React.FC = () => {
       navigate('/dashboard/users');
     } catch (error) {
       console.error(error);
+      const serverMessage = getUserServerErrorMessage(error);
       toast.error("No se pudo registrar el usuario", {
-        description: "Hubo un problema. Inténtalo de nuevo.",
+        description: serverMessage || "El servidor rechazó los datos enviados.",
       });
     }
   };
@@ -75,6 +77,7 @@ export const CreateUserPage: React.FC = () => {
           name: item.nameArea || item.name || 'Sin nombre'
         }))}
         onSubmit={handleSubmit}
+        checkUserExists={checkUserExists}
         onCancel={() => navigate('/dashboard/users')}
         isSubmitting={isLoading}
       />

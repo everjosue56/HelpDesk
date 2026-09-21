@@ -16,7 +16,7 @@ interface UserSession {
 interface AuthContextType {
   user: UserSession | null;
   isAuthenticated: boolean;
-  login: (token: string, userData: UserSession) => void;
+  login: (token: string, userData: UserSession, refreshToken?: string) => void;
   logout: () => void;
   isLoading: boolean;
   getInitials: () => string;
@@ -40,14 +40,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(false);
   }, []);
 
-  const login = (token: string, userData: UserSession) => {
+  const login = (token: string, userData: UserSession, refreshToken?: string) => {
     localStorage.setItem('token', token);
+    if (refreshToken) {
+      localStorage.setItem('refreshToken', refreshToken);
+    }
     localStorage.setItem('user_session', JSON.stringify(userData));
     setUser(userData);
   };
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('user_session');
     setUser(null);
   };

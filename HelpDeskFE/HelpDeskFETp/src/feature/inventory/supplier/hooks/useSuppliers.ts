@@ -22,7 +22,9 @@ export interface SupplierItem {
   createdDate?: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const unwrap = (value: unknown): any => (value as any)?.data ?? value;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapSupplier = (item: any): SupplierItem => ({
   id: item?.id ?? 0,
   idOrganization: item?.idOrganization ?? 0,
@@ -52,6 +54,7 @@ export const useSuppliers = (
   const [isFetching, setIsFetching] = useState(false);
 
   const refresh = useCallback(async () => {
+    await Promise.resolve();
     setIsLoading(true);
     try {
       const response = await service.getApiSupplier({
@@ -59,6 +62,7 @@ export const useSuppliers = (
         PageNumber: page,
         PageSize: pageSize,
       });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const payload: any = response.data;
       const rows = Array.isArray(payload?.data)
         ? payload.data
@@ -102,7 +106,11 @@ export const useSuppliers = (
   };
 
   useEffect(() => {
-    void refresh();
+    const timeoutId = window.setTimeout(() => {
+      void refresh();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [refresh]);
   return {
     suppliers,

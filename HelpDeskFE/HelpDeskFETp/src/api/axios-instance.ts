@@ -68,6 +68,10 @@ AXIOS_INSTANCE.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem("refreshToken");
 
+        if (!refreshToken) {
+          throw new Error("No existe refresh token guardado");
+        }
+
         // El backend espera el refresh token como una string serializada como JSON en el body
         const response = await axios.post(
           `${import.meta.env.VITE_API_BASE_URL}/api/users/refresh-token`,
@@ -76,17 +80,19 @@ AXIOS_INSTANCE.interceptors.response.use(
             headers: {
               "Content-Type": "application/json",
             },
-          }
+          },
         );
 
-        // Extraemos los tokens del objeto 'data' dentro de la respuesta (ResponseDto<TokenDto>)
-        const { token: newAccessToken, refreshToken: newRefreshToken } =
-          response.data.data;
+        const payload = response.data?.data ?? response.data ?? {};
+        const newAccessToken = payload.token ?? payload.accessToken ?? payload.access_token;
+        const newRefreshToken = payload.refreshToken ?? payload.refresh_token ?? refreshToken;
+
+        if (!newAccessToken) {
+          throw new Error("La respuesta del refresh no incluye un token nuevo");
+        }
 
         localStorage.setItem("token", newAccessToken);
-        if (newRefreshToken) {
-          localStorage.setItem("refreshToken", newRefreshToken);
-        }
+        localStorage.setItem("refreshToken", newRefreshToken);
 
         // Reconfiguramos la petición original que había fallado con el nuevo token
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
