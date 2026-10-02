@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../feature/notifications/hooks/useNotifications';
 import { Avatar, AvatarFallback } from '../../@/components/ui/avatar';
-import { FiBell, FiHeadphones, FiUser, FiHelpCircle, FiLogOut, FiMessageSquare } from 'react-icons/fi';
+import { FiBell, FiHeadphones, FiUser, FiHelpCircle, FiLogOut, FiMessageSquare, FiChevronDown } from 'react-icons/fi';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,13 +15,95 @@ import {
 import { Button } from '../../@/components/ui/button';
 import { UserProfileModal } from '@/feature/home/components/UserProfileModal';
 
+const modules = [
+  {
+    name: 'Administración',
+    items: [
+      { label: 'Inicio', path: '/dashboard' },
+      { label: 'Organizaciones', path: '/dashboard/organizations' },
+      { label: 'Agencias', path: '/dashboard/agencies' },
+      { label: 'Áreas', path: '/dashboard/areas' },
+      { label: 'Usuarios', path: '/dashboard/users' },
+      { label: 'Roles', path: '/dashboard/roles' },
+    ],
+  },
+  {
+    name: 'Soporte',
+    items: [
+      { label: 'Tickets', path: '/dashboard/tickets' },
+      { label: 'Resoluciones', path: '/dashboard/resolutions' },
+      { label: 'Historial', path: '/dashboard/tickethistories' },
+      { label: 'Tipos de error', path: '/dashboard/typeerror' },
+      { label: 'Sistemas afectados', path: '/dashboard/softwaresystem' },
+    ],
+  },
+  {
+    name: 'Inventario',
+    items: [
+      { label: 'Dispositivos', path: '/dashboard/device' },
+      { label: 'Mantenimiento', path: '/dashboard/maintenance' },
+      { label: 'Historial de mantenimiento', path: '/dashboard/maintenancehistory' },
+      { label: 'Tipos de dispositivo', path: '/dashboard/typedevice' },
+      { label: 'Tipos de mantenimiento', path: '/dashboard/typemaintenance' },
+      { label: 'Proveedores', path: '/dashboard/supplier' },
+    ],
+  },
+  {
+    name: 'Notificaciones',
+    items: [
+      { label: 'Centro de alertas', path: '/dashboard/notifications' },
+      { label: 'Tipos de alerta', path: '/dashboard/alerttypes' },
+      { label: 'Configuración', path: '/dashboard/alertconfiguration' },
+    ],
+  },
+  {
+    name: "Indicadores",
+    items: [
+      {label: "Metas generales" , path: "/dashboard/sla"},
+      {label: "Metas por agencias", path: "/dashboard/agencieskpi"},
+      {label: "Metas por ares", path: "/dashboard/areaskpi"},
+      {label: "Rendimiento Técnico", path: "/dashboard/technicialkpi"},
+      {label: "Metas de mantenimiento", path: "/dashboard/maintenancekpi"}
+    ]
+  }
+];
+
 export const Navbar: React.FC = () => {
   const { user, getInitials, logout } = useAuth();
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [openModule, setOpenModule] = useState<string | null>(null);
+  const closeModuleTimer = useRef<number | null>(null);
 
   const userIdActual = user?.id ? Number(user.id) : null;
 const { notifications, unreadCount, markAsRead } = useNotifications(userIdActual ?? 0);
+  const roles = (user?.roles ?? []).map((role) => role.toLowerCase());
+  const canSeeModules = roles.includes('ti') || roles.includes('administrador');
+
+  const openModuleMenu = (moduleName: string) => {
+    if (closeModuleTimer.current) {
+      window.clearTimeout(closeModuleTimer.current);
+      closeModuleTimer.current = null;
+    }
+    setOpenModule(moduleName);
+  };
+
+  const closeModuleMenu = (moduleName: string) => {
+    if (closeModuleTimer.current) {
+      window.clearTimeout(closeModuleTimer.current);
+    }
+    closeModuleTimer.current = window.setTimeout(() => {
+      setOpenModule((current) => (current === moduleName ? null : current));
+    }, 120);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (closeModuleTimer.current) {
+        window.clearTimeout(closeModuleTimer.current);
+      }
+    };
+  }, []);
 
   const primaryRole = user && user.roles.length > 0 ? user.roles[0] : "Usuario";
 
@@ -45,6 +127,51 @@ const { notifications, unreadCount, markAsRead } = useNotifications(userIdActual
         </div>
         <span className="text-2xl font-black text-[#1a558b] tracking-wider">HELPDESK</span>
       </div>
+
+      {/* menu navbar  */}
+      {canSeeModules && (
+        <div className="hidden lg:flex items-center gap-2 relative">
+          {modules.map((module) => (
+            <div
+              key={module.name}
+              className="relative"
+              onMouseEnter={() => openModuleMenu(module.name)}
+              onMouseLeave={() => closeModuleMenu(module.name)}
+            >
+              <button
+                type="button"
+                onClick={() => setOpenModule((current) => current === module.name ? null : module.name)}
+                className="flex items-center gap-2 px-3 py-2 text-sm font-bold text-neutral-600 hover:text-[#1a558b] transition-colors rounded-lg hover:bg-slate-50 cursor-pointer"
+              >
+                <span>{module.name}</span>
+                <FiChevronDown className={`w-4 h-4 transition-transform ${openModule === module.name ? 'rotate-180' : ''}`} />
+              </button>
+
+              {openModule === module.name && (
+                <div
+                  className="absolute left-0 top-full mt-2 w-64 rounded-xl border border-neutral-200 bg-white shadow-lg z-50 p-2"
+                  onMouseEnter={() => openModuleMenu(module.name)}
+                  onMouseLeave={() => closeModuleMenu(module.name)}
+                >
+                  {module.items.map((item) => (
+                    <button
+                      key={item.path}
+                      type="button"
+                      onClick={() => {
+                        navigate(item.path);
+                        setOpenModule(null);
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm font-medium text-neutral-700 hover:text-[#1a558b] hover:bg-slate-50 rounded-lg transition-colors cursor-pointer"
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Lado Derecho: Alertas y Usuario Conectado */}
       <div className="flex items-center gap-6">
