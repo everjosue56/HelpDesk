@@ -7,6 +7,7 @@ import {
   Clock,
   Download,
   Edit,
+  Eye,
   FileText,
   Mail,
   MapPin,
@@ -30,6 +31,15 @@ import {
   type SupplierMeetingFormValues,
 } from "../components/SupplierMeetingForm";
 import type { CreateSupplierMeetingDto } from "../../../../api/model";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../../../../../@/components/ui/dialog";
 
 export const SupplierDetailsPage: React.FC = () => {
   const { id } = useParams();
@@ -44,6 +54,7 @@ export const SupplierDetailsPage: React.FC = () => {
     updateMeeting,
     deleteMeeting,
     uploadEvidence,
+    getEvidence,
     downloadEvidence,
   } = useSupplierMeetings(supplierId);
 
@@ -51,6 +62,18 @@ export const SupplierDetailsPage: React.FC = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [meetingToDelete, setMeetingToDelete] = useState<SupplierMeetingItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [preview, setPreview] = useState<{
+    url: string;
+    filename: string;
+    isPreviewable: boolean;
+    isImage: boolean;
+  } | null>(null);
+  const [previewLoadingId, setPreviewLoadingId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!preview?.url) return;
+    return () => URL.revokeObjectURL(preview.url);
+  }, [preview?.url]);
 
   useEffect(() => {
     if (supplierId) void getSupplierById(supplierId);
@@ -90,6 +113,33 @@ export const SupplierDetailsPage: React.FC = () => {
       toast.error("Error al eliminar la reunión");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handlePreviewEvidence = async (meeting: SupplierMeetingItem) => {
+    try {
+      setPreviewLoadingId(meeting.id);
+      const blob = await getEvidence(meeting.id);
+      const extension = meeting.evidence.split(".").pop()?.toLowerCase();
+      const isPdf = blob.type === "application/pdf" || extension === "pdf";
+      const isImage = blob.type.startsWith("image/") ||
+        ["png", "jpg", "jpeg", "gif", "webp", "bmp"].includes(extension || "");
+      const mimeType = isPdf
+        ? "application/pdf"
+        : isImage
+          ? blob.type || `image/${extension === "jpg" ? "jpeg" : extension}`
+          : blob.type;
+      const previewBlob = mimeType ? new Blob([blob], { type: mimeType }) : blob;
+      setPreview({
+        url: URL.createObjectURL(previewBlob),
+        filename: meeting.evidence,
+        isPreviewable: isPdf || isImage,
+        isImage,
+      });
+    } catch {
+      toast.error("No se pudo cargar la vista previa del archivo");
+    } finally {
+      setPreviewLoadingId(null);
     }
   };
 
@@ -374,6 +424,19 @@ export const SupplierDetailsPage: React.FC = () => {
                       {meeting.evidence && (
                         <button
                           type="button"
+                          title="Vista previa del archivo adjunto"
+                          disabled={previewLoadingId === meeting.id}
+                          onClick={() => void handlePreviewEvidence(meeting)}
+                          className="inline-flex items-center gap-1.5 px-3 h-8.5 rounded-xl text-xs font-bold text-[#1a558b] bg-slate-50 hover:bg-[#1a558b]/10 border border-gray-200 shadow-none transition-all duration-200 cursor-pointer disabled:opacity-60"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                          <span>{previewLoadingId === meeting.id ? "Cargando..." : "Vista previa"}</span>
+                        </button>
+                      )}
+
+                      {meeting.evidence && (
+                        <button
+                          type="button"
                           title="Descargar evidencia adjunta"
                           onClick={() => downloadEvidence(meeting.id, meeting.evidence!)}
                           className="inline-flex items-center gap-1.5 px-3 h-8.5 rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50/80 hover:bg-emerald-100 border border-emerald-200/60 shadow-none transition-all duration-200 cursor-pointer"
@@ -423,6 +486,68 @@ export const SupplierDetailsPage: React.FC = () => {
       )}
 
       {/* Modal de Confirmación para Eliminar Reunión */}
+      <Dialog open={!!preview} onOpenChange={(open) => !open && setPreview(null)}>
+        <DialogContent className="fixed! inset-0! left-0! top-0! h-dvh! max-h-dvh! w-screen! max-w-none! translate-x-0! translate-y-0! grid-rows-[auto_minmax(0,1fr)_auto] gap-3 rounded-none! p-3 sm:p-5">
+          <DialogHeader>
+            <DialogTitle className="pr-8 normal-case tracking-normal">
+              Vista previa del archivo
+            </DialogTitle>
+            <DialogDescription className="break-all">
+              {preview?.filename}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex min-h-0 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+            {preview?.isPreviewable && preview.isImage ? (
+              <img
+                src={preview.url}
+                alt={preview.filename}
+                className="max-h-full max-w-full object-contain"
+              />
+            ) : preview?.isPreviewable ? (
+              <iframe
+                src={preview.url}
+                title={`Vista previa: ${preview.filename}`}
+                className="h-full w-full border-0"
+              />
+            ) : (
+              <div className="space-y-3 px-6 text-center">
+                <FileText className="mx-auto h-10 w-10 text-slate-400" />
+                <p className="text-sm font-semibold text-slate-700">
+                  Este formato no se puede mostrar en vista previa.
+                </p>
+                <p className="text-xs text-slate-500">
+                  Puedes descargarlo para abrirlo en una aplicación compatible.
+                </p>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="flex-row justify-end">
+            {!preview?.isPreviewable && preview && (
+              <button
+                type="button"
+                onClick={() => {
+                  const link = document.createElement("a");
+                  link.href = preview.url;
+                  link.download = preview.filename || "evidencia";
+                  link.click();
+                }}
+                className="inline-flex h-9 items-center gap-2 rounded-lg bg-[#1a558b] px-3 text-xs font-bold text-white hover:bg-[#133f67]"
+              >
+                <Download className="h-4 w-4" /> Descargar
+              </button>
+            )}
+            <DialogClose asChild>
+              <button
+                type="button"
+                className="inline-flex h-9 items-center rounded-lg border border-slate-200 px-3 text-xs font-bold text-slate-700 hover:bg-slate-50"
+              >
+                Cerrar
+              </button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {meetingToDelete && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl border border-gray-100 animate-fadeIn">

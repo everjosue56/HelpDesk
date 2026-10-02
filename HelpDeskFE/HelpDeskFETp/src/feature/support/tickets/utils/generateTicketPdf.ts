@@ -154,7 +154,7 @@ export const downloadTicketPdf = (ticket: any) => {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
   doc.setTextColor(71, 85, 105);
-  doc.text('Firma de Técnico Atendente', margin + 18, yFirmas + 4);
+  doc.text('Firma de Técnico Encargado ', margin + 18, yFirmas + 4);
 
   // Firma 2: Usuario Solicitante
   doc.line(pageWidth - margin - 70, yFirmas, pageWidth - margin - 10, yFirmas);

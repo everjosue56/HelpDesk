@@ -82,16 +82,19 @@ export const useSupplierMeetings = (supplierId?: number) => {
     await service.postApiSupplierMeetingIdUploadEvidence(id, { file });
     await refresh();
   };
-  const downloadEvidence = async (id: number, filename: string) => {
+  const getEvidence = async (id: number) => {
     const response = await service.getApiSupplierMeetingIdDownloadEvidence(id, {
       responseType: "blob",
     });
-    const url = URL.createObjectURL(response.data as any);
+    return response.data as unknown as Blob;
+  };
+  const downloadEvidence = async (id: number, filename: string) => {
+    const url = URL.createObjectURL(await getEvidence(id));
     const link = document.createElement("a");
     link.href = url;
     link.download = filename || "evidencia";
     link.click();
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
   useEffect(() => {
     void refresh();
@@ -105,6 +108,7 @@ export const useSupplierMeetings = (supplierId?: number) => {
     updateMeeting,
     deleteMeeting,
     uploadEvidence,
+    getEvidence,
     downloadEvidence,
   };
 };
